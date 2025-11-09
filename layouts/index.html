@@ -1,0 +1,16 @@
+{{ define "main" }}
+{{ $hero := .Param "hero" }}
+{{ $img := cond (resources.GetMatch $hero) (resources.GetMatch $hero) nil }}
+{{ $bg := cond $img ($img.Resize "2400x") nil }}
+
+<section class="hero" style="background-image: url('{{ with $bg }}{{ .RelPermalink }}{{ else }}/{{ $hero }}{{ end }}');">
+    {{ partial "header.html" . }}
+
+    <div class="hero-content">
+        <p>{{ .Site.Params.description }}</p>
+        <button id="scroll-down" class="scroll-btn" aria-label="Learn more">
+            Learn more
+        </button>
+    </div>
+</section>
+{{ end }}

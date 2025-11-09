@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{ .Title }} - {{ .Site.Title }}</title>
+
+    <!-- Site-wide header/nav styles -->
+    <link rel="stylesheet" href="/css/site-header.css">
+
+    {{ if .IsHome }}
+    <!-- homepage-specific styles -->
+    <link rel="stylesheet" href="/css/homepage-header.css">
+    <link rel="stylesheet" href="/css/homepage.css">
+    {{ end }}
+
+    <!-- other global styles -->
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+{{ partial "header.html" . }}
+
+<main id="content">
+    {{ block "main" . }}{{ end }}
+</main>
+
+<!-- Load scroll script only on home (optional) -->
+{{ if .IsHome }}
+<script src="/js/scroll.js" defer></script>
+{{ end }}
+</body>
+</html>

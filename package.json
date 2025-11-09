@@ -1,0 +1,28 @@
+
+{
+  "name": "himanjal_folio",
+  "version": "1.0.0",
+  "description": "Personal Hugo site to showcase media portfolio",
+  "scripts": {
+    "clean": "rimraf public",
+    "dev": "hugo server -D",
+    "clean_dev": "npm run clean && npm run dev",
+    "serve": "hugo server --bind 0.0.0.0 --baseURL=http://192.168.1.4:1313/ -D --disableFastRender --renderToDisk",
+    "serve:clean": "npm run clean && npm run serve",
+    "build": "npm run clean && hugo --minify"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "hugo",
+    "static-site",
+    "live-reload",
+    "portfolio"
+  ],
+  "author": "Himanjal Sharma",
+  "license": "MIT"
+}

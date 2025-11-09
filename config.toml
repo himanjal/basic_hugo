@@ -1,0 +1,10 @@
+baseURL = "http://himanjal.com"
+languageCode = "en-us"
+title = "Himanjal"
+theme = ""
+publishDir = "public"
+enableRobotsTXT = true
+
+[params]
+  author = "Himanjal"
+  description = "A minimal Hugo site"

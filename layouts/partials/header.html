@@ -1,0 +1,23 @@
+{{/* layouts/partials/header.html */}}
+
+{{ if .IsHome }}
+<header class="home-header">
+    <div class="home-header-inner">
+        <div class="hero-title-wrap">
+            <h1 class="hero-title">{{ .Site.Title }}</h1>
+<!--            <div class="hero-underline" aria-hidden="true"></div>-->
+        </div>
+    </div>
+</header>
+{{ else }}
+<header class="site-header">
+    <div class="wrap header-inner">
+        <a class="brand" href="/">{{ .Site.Title }}</a>
+        <nav class="main-nav">
+            <a href="/">Home</a>
+            <a href="/about/">About</a>
+            <a href="/gallery/">Gallery</a>
+        </nav>
+    </div>
+</header>
+{{ end }}
