@@ -4,9 +4,18 @@
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 30;
+    z-index: 50;
     pointer-events: none;
+
+    /* ✨ Soft frame shadow */
+/*    box-shadow: 0 0 15px rgba(255,255,255,0.1);*/
+/*    animation: headerGlow 3s ease-in-out infinite alternate;*/
+/*}*/
+/*@keyframes headerGlow {*/
+/*    0% { box-shadow: 0 0 15px rgba(255,255,255,0.1); }*/
+/*    100% { box-shadow: 0 0 30px rgba(255,255,255,0.3); }*/
 }
+
 
 .home-header-inner {
     position: relative;

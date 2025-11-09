@@ -1,0 +1,196 @@
+/* === Homepage 3x3 modular grid === */
+
+.hero-grid-wrap {
+    position: absolute;       /* full-bleed container inside hero */
+    left: 0;
+    right: 0;
+    top: 0;                   /* adjust if you want grid lower: top: 20vh; or use bottom */
+    bottom: 0;
+    width: 100vw;             /* guarantee viewport width */
+    height: 100%;             /* allow grid to fill hero vertical space if desired */
+    display: flex;
+    align-items: center;      /* center grid vertically; change as needed */
+    justify-content: center;  /* center grid horizontally within full-width area */
+    pointer-events: auto;
+    z-index: 20;
+    box-sizing: border-box;
+    padding: 0;               /* control edge spacing via .home-grid padding if needed */
+}
+
+/* make grid fill the wrapper width */
+.home-grid {
+    width: 100%;
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: 1fr;
+    gap: clamp(1rem, 2vw, 2rem);
+    padding: clamp(1rem, 2vw, 2rem); /* inner gutter */
+    box-sizing: border-box;
+}
+
+/* keep squares */
+.grid-item {
+    aspect-ratio: 4/3;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    box-sizing: border-box;
+    background: rgba(255,255,255,0);  /* start fully transparent */
+    border-radius: 12px;
+    color: rgba(255,255,255,0);       /* hide text until hover */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 1rem;
+    overflow: hidden;
+    cursor: default;
+    transition:
+            opacity 0.1s ease,
+            background 0.1s ease,
+            color 0.1s ease,
+            transform 0.1s ease,
+            box-shadow 0.1s ease,
+            backdrop-filter 0.1s ease;
+    opacity: 0; /* invisible by default */
+}
+
+/*!* Subtle hover animation *!*/
+/*.grid-item:hover {*/
+/*    opacity: 1;*/
+/*    background: rgba(255,255,255,0.05);*/
+/*    color: rgba(255,255,255,0.9);*/
+/*    transform: scale(1.04);*/
+/*    box-shadow: 0 12px 30px rgba(0,0,0,0.45);*/
+/*    backdrop-filter: blur(8px);*/
+/*}*/
+
+/*!* When not hovered, slow fade out *!*/
+/*.home-grid:hover .grid-item {*/
+/*    opacity: 0;*/
+/*    background: rgba(255,255,255,0);*/
+/*    color: rgba(255,255,255,0);*/
+/*}*/
+
+/* Buttons inside */
+.grid-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.14);
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    color: rgba(255,255,255,0);
+    transition: background 0.1s ease, color 0.1s ease, transform 0.1s ease;
+}
+.grid-btn:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-3px);
+}
+
+/* Thumbnail style */
+.thumb-module img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.1s ease, transform 0.1s ease;
+}
+/*.thumb-module:hover img {*/
+/*    opacity: 1;*/
+/*    !*transform: scale(1.05);*!*/
+/*}*/
+
+/* Text module formatting */
+.text-module h2 {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+}
+.text-module p {
+    font-size: 1rem;
+    opacity: 1;
+}
+
+
+/* Update sizing based on screen size*/
+/* Responsive */
+@media (max-width: 960px) {
+    .home-grid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: auto;
+    }
+}
+@media (max-width: 640px) {
+    .home-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    .grid-item {
+        aspect-ratio: auto;          /* allow natural height but still bounded */
+        min-height: clamp(180px, 35vh, 400px);  /* keeps items tall enough for text/images */
+        max-height: 70vh;            /* stops ultra-tall images */
+        width: 100%;
+        height: auto;
+    }
+    /* Optional: give image modules stricter control */
+    .thumb-module img {
+        aspect-ratio: 4 / 3;         /* consistent photo look */
+        min-height: 180px;
+        max-height: 70vh;
+        object-fit: cover;
+    }
+}
+
+
+
+/* --- Hover states --- */
+
+/* When hovering over the whole grid: all items remain transparent */
+.home-grid:hover .grid-item {
+    opacity: 0;
+    background: rgba(255,255,255,0);
+    color: rgba(255,255,255,0);
+}
+
+/* But when hovering an individual item — fade it in */
+.grid-item:hover {
+    opacity: 1;
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.9);
+    transform: scale(1.04);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+    backdrop-filter: blur(8px);
+}
+
+/* Inside hovered item — fade in inner elements */
+.grid-item:hover img {
+    opacity: 1;
+    transform: scale(1.05);
+}
+.grid-item:hover .grid-btn {
+    color: #fff;
+    background: rgba(255,255,255,0.12);
+}
+
+/* Optional: keyboard focus behaves like hover */
+.grid-item:focus-within,
+.grid-item:focus {
+    opacity: 1;
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.9);
+    transform: scale(1.02);
+    box-shadow: 0 10px 26px rgba(0,0,0,0.4);
+    backdrop-filter: blur(6px);
+}
+
+/* Smooth entrance animation (optional) */
+.grid-item {
+    animation: gridFadeIn 700ms ease forwards;
+    animation-delay: calc(var(--i, 0) * 0.07s);
+}
+@keyframes gridFadeIn {
+    from { opacity: 0; transform: scale(0.98); }
+    to   { opacity: 0; transform: scale(1); } /* keep 0 opacity, since hover controls visibility */
+}

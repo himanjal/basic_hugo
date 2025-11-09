@@ -2,14 +2,14 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:1313/about/</loc>
+    <loc>https://himanjal.com/about/</loc>
   </url><url>
-    <loc>http://localhost:1313/categories/</loc>
+    <loc>https://himanjal.com/categories/</loc>
   </url><url>
-    <loc>http://localhost:1313/gallery/</loc>
+    <loc>https://himanjal.com/gallery/</loc>
   </url><url>
-    <loc>http://localhost:1313/</loc>
+    <loc>https://himanjal.com/</loc>
   </url><url>
-    <loc>http://localhost:1313/tags/</loc>
+    <loc>https://himanjal.com/tags/</loc>
   </url>
 </urlset>
