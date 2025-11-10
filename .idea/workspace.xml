@@ -5,56 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f05ca5eb-f1c3-441c-9aa5-3c3847477f1e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/assets/images/logo_2.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/logo.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/hugo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/hugo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/layouts/_default/baseof.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/_default/baseof.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/layouts/partials/nav.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/nav.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/about/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/about/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/categories/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/categories/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/categories/index.xml" beforeDir="false" afterPath="$PROJECT_DIR$/public/categories/index.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/css/gallery.css" beforeDir="false" afterPath="$PROJECT_DIR$/public/css/gallery.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/css/homepage-grid.css" beforeDir="false" afterPath="$PROJECT_DIR$/public/css/homepage-grid.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/public/css/styles.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/css/nav.css" beforeDir="false" afterPath="$PROJECT_DIR$/public/css/nav.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/gallery/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/gallery/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/gallery/index.xml" beforeDir="false" afterPath="$PROJECT_DIR$/public/gallery/index.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/19.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/19_hu_e048324fc4fd57eb.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/20.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/20_hu_28c3aec0e525e3b3.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/22.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/22_hu_16512f146b7eb580.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/4.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/4_hu_7120f676c7a9f623.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/5.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/5_hu_74cecbf485d33385.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/7.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/7_hu_37c16c602e4a6d0f.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/hero.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/hero_hu_778eaff63804dbaf.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/logo.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/logo_hu_c0f10c000ad4ec6b.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/public/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/index.xml" beforeDir="false" afterPath="$PROJECT_DIR$/public/index.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/js/backup/backdrop-repaint.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/js/backup/hero-willchange-toggle.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/tags/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/tags/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/tags/index.xml" beforeDir="false" afterPath="$PROJECT_DIR$/public/tags/index.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/gallery.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/gallery.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/homepage-grid.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/homepage-grid.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/00-variables.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/00-variables.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/01-reset-base.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/01-reset-base.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/02-layout.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/02-layout.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/03-grid.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/03-grid.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/04-grid-item.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/04-grid-item.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/05-components.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/05-components.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/06-hero-intro.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/06-hero-intro.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/07-responsive.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/07-responsive.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/08-fallbacks.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/08-fallbacks.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/09-utilities.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/09-utilities.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/styles.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/nav.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/nav.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
