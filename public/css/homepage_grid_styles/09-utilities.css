@@ -1,0 +1,4 @@
+/* 09-utilities.css — small helpful utilities */
+.u-hidden { display:none !important; }
+.u-center { display:flex; align-items:center; justify-content:center; }
+.debug-outline * { outline: 1px dashed rgba(255,0,0,0.2); }

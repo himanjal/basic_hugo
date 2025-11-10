@@ -1,0 +1,12 @@
+/* 02-layout.css — wrappers, stacking contexts */
+.hero-grid-wrap {
+  position: absolute; left:0; right:0;
+  top: var(--hero-top-offset);
+  width:100vw;
+  height: calc(100vh - var(--hero-top-offset));
+  max-height: calc(100vh - var(--hero-top-offset));
+  display:flex; align-items:stretch; justify-content:center;
+  padding:0; box-sizing:border-box; z-index:20; pointer-events:auto; overflow:hidden;
+  isolation: isolate; /* essential for backdrop-filter sampling */
+  -webkit-transform: translateZ(0); transform: translateZ(0);
+}

@@ -1,0 +1,12 @@
+/* 08-fallbacks.css — feature detection & accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .hero-intro-title, .hero-intro-subtitle { transition:none !important; }
+  .hero-intro-subtitle.typing::after { display:none; animation:none; }
+}
+
+/* When JS detects no support for backdrop-filter it adds body.no-backdrop */
+body.no-backdrop .grid-item.hero-intro {
+  background: rgba(255,255,255,0.08) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}

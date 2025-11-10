@@ -5,14 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f05ca5eb-f1c3-441c-9aa5-3c3847477f1e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/basic_hugo.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/basic_hugo.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/layouts/_default/baseof.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/_default/baseof.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/layouts/partials/homepage-grid.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/homepage-grid.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/about/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/about/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/categories/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/categories/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/css/homepage-grid.css" beforeDir="false" afterPath="$PROJECT_DIR$/public/css/homepage-grid.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/gallery/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/gallery/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/index.xml" beforeDir="false" afterPath="$PROJECT_DIR$/public/index.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/tags/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/tags/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/static/css/homepage-grid.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/homepage-grid.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -43,7 +43,7 @@
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
     "git-widget-placeholder": "main",
     "junie.onboarding.icon.badge.shown": "true",
-    "last_opened_file_path": "/Users/himanjal/Documents/github/basic_hugo/static/css",
+    "last_opened_file_path": "/Users/himanjal/Documents/github/basic_hugo/static/css/homepage_grid_styles",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -55,6 +55,7 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/static/css/homepage_grid_styles" />
       <recent name="$PROJECT_DIR$/static/css" />
     </key>
   </component>
@@ -72,7 +73,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1762701702063</updated>
-      <workItem from="1762701703225" duration="28251000" />
+      <workItem from="1762701703225" duration="31040000" />
     </task>
     <servers />
   </component>
