@@ -1,5 +1,6 @@
 /* static/css/gallery.css
-   Gallery page styles: full-bleed featured scroller + hover-overlay thumbnails
+   Gallery page styles — updated: flat full-bleed scroller pinned to top-left,
+   no gaps between images, no shadow/border (flat)
 */
 
 /* Basic layout */
@@ -14,7 +15,7 @@
 /* Header (title/subtitle above scroller) */
 .gallery-header {
     text-align: center;
-    margin-bottom: 0.75rem; /* tighter spacing above scroller */
+    margin-bottom: 0.75rem;
 }
 .gallery-title {
     font-family: "Inter", system-ui, sans-serif;
@@ -28,20 +29,22 @@
     font-size: 0.95rem;
 }
 
-/* === Featured scroller section === */
-/* full-bleed: span entire viewport width, no left/right gaps */
+/* === Featured scroller section (FLAT + pinned) === */
+/* full-bleed: span entire viewport width, pinned to top-left of viewport */
 .featured-scroller-wrap {
-    position: relative;
+    position: fixed;      /* pinned to viewport */
+    top: 0;
+    left: 0;
     width: 100vw;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
-
-    margin-top: calc(-1 * var(--site-header-height));
-    margin-bottom: clamp(1.25rem, 3vh, 2rem);
+    height: auto;        /* will size based on slides' min-height */
+    z-index: 0;          /* behind headers that have higher z-index */
+    pointer-events: auto;
     overflow: hidden;
 }
+
+/* If your header isn't above the scroller, give header a higher z-index:
+   .site-header, .home-header { position: relative; z-index: 10; }
+   (I didn't change header styles here — set this in your header css if needed.) */
 
 /* scroller */
 .featured-scroller {
@@ -50,51 +53,71 @@
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    gap: 0;
+    gap: 0; /* NO gaps between images */
     align-items: stretch;
     scroll-behavior: smooth;
     scrollbar-width: none;
+    padding: 0; /* no padding — slides touch edges */
+    margin: 0;
 }
 .featured-scroller::-webkit-scrollbar { display: none; }
 
-/* slides: full viewport width each */
+/* slides: full viewport width each, no internal padding, flat */
 .featured-scroller .slide {
-    flex: 0 0 100vw;
+    flex: 0 0 100vw;             /* exactly viewport width */
     scroll-snap-align: start;
     position: relative;
     box-sizing: border-box;
     display: block;
     min-height: clamp(260px, 40vw, 520px);
+    padding: 0;                  /* remove inner padding */
+    border-radius: 0;            /* no rounding */
+    background: transparent;     /* flat */
+    border: none;                /* remove border */
+    box-shadow: none;            /* remove shadow (flat) */
+    transition: none;            /* no hover lift */
 }
 
-/* image fill */
+/* images fill the slide and touch edges (bleed) */
 .featured-scroller .slide img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-    border-radius: 0; /* remove rounding to fully bleed edge */
+    border-radius: 0;
+    margin: 0;
+    box-shadow: none;
 }
 
-/* caption (optional, still supported) */
+/* if you previously used .slide-inner, keep it neutral */
+.featured-scroller .slide .slide-inner {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+
+/* caption (optional) — positioned over image, unaffected */
 .slide-caption {
     position: absolute;
     left: clamp(18px, 4vw, 48px);
     bottom: clamp(18px, 4vw, 48px);
     color: #fff;
     text-shadow: 0 8px 28px rgba(0,0,0,0.55);
+    pointer-events: none;
 }
 .slide-caption h2 {
     margin: 0;
     font-size: clamp(20px, 3.5vw, 36px);
 }
 
-/* navigation circles (smaller + just below scroller) */
+/* navigation circles (if used) */
 .scroller-controls {
     display: flex;
     justify-content: center;
-    margin-top: 0.5rem; /* just below scroller */
+    margin-top: 0.5rem;
     gap: 6px;
+    position: relative; /* keep below scroller in DOM flow */
 }
 .scroller-dot {
     width: 6px;
@@ -110,7 +133,7 @@
     transform: scale(1.25);
 }
 
-/* === Thumbnails grid === */
+/* === Thumbnails grid (unchanged) === */
 .thumb-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -119,7 +142,6 @@
     margin-top: 1rem;
 }
 
-/* thumbnail cards — no visible text until hover */
 .thumb {
     position: relative;
     display: block;
@@ -135,8 +157,6 @@
     transform: translateY(-4px);
     box-shadow: 0 10px 26px rgba(0,0,0,0.35);
 }
-
-/* image fills the card */
 .thumb-image img {
     width: 100%;
     height: 180px;
@@ -144,8 +164,6 @@
     display: block;
     transition: transform .25s ease, filter .25s ease;
 }
-
-/* overlay text hidden until hover */
 .thumb-overlay {
     position: absolute;
     inset: 0;
@@ -158,10 +176,7 @@
     font-size: 1rem;
     opacity: 0;
     background: rgba(0,0,0,0.35);
-    transition: opacity .25s ease, background .25s ease;
 }
-
-/* on hover: darken image and show overlay */
 .thumb:hover .thumb-overlay {
     opacity: 1;
     background: rgba(0,0,0,0.55);

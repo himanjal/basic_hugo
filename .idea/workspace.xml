@@ -5,90 +5,56 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f05ca5eb-f1c3-441c-9aa5-3c3847477f1e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/assets/images/gallery/drone/25.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/images/gallery/drone/26.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/images/gallery/fujifilm/42.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/images/gallery/fujifilm/44.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/images/gallery/iPhone/48.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/images/gallery/iPhone/52.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/images/gallery/iPhone/56.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/layouts/gallery/list.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/css/gallery.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/images/4_hu_6c44b13792eae141.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/images/featured/4_hu_fcf48fca2f65def7.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/images/featured/5_hu_6307106f5a721e.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/images/featured/7_hu_f354d60377324a6f.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/images/gallery/drone/22_hu_c67d37470abae19c.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/images/gallery/fujifilm/42_hu_80985a90488179fe.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/images/gallery/iphone/48_hu_4682c37f7256a686.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/js/gallery-scroller.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/js/site-header.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/js/theme-toggle.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resources/_gen/images/images/4_hu_6c44b13792eae141.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resources/_gen/images/images/featured/4_hu_fcf48fca2f65def7.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resources/_gen/images/images/featured/5_hu_6307106f5a721e.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resources/_gen/images/images/featured/7_hu_f354d60377324a6f.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resources/_gen/images/images/gallery/drone/22_hu_c67d37470abae19c.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resources/_gen/images/images/gallery/fujifilm/42_hu_80985a90488179fe.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resources/_gen/images/images/gallery/iphone/48_hu_4682c37f7256a686.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/css/gallery.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/js/gallery-scroller.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/js/site-header.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/js/theme-toggle.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/images/logo_2.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/content/gallery/_index.md" beforeDir="false" afterPath="$PROJECT_DIR$/content/gallery/_index.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/images/logo.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/hugo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/hugo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/layouts/_default/baseof.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/_default/baseof.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/layouts/partials/header-site.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/header-site.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/layouts/partials/header.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/layouts/partials/homepage-grid.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/homepage-grid.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/layouts/shortcodes/gallery.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/layouts/partials/nav.html" beforeDir="false" afterPath="$PROJECT_DIR$/layouts/partials/nav.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/about/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/about/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/categories/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/categories/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/css/homepage-grid_old.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/css/homepage-grid_old_working.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/css/site-header.css" beforeDir="false" afterPath="$PROJECT_DIR$/public/css/site-header.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/categories/index.xml" beforeDir="false" afterPath="$PROJECT_DIR$/public/categories/index.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/css/gallery.css" beforeDir="false" afterPath="$PROJECT_DIR$/public/css/gallery.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/css/homepage-grid.css" beforeDir="false" afterPath="$PROJECT_DIR$/public/css/homepage-grid.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/public/css/styles.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/gallery/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/gallery/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/gallery/index.xml" beforeDir="false" afterPath="$PROJECT_DIR$/public/gallery/index.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/images/19.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/19_hu_f6286eb5276db11e.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/20.jpeg" beforeDir="false" afterPath="$PROJECT_DIR$/assets/images/gallery/fujifilm/9.jpeg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/20_hu_423df64dbf20fe3c.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/22.jpeg" beforeDir="false" afterPath="$PROJECT_DIR$/assets/images/gallery/drone/22.jpeg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/22_hu_ab069bcd50ab9855.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/4.jpeg" beforeDir="false" afterPath="$PROJECT_DIR$/assets/images/featured/4.jpeg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/4_hu_263b4730a34e6477.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/5.jpeg" beforeDir="false" afterPath="$PROJECT_DIR$/assets/images/featured/5.jpeg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/5_hu_4f38dad8939b39f0.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/7.jpeg" beforeDir="false" afterPath="$PROJECT_DIR$/assets/images/featured/7.jpeg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/7_hu_963c8d78974f4afe.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/hero.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/assets/images/gallery/drone/24.jpeg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/hero_hu_23d620cb4ed4f8c1.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/hero_hu_538a865879f8bdfb.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/hero_hu_bd6dc7aa2cd637f3.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/hero_hu_bf3e7f01e96e497f.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/images/logo_hu_8699f61a945bdcf8.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/images/19_hu_e048324fc4fd57eb.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/images/20.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/images/20_hu_28c3aec0e525e3b3.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/images/22.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/images/22_hu_16512f146b7eb580.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/images/4.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/images/4_hu_7120f676c7a9f623.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/images/5.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/images/5_hu_74cecbf485d33385.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/images/7.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/images/7_hu_37c16c602e4a6d0f.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/images/hero.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/images/hero_hu_778eaff63804dbaf.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/images/logo.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/images/logo_hu_c0f10c000ad4ec6b.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/public/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/index.xml" beforeDir="false" afterPath="$PROJECT_DIR$/public/index.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/js/backdrop-repaint.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/js/hero-willchange-toggle.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/sitemap.xml" beforeDir="false" afterPath="$PROJECT_DIR$/public/sitemap.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/js/backup/backdrop-repaint.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/js/backup/hero-willchange-toggle.js" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/public/tags/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/tags/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/_gen/images/images/19_hu_f6286eb5276db11e.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/_gen/images/images/20_hu_423df64dbf20fe3c.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/_gen/images/images/22_hu_ab069bcd50ab9855.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/_gen/images/images/4_hu_263b4730a34e6477.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/_gen/images/images/5_hu_4f38dad8939b39f0.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/_gen/images/images/7_hu_963c8d78974f4afe.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/_gen/images/images/hero_hu_23d620cb4ed4f8c1.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/_gen/images/images/hero_hu_538a865879f8bdfb.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/_gen/images/images/hero_hu_bd6dc7aa2cd637f3.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/_gen/images/images/hero_hu_bf3e7f01e96e497f.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/_gen/images/images/logo_hu_8699f61a945bdcf8.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/site-header.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/site-header.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/tags/index.xml" beforeDir="false" afterPath="$PROJECT_DIR$/public/tags/index.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/gallery.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/gallery.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/homepage-grid.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/homepage-grid.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/00-variables.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/00-variables.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/01-reset-base.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/01-reset-base.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/02-layout.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/02-layout.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/03-grid.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/03-grid.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/04-grid-item.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/04-grid-item.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/05-components.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/05-components.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/06-hero-intro.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/06-hero-intro.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/07-responsive.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/07-responsive.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/08-fallbacks.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/08-fallbacks.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/homepage_grid_styles/09-utilities.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/09-utilities.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/static/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/styles.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/backup/backdrop-repaint.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/backup/hero-willchange-toggle.js" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -113,28 +79,28 @@
     <option name="showExcludedFiles" value="false" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "JavaScript Debug.nav.html.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultAutoModeForALLUsers.v1": "true",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "gallery__branch",
-    "junie.onboarding.icon.badge.shown": "true",
-    "last_opened_file_path": "/Users/himanjal/Documents/github/basic_hugo/assets/images/featured",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "to.speed.mode.migration.done": "true",
-    "ts.external.directory.path": "/Applications/WebStorm.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;JavaScript Debug.nav.html.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultAutoModeForALLUsers.v1&quot;: &quot;true&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;gallery__branch&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/himanjal/Documents/github/basic_hugo/assets/images/featured&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Applications/WebStorm.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/assets/images/featured" />
@@ -142,6 +108,7 @@
       <recent name="$PROJECT_DIR$/static/css" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/static/css" />
       <recent name="$PROJECT_DIR$/layouts" />
       <recent name="$PROJECT_DIR$/static/js/backup" />
     </key>

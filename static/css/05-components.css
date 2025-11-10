@@ -1,0 +1,27 @@
+/* 05-components.css — thumbnails, buttons, entrance animation, inner reveals */
+.thumb-module img {
+    width:100%; height:100%; object-fit:cover; display:block; border-radius:inherit;
+    opacity:0; transition: opacity 0.18s cubic-bezier(0.4,0,0.2,1), transform 0.22s ease-out;
+    will-change: opacity, transform;
+}
+
+.grid-btn{
+    background: rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12);
+    padding:0.6rem 1rem; border-radius:8px; color: rgba(255,255,255,0);
+    font-weight:600; transition: background 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+/* inner reveals on hover */
+.grid-item:not(.inactive):hover img { opacity:1; transform: scale(1.03); }
+.grid-item:not(.inactive):hover .grid-btn { color:#fff; background: rgba(255,255,255,0.14); transform: translateY(-3px); }
+
+/* entrance animation - fixed final state to visible */
+.grid-item:not(.inactive){
+    animation: gridFadeIn var(--grid-entrance-duration) cubic-bezier(0.4,0,0.2,1) forwards;
+    animation-delay: calc(var(--i,0) * var(--grid-entrance-stagger));
+}
+@keyframes gridFadeIn {
+    0%   { opacity:0; transform: scale(0.96); }
+    60%  { opacity:0.12; transform: scale(1.01); }
+    100% { opacity:1; transform: scale(1); }
+}

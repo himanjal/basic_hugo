@@ -1,11 +1,53 @@
-{{/* Shared logo + navigation partial
-This partial is included by both header-home.html and header-site.html so
-the logo and nav markup is in one place. Adjust links/markup as needed. */}}
-<div class="brand-and-nav">
-    <a class="brand" href='{{ "/" | relURL }}'>Himanjal Sharma</a>
-    <nav class="main-nav" role="navigation" aria-label="Main Navigation">
-        <a href='{{ "/" | relURL }}'>Home</a>
-        <a href='{{ "about/" | relURL }}'>About</a>
-        <a href='{{ "gallery/" | relURL }}'>Gallery</a>
-    </nav>
-</div>
+<!-- layouts/partials/nav.html -->
+{{/* Centered pill nav with larger H logo left, "Himanjal" to its right, and larger Instagram at far right */}}
+<nav class="navbar-pill" role="navigation" aria-label="Main navigation">
+    <div class="navbar-inner">
+
+        <!-- Left: Larger H logo + brand name -->
+        <div class="nav-left">
+<!--            {{ $logo := resources.Get "images/logo.png" }}-->
+<!--            <a class="brand" href='{{ "/" | relURL }}' aria-label="{{ $.Site.Title }}">-->
+<!--            {{ with $logo }}-->
+<!--            {{ $thumb := .Resize "120x120" }}-->
+<!--            <span class="logo-bg big-logo-bg">-->
+<!--            <img src="{{ $thumb.RelPermalink }}" alt="{{ $.Site.Params.author | default $.Site.Title }}" class="brand-mark" />-->
+<!--          </span>-->
+            {{ else }}
+<!--            <span class="brand-mark-fallback large">{{ $.Site.Title }}</span>-->
+            {{ end }}
+            <span class="brand-name">Home</span>
+<!--            </a>-->
+        </div>
+
+        <!-- Center: Navigation links -->
+        <div class="nav-center" role="menubar">
+            <a role="menuitem" href="/info/">Info</a>
+            <a role="menuitem" href="/gallery/">Gallery</a>
+            <a role="menuitem" href="/playground/">Playground</a>
+        </div>
+
+        <!-- Right: Bigger Instagram icon -->
+        <div class="nav-right">
+            {{ $insta := resources.Get "images/instagram.png" }}
+            {{ with $insta }}
+            {{ $icon := .Resize "64x64" }}
+            <a href="https://instagram.com" class="icon-link" aria-label="Instagram">
+          <span class="logo-bg insta-bg large-insta">
+            <img src="{{ $icon.RelPermalink }}" alt="Instagram" class="logo-small" />
+          </span>
+            </a>
+            {{ else }}
+            <a href="https://instagram.com" class="icon-link" aria-label="Instagram">
+          <span class="logo-bg insta-bg large-insta">
+            <svg class="icon-inst" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="2" y="2" width="20" height="20" rx="5" fill="none" stroke="#fff" stroke-width="1.4" opacity="0.95"/>
+              <circle cx="12" cy="12" r="3" fill="none" stroke="#fff" stroke-width="1.4" opacity="0.95"/>
+              <circle cx="17.5" cy="6.5" r="0.7" fill="#fff" opacity="0.95"/>
+            </svg>
+          </span>
+            </a>
+            {{ end }}
+        </div>
+
+    </div>
+</nav>
