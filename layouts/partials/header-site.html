@@ -1,6 +1,14 @@
 {{/* Compact header for non-home pages */}}
 <header class="site-header" role="banner" aria-label="Site header">
-    <div class="wrap header-inner">
-        {{ partial "nav.html" . }}
+    <div class="site-header-logo-title">
+        {{ $logo := resources.Get "images/logo.png" }}
+        {{ with $logo }}
+        <a href='{{ "/" | relURL }}' class="hero-logo-link">
+            <img src='{{ .RelPermalink }}' alt="Himanjal Sharma logo" class="hero-logo" />
+        </a>
+        {{ end }}
+        <h1 class="site-header-title">
+            <a href='{{ "/" | relURL }}' class="hero-title-link">Himanjal Sharma</a>
+        </h1>
     </div>
 </header>

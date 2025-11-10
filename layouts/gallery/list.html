@@ -1,0 +1,92 @@
+{{/* layouts/gallery/list.html — fixed robust version */}}
+{{ define "main" }}
+
+<main class="page-wrap gallery-page" role="main">
+    <div class="container gallery-container">
+        <!--        <header class="gallery-header" aria-label="Gallery heading">-->
+        <!--            <h1 class="gallery-title">Hugo Gallery</h1>-->
+        <!--            {{ with .Site.Params.description }}-->
+        <!--            <p class="gallery-sub">An example site for a Hugo gallery. Images from your assets.</p>-->
+        <!--            {{ end }}-->
+        <!--        </header>-->
+
+        {{/* ===== Featured scroller (edge-to-edge visually) ===== */}}
+        {{ $rawFeatured := resources.Match "images/featured/*" }}
+
+        {{/* Normalize $rawFeatured into a slice regardless of type */}}
+        {{ $featuredList := slice }}
+        {{ if $rawFeatured }}
+        {{ if (reflect.IsSlice $rawFeatured) }}
+        {{ $featuredList = $rawFeatured }}
+        {{ else }}
+        {{ $featuredList = slice $rawFeatured }}
+        {{ end }}
+        {{ end }}
+
+        {{ if gt (len $featuredList) 0 }}
+        {{ $featuredList = sort $featuredList "Name" }}
+        <div class="featured-scroller-wrap">
+            <div class="featured-scroller" id="featured-scroller" data-interval="4200" tabindex="0" aria-label="Featured images carousel">
+                {{ range $i, $res := $featuredList }}
+                {{ $img := $res.Resize "1600x" }}
+                <figure class="slide" data-slide-index="{{ $i }}">
+                    <img src="{{ $img.RelPermalink }}" alt="{{ $res.Name }}" loading='{{ cond (lt $i 2) "eager" "lazy" }}' />
+                    <figcaption class="slide-caption">
+                        <h2>Featured {{ add $i 1 }}</h2>
+                    </figcaption>
+                </figure>
+                {{ end }}
+            </div>
+
+            <div class="scroller-controls" id="featured-controls" aria-hidden="false">
+                {{ range $i := seq 0 (sub (len $featuredList) 1) }}
+                <button class="scroller-dot" data-dot-index="{{ $i }}" aria-label="Go to slide {{ add $i 1 }}"></button>
+                {{ end }}
+            </div>
+        </div>
+        {{ end }}
+
+        {{/* ===== Thumbnail grid: one tile per folder under assets/images/gallery/ ===== */}}
+        <section class="thumb-grid" aria-label="Gallery folders">
+            {{ $basePath := "assets/images/gallery" }}
+            {{ $items := readDir $basePath }}
+            {{ range $i, $fi := $items }}
+            {{ if $fi.IsDir }}
+            {{ $folder := $fi.Name }}
+            {{ $pattern := printf "images/gallery/%s/*" $folder }}
+            {{ $imgsRaw := resources.Match $pattern }}
+
+            {{/* Normalize $imgsRaw safely */}}
+            {{ $imgs := slice }}
+            {{ if $imgsRaw }}
+            {{ if (reflect.IsSlice $imgsRaw) }}
+            {{ $imgs = $imgsRaw }}
+            {{ else }}
+            {{ $imgs = slice $imgsRaw }}
+            {{ end }}
+            {{ end }}
+
+            {{ if gt (len $imgs) 0 }}
+            {{ $imgs = sort $imgs "Name" }}
+            {{ $thumb := index $imgs 0 }}
+            {{ $thumbRes := $thumb.Resize "480x" }}
+            <a class="thumb" href='{{ printf "/gallery/%s/" $folder | relURL }}' aria-label="Open {{ $folder }}">
+                <div class="thumb-image">
+                    <img src="{{ $thumbRes.RelPermalink }}" alt="{{ $folder }} preview" loading="lazy" />
+                </div>
+                <div class="thumb-meta">
+                    <h3 class="thumb-title">{{ humanize $folder }}</h3>
+                    <p class="thumb-sub">{{ len $imgs }} photos</p>
+                </div>
+            </a>
+            {{ end }}
+            {{ end }}
+            {{ end }}
+        </section>
+
+    </div>
+</main>
+
+<link rel="stylesheet" href='{{ "css/gallery.css" | relURL }}' />
+<script src='{{ "js/gallery-scroller.js" | relURL }}' defer></script>
+{{ end }}

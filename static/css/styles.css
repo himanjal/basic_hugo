@@ -1,29 +1,202 @@
-:root{
-    --bg: #0f1724;
-    --muted: #94a3b8;
-    --card: #0b1220;
-    --accent: #06b6d4;
-    --text: #e6eef8;
-}
-*{box-sizing:border-box}
-body{
-    margin:0;
-    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background: linear-gradient(180deg,#071021,#071728);
-    color:var(--text);
-    line-height:1.5;
-    min-height:100vh;
-}
-.wrap{max-width:980px;margin:0 auto;padding:20px}
-.site-header{border-bottom:1px solid rgba(255,255,255,0.04);padding:12px 0}
-.brand{font-weight:700;color:var(--text);text-decoration:none;margin-right:12px}
-.site-header nav a{color:var(--muted);text-decoration:none;margin-right:12px}
-.hero{padding:40px 0}
-.posts article{background:rgba(255,255,255,0.02);padding:16px;border-radius:8px;margin-bottom:12px}
-.gallery-grid{display:flex;flex-wrap:wrap;gap:12px}
-.gallery-item img{display:block;width:240px;height:240px;object-fit:cover;border-radius:8px}
-.site-footer{border-top:1px solid rgba(255,255,255,0.04);padding:12px 0;margin-top:20px}
+/* static/css/styles.css
+   Unified site stylesheet
+   - Light / Dark theme variables
+   - Smooth theme transition (no-flash on load)
+   - Fixed site header (taller) with scrolled state
+   - Layout containers and hero
+   - Gallery & scroller adjustments
+   - Theme-toggle button styling
+*/
 
+/* =====================================================================
+   1) Theme variables
+   ===================================================================== */
+:root {
+    /* Light theme defaults */
+    --bg: #ffffff;
+    --text: #111111;
+    --muted: #6b7280;        /* cool gray */
+    --accent: #06b6d4;       /* cyan accent */
+    --card: #f4f7fb;
+    --border: rgba(0,0,0,0.06);
+    --header-blur: rgba(255,255,255,0.75);
+    --site-header-height: 80px;
+}
+
+/* Dark theme overrides (applied when <html data-theme="dark">) */
+:root[data-theme="dark"] {
+    --bg: linear-gradient(180deg,#071021,#071728);
+    --text: #e6eef8;
+    --muted: #94a3b8;
+    --accent: #06b6d4;
+    --card: #0b1220;
+    --border: rgba(255,255,255,0.06);
+    --header-blur: rgba(0,0,0,0.55);
+    --site-header-height: 80px;
+}
+
+/* =====================================================================
+   2) No-flash + smooth theme transition helpers
+   ===================================================================== */
+
+/* Block transitions during first paint (we add data-theme-initial on <html> while JS sets initial theme) */
+html[data-theme-initial] * {
+    transition: none !important;
+}
+
+/* When toggling, add .theme-transition to <html> to animate core properties */
+.theme-transition,
+.theme-transition * {
+    transition:
+            background-color 340ms ease,
+            color 340ms ease,
+            border-color 340ms ease,
+            box-shadow 340ms ease,
+            transform 240ms ease;
+}
+
+/* =====================================================================
+   3) Base resets & typography
+   ===================================================================== */
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+}
+
+/* small utility */
+.hidden { display: none !important; }
+
+/* =====================================================================
+   4) Layout containers & spacing
+   ===================================================================== */
+
+.page-wrap, main, .container {
+    padding-top: var(--site-header-height);
+    box-sizing: border-box;
+}
+
+/* allow inner pages (such as gallery) to override top padding */
+.page-wrap main,
+.gallery-page main {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+}
+
+/* generic content wrapper */
+.content {
+    padding: 2rem;
+    background: transparent;
+}
+
+/* =====================================================================
+   5) Site header (fixed) — taller with stronger blur when scrolled
+   ===================================================================== */
+
+.site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: clamp(1rem, 3vh, 1.5rem) clamp(1.25rem, 3vw, 2.5rem);
+    background: var(--header-blur);
+    backdrop-filter: blur(8px) saturate(120%);
+    -webkit-backdrop-filter: blur(8px) saturate(120%);
+    box-shadow: 0 4px 16px var(--border);
+    transition: background-color 0.32s ease, box-shadow 0.32s ease, backdrop-filter 0.32s ease;
+}
+
+/* scrolled state (if you prefer stronger darkness on scroll) */
+.site-header.scrolled {
+    background: rgba(0,0,0,0.55);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.24);
+}
+
+/* header inner layout */
+.site-header-logo-title {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.75rem, 1.6vw, 1.25rem);
+}
+
+/* logo */
+.hero-logo {
+    width: clamp(34px, 3.2vw, 48px);
+    height: auto;
+    display: block;
+    object-fit: contain;
+    filter: var(--logo-filter, none);
+    transition: transform 0.25s cubic-bezier(0.25, 0.9, 0.25, 1), filter 0.25s ease;
+}
+.hero-logo-link:hover .hero-logo { transform: translateY(-2px); }
+
+/* title */
+.site-header-title {
+    margin: 0;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 800;
+    font-size: clamp(18px, 2.8vw, 34px);
+    letter-spacing: -0.015em;
+    color: var(--text);
+    line-height: 1.05;
+    text-shadow: none;
+}
+
+/* link behavior */
+.hero-title-link {
+    display: inline-block;
+    text-decoration: none;
+    color: inherit;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.26s cubic-bezier(0.25,0.9,0.25,1), color 0.18s ease;
+}
+.hero-title-link:hover,
+.hero-title-link:focus { transform: scale(1.03); color: var(--accent); }
+.hero-title-link:active { transform: scale(0.97); }
+
+/* theme-adaptive logo filter for dark backgrounds (logo inversion) */
+html[data-theme="dark"] .hero-logo { filter: brightness(0) invert(1); }
+html[data-theme="light"] .hero-logo { filter: none; }
+
+/* =====================================================================
+   6) Theme toggle button
+   ===================================================================== */
+
+.theme-toggle {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 1.25rem;
+    color: var(--text);
+    padding: 6px;
+    border-radius: 6px;
+    transition: color 0.25s ease, transform 0.18s ease, background-color 0.18s ease;
+}
+.theme-toggle:hover { color: var(--accent); transform: scale(1.06); }
+.theme-toggle:active { transform: scale(0.98); }
+
+/* =====================================================================
+   7) Hero (home) styling
+   ===================================================================== */
 
 .hero {
     position: relative;
@@ -35,51 +208,183 @@ body{
     align-items: center;
     justify-content: center;
     text-align: center;
-    color: white;
+    color: #fff; /* hero keeps white text overlay */
 }
-
 .hero::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.1); /* dark overlay */
+    background: rgba(0,0,0,0.15);
+    pointer-events: none;
 }
-
 .hero-content {
     position: relative;
-    color: white;
     z-index: 1;
-    max-width: 700px;
+    max-width: 760px;
     padding: 2rem;
 }
 
-/* --- Header overlays hero --- */
-.site-header {
-    position: absolute;            /* sits on top of hero */
-    top: 0;
-    left: 0;
-    width: 100%;
+/* =====================================================================
+   8) Gallery: featured scroller + thumbnails
+   ===================================================================== */
+
+/* container above the scroller — keep tight to header */
+.gallery-header { text-align: center; margin-bottom: 0.5rem; }
+.gallery-title { font-family: "Inter", system-ui, sans-serif; font-size: clamp(28px, 4.6vw, 56px); margin: 0 0 0.25rem; color: var(--text); }
+.gallery-sub { margin: 0 0 0.5rem; color: var(--muted); font-size: 0.95rem; }
+
+/* full-bleed scroller trick: make scroller span 100vw and ignore container margins */
+.featured-scroller-wrap {
+    position: relative;
+    width: 100vw;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    margin-top: 0; /* tight to header */
+    margin-bottom: clamp(1.25rem, 3vh, 2rem);
+    overflow: hidden;
     background: transparent;
-    color: white;
-    z-index: 10;
-    padding: 1rem 0;
 }
 
-.site-header a {
-    color: white;
+/* scroller */
+.featured-scroller {
+    width: 100%;
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 0;
+    align-items: stretch;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+}
+.featured-scroller::-webkit-scrollbar { display: none; }
+
+.featured-scroller .slide {
+    flex: 0 0 100vw;
+    scroll-snap-align: start;
+    position: relative;
+    display: block;
+    min-height: clamp(260px, 40vw, 520px);
+}
+
+.featured-scroller .slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* caption overlay (optional) */
+.slide-caption {
+    position: absolute;
+    left: clamp(18px, 4vw, 48px);
+    bottom: clamp(18px, 4vw, 48px);
+    color: #fff;
+    text-shadow: 0 8px 28px rgba(0,0,0,0.55);
+}
+.slide-caption h2 { margin: 0; font-size: clamp(20px, 3.5vw, 36px); }
+
+/* dots: smaller and placed below scroller */
+.scroller-controls {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
+    gap: 6px;
+}
+.scroller-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.15);
+    border: none;
+    cursor: pointer;
+    transition: transform .18s ease, background .18s ease;
+}
+.scroller-dot.active {
+    background: var(--accent);
+    transform: scale(1.25);
+}
+
+/* thumbnail grid */
+.thumb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    align-items: start;
+    margin-top: 1rem;
+}
+
+.thumb {
+    position: relative;
+    display: block;
     text-decoration: none;
-    margin-right: 1rem;
-    font-weight: 500;
+    color: inherit;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--card);
+    transition: transform .22s cubic-bezier(.2,.9,.2,1), box-shadow .22s;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+.thumb:hover { transform: translateY(-4px); box-shadow: 0 10px 26px rgba(0,0,0,0.08); }
+
+.thumb-image img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+    transition: transform .25s ease, filter .25s ease;
 }
 
-.site-header a:hover {
-    text-decoration: underline;
+/* overlay text (hidden until hover) */
+.thumb-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 600;
+    font-size: 1rem;
+    opacity: 0;
+    background: rgba(0,0,0,0.35);
+    transition: opacity .25s ease, background .25s ease;
+}
+.thumb:hover .thumb-overlay { opacity: 1; background: rgba(0,0,0,0.55); }
+.thumb:hover img { filter: brightness(0.85); transform: scale(1.02); }
+
+/* hide old static text elements if present */
+.thumb-meta,
+.thumb-title,
+.thumb-sub { display: none !important; }
+
+/* =====================================================================
+   9) Footer & small utilities
+   ===================================================================== */
+
+.site-footer {
+    border-top: 1px solid var(--border);
+    padding: 12px 0;
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--muted);
 }
 
-/* Ensure following content starts after hero */
-.content {
-    margin-top: 100vh;
-    background: #0f172a;
-    color: #e6eef8;
-    padding: 2rem;
+/* spacing helpers */
+.mt-0 { margin-top: 0 !important; }
+.mb-0 { margin-bottom: 0 !important; }
+
+/* small screens */
+@media (max-width: 900px) {
+    .slide-caption h2 { font-size: clamp(18px, 4.2vw, 28px); }
+    .thumb-image img { height: 150px; }
 }
+@media (max-width: 600px) {
+    .featured-scroller .slide { min-height: 240px; }
+    .thumb-image img { height: 120px; }
+    .container { padding-left: .5rem; padding-right: .5rem; }
+}
+
+/* End of styles.css */

@@ -5,114 +5,211 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Gallery - Himanjal Sharma</title>
 
-    
-    <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/site-header.css">
+
 
     
+    
+    <link rel="stylesheet" href='/css/styles.css'>
+    
+    <link rel="stylesheet" href='/css/site-header.css'>
+    
 
+    
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
 </head>
+
 <body>
 
 
 <header class="site-header" role="banner" aria-label="Site header">
-    <div class="wrap header-inner">
+    <div class="site-header-logo-title">
         
-<div class="brand-and-nav">
-    <a class="brand" href='/'>Himanjal Sharma</a>
-    <nav class="main-nav" role="navigation" aria-label="Main Navigation">
-        <a href='/'>Home</a>
-        <a href='/about/'>About</a>
-        <a href='/gallery/'>Gallery</a>
-    </nav>
-</div>
-
+        
+        <a href='/' class="hero-logo-link">
+            <img src='/images/logo.png' alt="Himanjal Sharma logo" class="hero-logo" />
+        </a>
+        
+        <h1 class="site-header-title">
+            <a href='/' class="hero-title-link">Himanjal Sharma</a>
+        </h1>
     </div>
 </header>
 
 
+
 <main id="content">
     
-<h1>Gallery</h1>
-<div class="content">
-    <p>Below are some images processed by Hugo Pipes shortcode.
 
+<main class="page-wrap gallery-page" role="main">
+    <div class="container gallery-container">
+        
+        
+        
+        
 
+        
+        
 
-<div class="gallery-grid">
-    
-    
-    <figure class="gallery-item">
-        <a href="/images/logo.png">
-            <img src="/images/logo_hu_8699f61a945bdcf8.png" alt="/images/logo.png" loading="lazy" />
-        </a>
-        <figcaption>/images/logo.png</figcaption>
-    </figure>
-    
-    
-    <figure class="gallery-item">
-        <a href="/images/hero.jpg">
-            <img src="/images/hero_hu_bd6dc7aa2cd637f3.jpg" alt="/images/hero.jpg" loading="lazy" />
-        </a>
-        <figcaption>/images/hero.jpg</figcaption>
-    </figure>
-    
-    
-    <figure class="gallery-item">
-        <a href="/images/19.jpeg">
-            <img src="/images/19_hu_f6286eb5276db11e.jpeg" alt="/images/19.jpeg" loading="lazy" />
-        </a>
-        <figcaption>/images/19.jpeg</figcaption>
-    </figure>
-    
-    
-    <figure class="gallery-item">
-        <a href="/images/20.jpeg">
-            <img src="/images/20_hu_423df64dbf20fe3c.jpeg" alt="/images/20.jpeg" loading="lazy" />
-        </a>
-        <figcaption>/images/20.jpeg</figcaption>
-    </figure>
-    
-    
-    <figure class="gallery-item">
-        <a href="/images/22.jpeg">
-            <img src="/images/22_hu_ab069bcd50ab9855.jpeg" alt="/images/22.jpeg" loading="lazy" />
-        </a>
-        <figcaption>/images/22.jpeg</figcaption>
-    </figure>
-    
-    
-    <figure class="gallery-item">
-        <a href="/images/4.jpeg">
-            <img src="/images/4_hu_263b4730a34e6477.jpeg" alt="/images/4.jpeg" loading="lazy" />
-        </a>
-        <figcaption>/images/4.jpeg</figcaption>
-    </figure>
-    
-    
-    <figure class="gallery-item">
-        <a href="/images/5.jpeg">
-            <img src="/images/5_hu_4f38dad8939b39f0.jpeg" alt="/images/5.jpeg" loading="lazy" />
-        </a>
-        <figcaption>/images/5.jpeg</figcaption>
-    </figure>
-    
-    
-    <figure class="gallery-item">
-        <a href="/images/7.jpeg">
-            <img src="/images/7_hu_963c8d78974f4afe.jpeg" alt="/images/7.jpeg" loading="lazy" />
-        </a>
-        <figcaption>/images/7.jpeg</figcaption>
-    </figure>
-    
-</div>
-</p>
+        
+        
+        
+        
+        
+        
+        
 
-</div>
+        
+        
+        <div class="featured-scroller-wrap">
+            <div class="featured-scroller" id="featured-scroller" data-interval="4200" tabindex="0" aria-label="Featured images carousel">
+                
+                
+                <figure class="slide" data-slide-index="0">
+                    <img src="/images/featured/4_hu_fcf48fca2f65def7.jpeg" alt="/images/featured/4.jpeg" loading='eager' />
+                    <figcaption class="slide-caption">
+                        <h2>Featured 1</h2>
+                    </figcaption>
+                </figure>
+                
+                
+                <figure class="slide" data-slide-index="1">
+                    <img src="/images/featured/5_hu_6307106f5a721e.jpeg" alt="/images/featured/5.jpeg" loading='eager' />
+                    <figcaption class="slide-caption">
+                        <h2>Featured 2</h2>
+                    </figcaption>
+                </figure>
+                
+                
+                <figure class="slide" data-slide-index="2">
+                    <img src="/images/featured/7_hu_f354d60377324a6f.jpeg" alt="/images/featured/7.jpeg" loading='lazy' />
+                    <figcaption class="slide-caption">
+                        <h2>Featured 3</h2>
+                    </figcaption>
+                </figure>
+                
+            </div>
+
+            <div class="scroller-controls" id="featured-controls" aria-hidden="false">
+                
+                <button class="scroller-dot" data-dot-index="0" aria-label="Go to slide 1"></button>
+                
+                <button class="scroller-dot" data-dot-index="1" aria-label="Go to slide 2"></button>
+                
+                <button class="scroller-dot" data-dot-index="2" aria-label="Go to slide 3"></button>
+                
+            </div>
+        </div>
+        
+
+        
+        <section class="thumb-grid" aria-label="Gallery folders">
+            
+            
+            
+            
+            
+            
+            
+            
+            
+
+            
+            
+            
+            
+            
+            
+            
+
+            
+            
+            
+            
+            <a class="thumb" href='/gallery/drone/' aria-label="Open drone">
+                <div class="thumb-image">
+                    <img src="/images/gallery/drone/22_hu_c67d37470abae19c.jpeg" alt="drone preview" loading="lazy" />
+                </div>
+                <div class="thumb-meta">
+                    <h3 class="thumb-title">Drone</h3>
+                    <p class="thumb-sub">4 photos</p>
+                </div>
+            </a>
+            
+            
+            
+            
+            
+            
+            
+
+            
+            
+            
+            
+            
+            
+            
+
+            
+            
+            
+            
+            <a class="thumb" href='/gallery/fujifilm/' aria-label="Open fujifilm">
+                <div class="thumb-image">
+                    <img src="/images/gallery/fujifilm/42_hu_80985a90488179fe.jpeg" alt="fujifilm preview" loading="lazy" />
+                </div>
+                <div class="thumb-meta">
+                    <h3 class="thumb-title">Fujifilm</h3>
+                    <p class="thumb-sub">3 photos</p>
+                </div>
+            </a>
+            
+            
+            
+            
+            
+            
+            
+
+            
+            
+            
+            
+            
+            
+            
+
+            
+            
+            
+            
+            <a class="thumb" href='/gallery/iPhone/' aria-label="Open iPhone">
+                <div class="thumb-image">
+                    <img src="/images/gallery/iphone/48_hu_4682c37f7256a686.jpeg" alt="iPhone preview" loading="lazy" />
+                </div>
+                <div class="thumb-meta">
+                    <h3 class="thumb-title">I phone</h3>
+                    <p class="thumb-sub">3 photos</p>
+                </div>
+            </a>
+            
+            
+            
+        </section>
+
+    </div>
+</main>
+
+<link rel="stylesheet" href='/css/gallery.css' />
+<script src='/js/gallery-scroller.js' defer></script>
 
 </main>
 
+
+
+
+<script src='/js/site-header.js' defer></script>
+<script src='/js/theme-toggle.js' defer></script>)
 
 
 </body>

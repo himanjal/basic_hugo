@@ -1,7 +1,5 @@
 ---
 title: "Gallery"
-draft: false
+date: 2025-01-01
+layout: "gallery"
 ---
-
-Below are some images processed by Hugo Pipes shortcode.
-{{< gallery dir="images" >}}

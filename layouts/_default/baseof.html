@@ -5,18 +5,23 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>{{ .Title }} - {{ .Site.Title }}</title>
 
-    <!-- other global styles (load first) -->
-    <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/site-header.css">
+
 
     {{ if .IsHome }}
-    <!-- homepage-specific styles: only header + grid (homepage.css removed) -->
-    <link rel="stylesheet" href="/css/homepage-header.css">
-    <link rel="stylesheet" href="/css/homepage-grid.css">
+    <!-- 🏠 Homepage-specific styles -->
+    <link rel="stylesheet" href='{{ "css/homepage-header.css" | relURL }}'>
+    <link rel="stylesheet" href='{{ "css/homepage-grid.css" | relURL }}'>
+    {{ else }}
+    <!-- 🌐 Global site styles (load first) -->
+    <link rel="stylesheet" href='{{ "css/styles.css" | relURL }}'>
+    <!-- 📄 Site-wide header styles -->
+    <link rel="stylesheet" href='{{ "css/site-header.css" | relURL }}'>
     {{ end }}
 
+    <!-- 🎨 Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
 </head>
+
 <body>
 {{ if .IsHome }}
 {{ partial "header-home.html" . }}
@@ -28,11 +33,17 @@
     {{ block "main" . }}{{ end }}
 </main>
 
-<!-- Load scroll/typewriter/backdrop scripts only on home -->
+<!-- ⚙️ Load scripts -->
 {{ if .IsHome }}
-<script src="/js/scroll.js" defer></script>
-<script src="/js/hero-typewriter.js" defer></script>
-<script src="/js/backdrop-detect.js" defer></script>
+<!-- Homepage-only scripts -->
+<script src='{{ "js/scroll.js" | relURL }}' defer></script>
+<script src='{{ "js/hero-typewriter.js" | relURL }}' defer></script>
+<script src='{{ "js/backdrop-detect.js" | relURL }}' defer></script>
+{{ else }}
+<!-- Site-wide header scroll script -->
+<script src='{{ "js/site-header.js" | relURL }}' defer></script>
+<script src='{{ "js/theme-toggle.js" | relURL }}' defer></script>)
 {{ end }}
+
 </body>
 </html>

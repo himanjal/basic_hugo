@@ -1,0 +1,190 @@
+/* static/css/gallery.css
+   Gallery page styles: full-bleed featured scroller + hover-overlay thumbnails
+*/
+
+/* Basic layout */
+.page-wrap { width: 100%; }
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 0;
+    box-sizing: border-box;
+}
+
+/* Header (title/subtitle above scroller) */
+.gallery-header {
+    text-align: center;
+    margin-bottom: 0.75rem; /* tighter spacing above scroller */
+}
+.gallery-title {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: clamp(28px, 4.6vw, 56px);
+    margin: 0 0 0.25rem;
+    color: #fff;
+}
+.gallery-sub {
+    margin: 0 0 0.5rem;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.95rem;
+}
+
+/* === Featured scroller section === */
+/* full-bleed: span entire viewport width, no left/right gaps */
+.featured-scroller-wrap {
+    position: relative;
+    width: 100vw;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+
+    margin-top: calc(-1 * var(--site-header-height));
+    margin-bottom: clamp(1.25rem, 3vh, 2rem);
+    overflow: hidden;
+}
+
+/* scroller */
+.featured-scroller {
+    width: 100%;
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 0;
+    align-items: stretch;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+}
+.featured-scroller::-webkit-scrollbar { display: none; }
+
+/* slides: full viewport width each */
+.featured-scroller .slide {
+    flex: 0 0 100vw;
+    scroll-snap-align: start;
+    position: relative;
+    box-sizing: border-box;
+    display: block;
+    min-height: clamp(260px, 40vw, 520px);
+}
+
+/* image fill */
+.featured-scroller .slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 0; /* remove rounding to fully bleed edge */
+}
+
+/* caption (optional, still supported) */
+.slide-caption {
+    position: absolute;
+    left: clamp(18px, 4vw, 48px);
+    bottom: clamp(18px, 4vw, 48px);
+    color: #fff;
+    text-shadow: 0 8px 28px rgba(0,0,0,0.55);
+}
+.slide-caption h2 {
+    margin: 0;
+    font-size: clamp(20px, 3.5vw, 36px);
+}
+
+/* navigation circles (smaller + just below scroller) */
+.scroller-controls {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem; /* just below scroller */
+    gap: 6px;
+}
+.scroller-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    border: none;
+    cursor: pointer;
+    transition: transform .18s ease, background .18s ease;
+}
+.scroller-dot.active {
+    background: #fff;
+    transform: scale(1.25);
+}
+
+/* === Thumbnails grid === */
+.thumb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    align-items: start;
+    margin-top: 1rem;
+}
+
+/* thumbnail cards — no visible text until hover */
+.thumb {
+    position: relative;
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: rgba(255,255,255,0.02);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform .22s cubic-bezier(.2,.9,.2,1), box-shadow .22s;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
+.thumb:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 26px rgba(0,0,0,0.35);
+}
+
+/* image fills the card */
+.thumb-image img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+    transition: transform .25s ease, filter .25s ease;
+}
+
+/* overlay text hidden until hover */
+.thumb-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-family: "Inter", system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    opacity: 0;
+    background: rgba(0,0,0,0.35);
+    transition: opacity .25s ease, background .25s ease;
+}
+
+/* on hover: darken image and show overlay */
+.thumb:hover .thumb-overlay {
+    opacity: 1;
+    background: rgba(0,0,0,0.55);
+}
+.thumb:hover img {
+    filter: brightness(0.85);
+    transform: scale(1.02);
+}
+
+/* hide old static text elements */
+.thumb-meta,
+.thumb-title,
+.thumb-sub {
+    display: none !important;
+}
+
+/* Responsive tweaks */
+@media (max-width: 900px) {
+    .slide-caption h2 { font-size: clamp(18px, 4.2vw, 28px); }
+    .thumb-image img { height: 150px; }
+}
+@media (max-width: 600px) {
+    .featured-scroller .slide { min-height: 240px; }
+    .thumb-image img { height: 120px; }
+    .container { padding-left: .5rem; padding-right: .5rem; }
+}
