@@ -1,5 +1,11 @@
-/* 06-hero-intro.css — hero tile: JS toggles will-change; CSS provides layer hints and hover behavior */
+/* 06-hero-intro.css — hero tile (final refined version)
+   - Unified Inter typography
+   - Fluid, capped scaling with dynamic top spacing
+   - JS typing stable (caret only)
+   - Prevents bleed in short tiles using container queries
+*/
 
+/* ---------- Base layout ---------- */
 .hero-intro {
     display: flex;
     flex-direction: column;
@@ -8,99 +14,166 @@
     padding: clamp(1rem, 4vh, 3rem) clamp(1rem, 3vw, 4rem);
     text-align: left;
     pointer-events: auto;
+    position: relative;
+    overflow: hidden; /* ensures no bleed outside rounded corners */
 }
 
-/* text */
+/* ---------- Title ---------- */
 .hero-intro-title {
-    font-family: "Playfair Display", Georgia, "Times New Roman", serif;
-    font-weight: 400;
+    font-family: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-weight: 700;
     margin: 0;
-    line-height: 0.9;
-    letter-spacing: -0.5px;
-    text-shadow: 0 6px 18px rgba(3, 6, 10, 0.55);
-    font-size: clamp(18px, 9.5vw, 40px);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    text-shadow: 0 4px 10px rgba(3, 6, 10, 0.45);
+    color: rgba(255, 255, 255, 0.96);
+    font-size: clamp(20px, 3.6vw, 42px);
+    max-width: clamp(30ch, 85%, 90ch);
+    word-wrap: break-word;
+    white-space: normal;
+    opacity: 0;
+    transition: opacity var(--trans-fast) ease-in-out;
 }
+
+/* ---------- Subtitle ---------- */
 .hero-intro-subtitle {
     margin-top: 1rem;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-    font-size: clamp(0.9rem, 1.05vw, 1.05rem);
-    color: rgba(255, 255, 255, 0.9);
-    max-width: 55ch;
+    font-family: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-weight: 400;
+    color: rgba(255,255,255,0.9);
     line-height: 1.6;
+
+    /* fluid font-size kept from previous rules */
+    font-size: clamp(0.85rem, 1vw, 1.1rem);
+
+    opacity: 0;
+    transition: opacity var(--trans-fast) ease-in-out;
+
+    /* ← key change: prefer a percentage of tile width, but bound it between 28ch and 80ch */
+    max-width: min(90%, 80ch);
+    /* optionally make the minimum explicit too: */
+    /* max-width: clamp(28ch, 90%, 80ch); */
+
+    word-break: normal;
+    overflow-wrap: break-word;
+    white-space: normal;
+    overflow: visible;
 }
 
-/* base tile: visible, subtle blur; layer and paint containment hints included */
-.grid-item.hero-intro {
-    position: relative;
-    z-index: 25;
-    cursor: default;
-    opacity: 1;
-    background: rgba(255,255,255,0.04);
-
-    /* baseline blur (visible even when not hovered) */
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
-
-    /* Layer/paint hints - keep these, but DO NOT include will-change permanently */
-    isolation: isolate;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    background-clip: padding-box;
-    contain: paint;
-
-    transition:
-            transform 0.22s cubic-bezier(0.4,0,0.2,1),
-            background-color 0.22s cubic-bezier(0.4,0,0.2,1),
-            -webkit-backdrop-filter 0.22s cubic-bezier(0.4,0,0.2,1),
-            backdrop-filter 0.22s cubic-bezier(0.4,0,0.2,1);
-}
-
-/* stop the blue pseudo glow */
-.grid-item.hero-intro::after {
-    content: none !important;
-}
-
-/* hover: lift & blur — no shadow */
-.grid-item.hero-intro:hover,
-.grid-item.hero-intro:focus,
-.grid-item.hero-intro:focus-within {
-    transform: translateY(-6px) scale(1.02);
-    background: rgba(255,255,255,0.08);
-
-    /* slightly lower blur for better responsiveness on Safari; tweak to taste */
-    -webkit-backdrop-filter: blur(10px) saturate(110%);
-    backdrop-filter: blur(10px) saturate(110%);
-
-    box-shadow: none;
-    color: rgba(255,255,255,0.96);
-}
-
-/* text reveal (fixed selector) */
-.grid-item.hero-intro .hero-intro-title,
-.grid-item.hero-intro .hero-intro-subtitle {
-    color: rgba(255,255,255,0);
-    transition: color 0.22s cubic-bezier(0.4,0,0.2,1);
-}
+/* ---------- Show text only on hover ---------- */
 .grid-item.hero-intro:hover .hero-intro-title,
-.grid-item.hero-intro:hover .hero-intro-subtitle,
-.grid-item.hero-intro:focus-within .hero-intro-title,
-.grid-item.hero-intro:focus-within .hero-intro-subtitle {
-    color: rgba(255,255,255,0.96);
+.grid-item.hero-intro:hover .hero-intro-subtitle {
+    opacity: 1;
 }
 
-/* mobile baseline */
-@media (max-width:640px) {
-    .grid-item.hero-intro {
-        transform: none;
-        background: rgba(255,255,255,0.06);
-        -webkit-backdrop-filter: blur(10px);
-        backdrop-filter: blur(10px);
-        box-shadow: none;
+/* ---------- JS typing caret ---------- */
+.hero-intro-title.typing::after,
+.hero-intro-subtitle.typing::after {
+    content: "";
+    display: inline-block;
+    width: 2px;
+    height: 1.05em;
+    background: rgba(255, 255, 255, 0.9);
+    margin-left: 6px;
+    vertical-align: bottom;
+    animation: blinkCaret 700ms steps(1) infinite;
+}
+
+@keyframes blinkCaret {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* ============================================================= */
+/* === Dynamic layout fixes with container queries === */
+/* Prevents text from bleeding by adjusting padding and margins */
+/* Requires: .grid-item { container-type: size; container-name: grid-item; } */
+/* ============================================================= */
+
+/* mildly short tiles — reduce top padding slightly */
+@container grid-item (max-height: 320px) {
+    .hero-intro {
+        padding-top: clamp(0.4rem, 1.5vh, 0.8rem);
+        padding-bottom: clamp(0.8rem, 2vh, 1.2rem);
     }
-    .grid-item.hero-intro .hero-intro-title,
-    .grid-item.hero-intro .hero-intro-subtitle {
-        color: rgba(255,255,255,0.95);
+    .hero-intro-title {
+        font-size: clamp(18px, 3.2vw, 34px);
+        line-height: 1.02;
+    }
+    .hero-intro-subtitle {
+        margin-top: 0.7rem;
+        line-height: 1.45;
+    }
+}
+
+/* very shallow tiles — aggressively compress spacing */
+@container grid-item (max-height: 240px) {
+    .hero-intro {
+        padding-top: clamp(0.25rem, 1vh, 0.6rem);
+        padding-bottom: clamp(0.5rem, 1vh, 0.8rem);
+    }
+    .hero-intro-title {
+        font-size: clamp(16px, 2.6vw, 28px);
+        line-height: 1;
+    }
+    .hero-intro-subtitle {
+        margin-top: 0.4rem;
+        line-height: 1.35;
+        font-size: clamp(0.78rem, 0.9vw, 0.95rem);
+    }
+}
+
+/* wide but short tiles — adjust subtitle spacing */
+@container grid-item (min-width: 900px) and (max-height: 260px) {
+    .hero-intro-subtitle {
+        max-width: 90%;
+        margin-top: 0.3rem;
+    }
+}
+
+/* tall tiles — add breathing room for composition balance */
+@container grid-item (min-height: 500px) {
+    .hero-intro {
+        padding-top: clamp(2rem, 8vh, 3rem);
+    }
+    .hero-intro-title {
+        font-size: clamp(24px, 4vw, 44px);
+    }
+}
+
+/* fallback for browsers without container queries */
+@supports not (container-type: size) {
+    @media (max-height: 700px) {
+        .hero-intro {
+            padding-top: clamp(0.5rem, 2vh, 1rem);
+            padding-bottom: clamp(0.8rem, 2vh, 1.2rem);
+        }
+        .hero-intro-subtitle {
+            margin-top: 0.6rem;
+        }
+    }
+}
+
+/* ---------- Accessibility: reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .hero-intro-title,
+    .hero-intro-subtitle {
+        opacity: 1 !important;
+        transition: none !important;
+    }
+    .hero-intro-title.typing::after,
+    .hero-intro-subtitle.typing::after {
+        animation: none !important;
+    }
+}
+
+/* ---------- Mobile adjustments ---------- */
+@media (max-width: 640px) {
+    .hero-intro {
+        padding: 1.25rem;
+    }
+    .hero-intro-title,
+    .hero-intro-subtitle {
+        max-width: 100%;
     }
 }

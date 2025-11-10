@@ -1,11 +1,19 @@
-{{/* Header used only on the homepage (hero header) */}}
+{{/* layouts/partials/header-home.html */}}
 <header class="home-header" role="banner" aria-label="Homepage header">
     <div class="home-header-inner">
         <div class="hero-title-wrap">
-            <h1 class="hero-title">
-                <a href='{{ "/" | relURL }}' class="hero-title-link">Himanjal</a>
-            </h1>
-            <!-- optional subtitle or CTA can go here -->
+            <div class="hero-logo-title">
+                {{ $logo := resources.Get "images/logo.png" }}
+                {{ with $logo }}
+                <a href='{{ "/" | relURL }}' class="hero-logo-link">
+                    <img src='{{ .RelPermalink }}' alt="Himanjal Sharma logo" class="hero-logo" />
+                </a>
+                {{ end }}
+                <h1 class="hero-title">
+                    <a href='{{ "/" | relURL }}' class="hero-title-link">Himanjal Sharma</a>
+                </h1>
+            </div>
+            <!-- optional subtitle or tagline can go here -->
         </div>
     </div>
 </header>

@@ -1,13 +1,12 @@
 /* 08-fallbacks.css — feature detection & accessibility */
 @media (prefers-reduced-motion: reduce) {
-  .hero-intro-title, .hero-intro-subtitle { transition:none !important; }
-  .hero-intro-subtitle.typing::after { display:none; animation:none; }
+    .hero-intro-title, .hero-intro-subtitle { transition:none !important; }
+    .hero-intro-subtitle.typing::after { display:none; animation:none; }
 }
 
-/* 08-fallbacks.css — simulate glass when backdrop-filter not available */
+/* simulate glass when backdrop-filter not available */
 html.no-backdrop .grid-item,
 html.no-backdrop .grid-item.hero-intro {
-    /* higher opaque translucent fill + subtle border to simulate frosted glass */
     background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
     border: 1px solid rgba(255,255,255,0.06);
     box-shadow: 0 8px 30px rgba(2,6,12,0.45);
