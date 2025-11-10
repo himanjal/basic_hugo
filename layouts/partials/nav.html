@@ -1,0 +1,11 @@
+{{/* Shared logo + navigation partial
+This partial is included by both header-home.html and header-site.html so
+the logo and nav markup is in one place. Adjust links/markup as needed. */}}
+<div class="brand-and-nav">
+    <a class="brand" href='{{ "/" | relURL }}'>Himanjal Sharma</a>
+    <nav class="main-nav" role="navigation" aria-label="Main Navigation">
+        <a href='{{ "/" | relURL }}'>Home</a>
+        <a href='{{ "about/" | relURL }}'>About</a>
+        <a href='{{ "gallery/" | relURL }}'>Gallery</a>
+    </nav>
+</div>

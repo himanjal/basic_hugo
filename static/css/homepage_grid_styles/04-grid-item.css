@@ -33,8 +33,11 @@
 }
 
 /* grid hover dims everything except hovered tile */
-.home-grid:hover .grid-item:not(.inactive){ opacity:0; background:transparent; color: rgba(255,255,255,0); }
-
+.home-grid:hover .grid-item:not(.inactive):not(.hero-intro) {
+    opacity: 0;
+    background: transparent;
+    color: rgba(255,255,255,0);
+}
 /* hovered reveal for generic grid-item (non-hero) */
 .grid-item:not(.inactive):hover,
 .grid-item:not(.inactive):focus-within,
@@ -49,3 +52,28 @@
 }
 
 .grid-item:hover::after { opacity:1; transform:scale(1.02); }
+
+/* ************ Strongly neutralize hero-intro pseudo-glow (Chrome) ************ */
+/* Make sure this block comes *after* the original .grid-item::after rules so it overrides them. */
+
+/* Completely neutralize the radial-glow pseudo for the hero tile */
+.grid-item.hero-intro::after,
+.grid-item.hero-intro:hover::after,
+.home-grid:hover .grid-item.hero-intro::after {
+    /* ensure pseudo exists but is visually neutral */
+    content: "" !important;
+    display: block !important;
+    position: absolute !important;
+    inset: 0 !important;
+    border-radius: inherit !important;
+    pointer-events: none !important;
+
+    /* remove glow visuals */
+    opacity: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+    mix-blend-mode: normal !important;
+    z-index: -2 !important; /* push it further behind to be extra safe */
+}
+

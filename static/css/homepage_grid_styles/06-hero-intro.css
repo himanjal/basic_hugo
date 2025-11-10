@@ -1,62 +1,106 @@
-/* 06-hero-intro.css — single canonical hero-intro rules + content text */
-.hero-intro { display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-start;
-  padding-left: clamp(1rem, 3vw, 4rem); padding-top: clamp(1rem, 4vh, 3rem); padding-right: clamp(1rem, 2vw, 2rem); padding-bottom:1rem;
-  text-align:left; pointer-events:auto;
+/* 06-hero-intro.css — hero tile: JS toggles will-change; CSS provides layer hints and hover behavior */
+
+.hero-intro {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: clamp(1rem, 4vh, 3rem) clamp(1rem, 3vw, 4rem);
+    text-align: left;
+    pointer-events: auto;
 }
 
-/* content */
-.hero-intro-title{
-  font-family:"Playfair Display", Georgia, "Times New Roman", serif; font-weight:400; margin:0; color:#fff;
-  line-height:0.9; letter-spacing:-0.5px; text-shadow: 0 6px 18px rgba(3,6,10,0.55);
-  font-size: clamp(18px, 9.5vw, 40px); display:inline-block; white-space:nowrap; overflow:hidden;
+/* text */
+.hero-intro-title {
+    font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    margin: 0;
+    line-height: 0.9;
+    letter-spacing: -0.5px;
+    text-shadow: 0 6px 18px rgba(3, 6, 10, 0.55);
+    font-size: clamp(18px, 9.5vw, 40px);
 }
-.hero-intro-underline{ width:min(48ch,48%); height:10px; background: rgba(220,210,190,0.7); margin:0.6rem 0 1.2rem 0; border-radius:4px; box-shadow:0 2px 6px rgba(0,0,0,0.35); }
-.hero-intro-subtitle{ margin-top:1rem; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial; font-size:clamp(0.9rem,1.05vw,1.05rem); color:rgba(255,255,255,0.95); max-width:55ch; line-height:1.6; opacity:0.95; }
-
-/* hero-intro tile baseline (consolidated single source of truth) */
-.grid-item.hero-intro{
-  position:relative; z-index:25; pointer-events:auto; cursor:default;
-  opacity:0;
-  background: rgba(255,255,255,0.04);
-  -webkit-backdrop-filter: blur(0px);
-  backdrop-filter: blur(0px);
-  will-change: opacity, backdrop-filter, background-color;
-  transition:
-    opacity 0.22s cubic-bezier(0.4,0,0.2,1),
-    -webkit-backdrop-filter 0.42s cubic-bezier(0.4,0,0.2,1),
-    backdrop-filter 0.42s cubic-bezier(0.4,0,0.2,1),
-    background-color 0.28s cubic-bezier(0.4,0,0.2,1);
+.hero-intro-subtitle {
+    margin-top: 1rem;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+    font-size: clamp(0.9rem, 1.05vw, 1.05rem);
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 55ch;
+    line-height: 1.6;
 }
 
-/* hover/focus: animate blur in and reveal text */
+/* base tile: visible, subtle blur; layer and paint containment hints included */
+.grid-item.hero-intro {
+    position: relative;
+    z-index: 25;
+    cursor: default;
+    opacity: 1;
+    background: rgba(255,255,255,0.04);
+
+    /* baseline blur (visible even when not hovered) */
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+
+    /* Layer/paint hints - keep these, but DO NOT include will-change permanently */
+    isolation: isolate;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    background-clip: padding-box;
+    contain: paint;
+
+    transition:
+            transform 0.22s cubic-bezier(0.4,0,0.2,1),
+            background-color 0.22s cubic-bezier(0.4,0,0.2,1),
+            -webkit-backdrop-filter 0.22s cubic-bezier(0.4,0,0.2,1),
+            backdrop-filter 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* stop the blue pseudo glow */
+.grid-item.hero-intro::after {
+    content: none !important;
+}
+
+/* hover: lift & blur — no shadow */
 .grid-item.hero-intro:hover,
 .grid-item.hero-intro:focus,
-.grid-item.hero-intro:focus-within{
-  opacity:1 !important;
-  background: rgba(255,255,255,0.06);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  transform:none !important;
-  box-shadow:none !important;
-  color: rgba(255,255,255,0.96);
+.grid-item.hero-intro:focus-within {
+    transform: translateY(-6px) scale(1.02);
+    background: rgba(255,255,255,0.08);
+
+    /* slightly lower blur for better responsiveness on Safari; tweak to taste */
+    -webkit-backdrop-filter: blur(10px) saturate(110%);
+    backdrop-filter: blur(10px) saturate(110%);
+
+    box-shadow: none;
+    color: rgba(255,255,255,0.96);
 }
 
-/* text reveal */
+/* text reveal (fixed selector) */
 .grid-item.hero-intro .hero-intro-title,
-.grid-item.hero-intro .hero-intro-subtitle{
-  color: rgba(255,255,255,0);
-  transition: color 0.22s cubic-bezier(0.4,0,0.2,1);
-  position:relative; z-index:2;
+.grid-item.hero-intro .hero-intro-subtitle {
+    color: rgba(255,255,255,0);
+    transition: color 0.22s cubic-bezier(0.4,0,0.2,1);
 }
 .grid-item.hero-intro:hover .hero-intro-title,
 .grid-item.hero-intro:hover .hero-intro-subtitle,
 .grid-item.hero-intro:focus-within .hero-intro-title,
-.grid-item.hero-intro:focus-within .hero-intro-subtitle{
-  color: rgba(255,255,255,0.96);
+.grid-item.hero-intro:focus-within .hero-intro-subtitle {
+    color: rgba(255,255,255,0.96);
 }
 
-/* mobile baseline (keeps hero-intro visible) */
-@media (max-width:640px){
-  .grid-item.hero-intro{ opacity:1; background: rgba(255,255,255,0.05); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-  .grid-item.hero-intro .hero-intro-title, .grid-item.hero-intro .hero-intro-subtitle { color: rgba(255,255,255,0.95); }
+/* mobile baseline */
+@media (max-width:640px) {
+    .grid-item.hero-intro {
+        transform: none;
+        background: rgba(255,255,255,0.06);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        box-shadow: none;
+    }
+    .grid-item.hero-intro .hero-intro-title,
+    .grid-item.hero-intro .hero-intro-subtitle {
+        color: rgba(255,255,255,0.95);
+    }
 }

@@ -4,7 +4,6 @@
 {{ $bg := cond $img ($img.Resize "2400x") nil }}
 
 <section class="hero" style="background-image: url('{{ with $bg }}{{ .RelPermalink }}{{ else }}/{{ $hero }}{{ end }}');">
-    {{ partial "header.html" . }}
 
 <!--    <div class="hero-content">-->
 <!--        <p>{{ .Site.Params.description }}</p>-->

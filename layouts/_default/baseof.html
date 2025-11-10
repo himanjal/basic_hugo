@@ -5,32 +5,36 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>{{ .Title }} - {{ .Site.Title }}</title>
 
-    <!-- Site-wide header/nav styles -->
+    <!-- other global styles (load first) -->
+    <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/site-header.css">
 
     {{ if .IsHome }}
-    <!-- homepage-specific styles -->
+    <!-- homepage-specific styles: only header + grid (homepage.css removed) -->
     <link rel="stylesheet" href="/css/homepage-header.css">
-    <link rel="stylesheet" href="/css/homepage.css">
     <link rel="stylesheet" href="/css/homepage-grid.css">
     {{ end }}
 
-    <!-- other global styles -->
-    <link rel="stylesheet" href="/css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-{{ partial "header.html" . }}
+{{ if .IsHome }}
+{{ partial "header-home.html" . }}
+{{ else }}
+{{ partial "header-site.html" . }}
+{{ end }}
 
 <main id="content">
     {{ block "main" . }}{{ end }}
 </main>
 
-<!-- Load scroll script only on home (optional) -->
+<!-- Load scroll/typewriter/backdrop scripts only on home -->
 {{ if .IsHome }}
 <script src="/js/scroll.js" defer></script>
 <script src="/js/hero-typewriter.js" defer></script>
 <script src="/js/backdrop-detect.js" defer></script>
+<script src="/js/backdrop-repaint.js" defer></script>
+<script src="/js/hero-willchange-toggle.js" defer></script>
 {{ end }}
 </body>
 </html>
