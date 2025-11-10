@@ -17,6 +17,7 @@
 
     <!-- other global styles -->
     <link rel="stylesheet" href="/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
 {{ partial "header.html" . }}
@@ -28,6 +29,8 @@
 <!-- Load scroll script only on home (optional) -->
 {{ if .IsHome }}
 <script src="/js/scroll.js" defer></script>
+<script src="/js/hero-typewriter.js" defer></script>
+<script src="/js/backdrop-detect.js" defer></script>
 {{ end }}
 </body>
 </html>

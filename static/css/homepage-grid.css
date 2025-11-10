@@ -60,11 +60,11 @@ html, body { height:100%; margin:0; padding:0; -webkit-font-smoothing:antialiase
 
 /* ---------------- GRID ITEM (baseline) ---------------- */
 .grid-item {
-    width:100%; height:100%; min-width:0; min-height:0; box-sizing:border-box;
+    width:100%; height:100%; min-width:0; box-sizing:border-box;
     background: transparent; border-radius:12px;
     color: rgba(255,255,255,0);
     display:flex; flex-direction:column; justify-content:center; align-items:center;
-    text-align:center; padding:1rem; overflow:hidden; cursor:default;
+    text-align:center; padding:0; overflow:hidden; cursor:default;
     min-height: var(--grid-item-min-height);
     max-height: var(--grid-item-max-height-vh);
 
@@ -171,6 +171,201 @@ html, body { height:100%; margin:0; padding:0; -webkit-font-smoothing:antialiase
     100% { opacity:0; transform: scale(1); filter: blur(0); }
 }
 
+/* ---------------- Hero intro box styling ---------------- */
+.hero-intro {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;     /* snap to left */
+    justify-content: flex-start; /* snap to top */
+    padding-left: clamp(1rem, 3vw, 4rem);
+    padding-top: clamp(1rem, 4vh, 3rem);
+    padding-right: clamp(1rem, 2vw, 2rem);
+    padding-bottom: 1rem;
+    text-align: left;
+    pointer-events: auto;        /* allow text interaction */
+}
+
+/* Big serif heading */
+.hero-intro-title {
+    font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    margin: 0;
+    color: #fff;
+    line-height: 0.9;
+    letter-spacing: -0.5px;
+    text-shadow: 0 6px 18px rgba(3,6,10,0.55);
+    font-size: clamp(18px, 9.5vw, 40px);
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* thin underline bar */
+.hero-intro-underline {
+    width: min(48ch, 48%);
+    height: 10px;
+    background: rgba(220,210,190,0.7);
+    margin: 0.6rem 0 1.2rem 0;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+}
+
+/* subtitle styling */
+.hero-intro-subtitle {
+    margin-top: 1rem;     /* small top margin */
+    margin-bottom: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    font-size: clamp(0.9rem, 1.05vw, 1.05rem);
+    color: rgba(255,255,255,0.95);
+    max-width: 55ch;
+    line-height: 1.6;
+    opacity: 0.95;
+    text-align: left;
+    transition: color 0.18s ease;
+}
+
+/* responsive tweaks */
+@media (max-width: 640px) {
+    .hero-intro {
+        padding: 1rem;
+    }
+    .hero-intro-title {
+        white-space: normal;
+        font-size: clamp(32px, 12vw, 56px);
+    }
+    .hero-intro-underline {
+        height: 6px;
+        margin-top: 0.4rem;
+        width: 60%;
+    }
+}
+
+/* ---------------- Hero-intro: flat but hover-reveal + typing ---------------- */
+
+/* Baseline: hero-intro inherits the invisible-by-default behavior like other grid items */
+/* ---------------- Hero-intro: flat default, blurred on hover ---------------- */
+/* ---------------- Hero-intro: animated blur + neutral tint (no blue) ---------------- */
+
+/* baseline: invisible like other tiles, flat appearance */
+/* ---------------- Hero-intro: consistent glassy blur, no tint mismatch ---------------- */
+/* ---------------- Hero-intro: working blur, same tone as other tiles ---------------- */
+
+.grid-item.hero-intro {
+    position: relative;
+    border: none !important;
+    box-shadow: none !important;
+    cursor: default;
+    pointer-events: auto;
+
+    /* invisible by default */
+    opacity: 0;
+    background: rgba(255, 255, 255, 0.05); /* must have a visible layer for blur */
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+
+    transition:
+            opacity 0.25s ease-out,
+            backdrop-filter 0.4s ease,
+            -webkit-backdrop-filter 0.4s ease,
+            background-color 0.4s ease;
+    will-change: opacity, backdrop-filter, background-color;
+}
+
+/* Hover/focus: reveal + animate blur in */
+.grid-item.hero-intro:hover,
+.grid-item.hero-intro:focus,
+.grid-item.hero-intro:focus-within {
+    opacity: 1 !important;
+    background: rgba(255, 255, 255, 0.06); /* consistent tint */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transform: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    color: rgba(255, 255, 255, 0.96);
+}
+
+/* fade text in/out with hover */
+.grid-item.hero-intro .hero-intro-title,
+.grid-item.hero-intro .hero-intro-subtitle {
+    color: rgba(255, 255, 255, 0);
+    transition: color 0.25s ease;
+}
+
+.grid-item.hero-intro:hover .hero-intro-title,
+.grid-item.hero-intro:hover .hero-intro-subtitle,
+.grid-item.hero-intro:focus-within .hero-intro-title,
+.grid-item.hero-intro:focus-within .hero-intro-subtitle {
+    color: rgba(255, 255, 255, 0.96);
+}
+
+/* Keep visible while hovered even if grid dims others */
+.home-grid:hover .grid-item.hero-intro:hover {
+    opacity: 1 !important;
+}
+
+/* Accessibility focus outline */
+.grid-item.hero-intro:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+}
+
+/* Mobile: if your mobile rules make items visible by default, keep tint logic consistent */
+@media (max-width: 640px) {
+    .grid-item.hero-intro {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .grid-item.hero-intro .hero-intro-title,
+    .grid-item.hero-intro .hero-intro-subtitle {
+        color: rgba(255, 255, 255, 0.95);
+    }
+    .hero-intro-title { white-space: normal; font-size: clamp(10px, 6vw, 25px); }
+    .hero-intro { padding-left: 1rem; padding-right: 1rem; }
+    .hero-intro-underline { height: 6px; margin-top: 0.4rem; width: 60%; }
+}
+
+/* reduced motion: skip typing animations */
+@media (prefers-reduced-motion: reduce) {
+    .hero-intro-title,
+    .hero-intro-subtitle {
+        transition: none !important;
+    }
+    .hero-intro-subtitle.typing::after { display: none; animation: none; }
+}
+
+
+/* Mobile: keep hero-intro visible by default (if your mobile rules show items always) */
+/* If you want hero-intro to be visible on mobile like other text modules, leave as-is.
+   Otherwise, the existing mobile media query will make .grid-item opacity:1 — no change needed. */
+
+
+/*!* caret effect: add to the typing target elements *!*/
+/*.hero-typing-target::after {*/
+/*    content: "";*/
+/*    display: inline-block;*/
+/*    width: 0.5ch;*/
+/*    height: 1em;*/
+/*    margin-left: 0.15ch;*/
+/*    background: rgba(255,255,255,0.95);*/
+/*    vertical-align: middle;*/
+/*    animation: blink 1s steps(2,start) infinite;*/
+/*    opacity: 1;*/
+/*}*/
+/*@keyframes blink {*/
+/*    0% { opacity: 1; }*/
+/*    50% { opacity: 0; }*/
+/*    100% { opacity: 1; }*/
+/*}*/
+
+/*!* Respect reduced-motion: remove blinking *!*/
+/*@media (prefers-reduced-motion: reduce) {*/
+/*    .hero-typing-target::after { display: none; animation: none; }*/
+/*}*/
+
+
 /* ---------------- RESPONSIVE BREAKPOINTS ---------------- */
 @media (max-width:1100px) {
     :root { --grid-padding: clamp(0.5rem,2vw,1.2rem); }
@@ -225,3 +420,91 @@ html, body { height:100%; margin:0; padding:0; -webkit-font-smoothing:antialiase
 
 /* ---------------- HEADER SAFETY ---------------- */
 .home-header { position:absolute; top:0; left:0; width:100%; z-index:50; pointer-events:none; }
+
+
+/* ---------------- Hero-intro: robust blur + animated reveal ---------------- */
+
+/* Ensure wrapper allows proper compositing */
+.hero-grid-wrap {
+    /* create its own stacking context so backdrop-filter can sample background correctly */
+    isolation: isolate;
+    -webkit-transform: translateZ(0); /* encourage GPU compositing */
+    transform: translateZ(0);
+}
+
+/* Primary hero-intro styles; we use a visible translucent background layer (required) */
+.grid-item.hero-intro {
+    position: relative;
+    z-index: 25; /* above grid cells but below header */
+    pointer-events: auto;
+    cursor: default;
+
+    /* start invisible (like other tiles) but must have a semi-transparent background */
+    opacity: 0;
+    background: rgba(255,255,255,0.04);  /* subtle translucent layer required for backdrop-filter */
+    -webkit-backdrop-filter: blur(0px);
+    backdrop-filter: blur(0px);
+
+    /* smooth animation */
+    transition:
+            opacity 0.22s cubic-bezier(0.4,0,0.2,1),
+            backdrop-filter 0.42s cubic-bezier(0.4,0,0.2,1),
+            -webkit-backdrop-filter 0.42s cubic-bezier(0.4,0,0.2,1),
+            background-color 0.28s cubic-bezier(0.4,0,0.2,1);
+    will-change: opacity, backdrop-filter, background-color;
+    backface-visibility: hidden; /* helps some browsers */
+}
+
+/* Hover/focus: animate blur in and brighten slightly */
+.grid-item.hero-intro:hover,
+.grid-item.hero-intro:focus,
+.grid-item.hero-intro:focus-within {
+    opacity: 1 !important;
+    background: rgba(255,255,255,0.06);   /* same tone as other tiles */
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* text reveal rules unchanged */
+.grid-item.hero-intro .hero-intro-title,
+.grid-item.hero-intro .hero-intro-subtitle {
+    color: rgba(255,255,255,0);
+    transition: color 0.22s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+    z-index: 2;
+}
+.grid-item.hero-intro:hover .hero-intro-title,
+.grid-item.hero-intro:hover .hero-intro-subtitle,
+.grid-item.hero-intro:focus-within .hero-intro-title,
+.grid-item.hero-intro:focus-within .hero-intro-subtitle {
+    color: rgba(255,255,255,0.96);
+}
+
+/* if browser does not support backdrop-filter, .no-backdrop class will be added to body by JS;
+   use slightly stronger translucent background as fallback (no blur) */
+body.no-backdrop .grid-item.hero-intro {
+    background: rgba(255,255,255,0.08) !important; /* slightly stronger tint for readability */
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+
+/* also make sure the hero background is visible behind the grid (no opaque overlay on .hero) */
+.hero {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+}
+
+/* Mobile: show hero-intro like others if grid is mobile-visible */
+@media (max-width: 640px) {
+    .grid-item.hero-intro {
+        opacity: 1;
+        background: rgba(255,255,255,0.05);
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+    }
+    .grid-item.hero-intro .hero-intro-title,
+    .grid-item.hero-intro .hero-intro-subtitle { color: rgba(255,255,255,0.95); }
+}

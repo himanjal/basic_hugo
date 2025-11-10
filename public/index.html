@@ -18,6 +18,7 @@
 
     
     <link rel="stylesheet" href="/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -66,9 +67,13 @@
 <section class="home-grid" aria-label="Homepage modules">
 
     
-    <div class="grid-item text-module" style="--i:1">
-        <h2>About Me</h2>
-        <p>Learn more about my story and projects.</p>
+    <div class="grid-item text-module hero-intro" style="--i:1" aria-label="Intro">
+        <h2 class="hero-intro-title">Who am I?</h2>
+
+        <p class="hero-intro-subtitle">
+            Software Engineer by trade. World explorer by nature.
+            Currently, probably backpacking through some mountain range without any connectivity.
+        </p>
     </div>
 
     
@@ -119,6 +124,8 @@
 
 
 <script src="/js/scroll.js" defer></script>
+<script src="/js/hero-typewriter.js" defer></script>
+<script src="/js/backdrop-detect.js" defer></script>
 
 </body>
 </html>
