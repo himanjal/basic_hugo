@@ -1,3 +1,4 @@
 baseURL = 'https://himanjal.com/'
 languageCode = 'en-us'
-title = 'Himanjal Sharma'
+title = 'Himanjal'
+author = 'Himanjal'

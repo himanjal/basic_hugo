@@ -1,0 +1,16 @@
+/* 07-responsive.css — responsive overrides */
+@media (max-width:1100px) {
+    :root { --grid-padding: clamp(0.5rem,2vw,1.2rem); }
+    .home-grid { grid-template-columns: repeat(2,1fr); grid-template-rows: repeat(3,1fr); }
+    .grid-item { max-height: 45vh; }
+}
+
+@media (max-width:640px) {
+    :root { --hero-top-offset: var(--hero-top-offset-mobile); --grid-gap:0.6rem; --grid-padding:0.9rem; }
+    .hero-grid-wrap{ top:var(--hero-top-offset); height:calc(100vh - var(--hero-top-offset)); max-height:calc(100vh - var(--hero-top-offset)); overflow-y:auto; -webkit-overflow-scrolling:touch; align-items:flex-start; justify-content:flex-start; padding-bottom: env(safe-area-inset-bottom,16px); }
+    .home-grid{ display:grid; grid-template-columns:1fr; grid-template-rows:none; height:auto; max-height:none; gap: var(--grid-gap); padding:var(--grid-padding); overflow:visible; }
+    .grid-item{ opacity:1; background: var(--grid-item-bg); color: rgba(255,255,255,0.95); transform:none; min-height: var(--mobile-item-min-height); max-height:70vh; height:auto; animation:none; box-shadow: 0 6px 18px rgba(0,0,0,0.28); }
+    .thumb-module img{ height:auto; object-fit:cover; opacity:1; }
+    .grid-btn { color:#fff; background: rgba(255,255,255,0.10); }
+}
+@media (min-width:1600px){ :root { --grid-padding: clamp(1rem,2.2vw,3rem); --grid-gap: clamp(1rem,1.6vw,2rem); } .grid-item { min-height:160px; max-height:33vh; } }

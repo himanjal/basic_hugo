@@ -1,11 +1,37 @@
-{{/* Shared logo + navigation partial
-This partial is included by both header-home.html and header-site.html so
-the logo and nav markup is in one place. Adjust links/markup as needed. */}}
-<div class="brand-and-nav">
-    <a class="brand" href='{{ "/" | relURL }}'>Himanjal Sharma</a>
-    <nav class="main-nav" role="navigation" aria-label="Main Navigation">
-        <a href='{{ "/" | relURL }}'>Home</a>
-        <a href='{{ "about/" | relURL }}'>About</a>
-        <a href='{{ "gallery/" | relURL }}'>Gallery</a>
-    </nav>
-</div>
+<nav class="navbar-pill">
+    <div class="navbar-inner">
+
+        <!-- LEFT: Brand-name "Home" (clickable) -->
+        <div class="nav-left">
+            <a href="{{ "/" | relURL }}" class="brand" aria-label="Home">
+            <span class="brand-name">Home</span>
+            </a>
+        </div>
+
+        <!-- CENTER: exactly 3 nav items -->
+        <div class="nav-center" role="navigation" aria-label="Main Navigation">
+            <a href="/info/">Info</a>
+            <a href="/gallery/">Gallery</a>
+            <a href="/playground/">Playground</a>
+        </div>
+
+        <!-- RIGHT: Instagram icon (loaded via resources.Get) -->
+        <div class="nav-right">
+            {{ $insta := resources.Get "images/instagram.png" }}
+            {{ with $insta }}
+            {{ $thumb := .Resize "240x" }}
+            <a href="https://instagram.com/" class="icon-link" target="_blank" rel="noopener" aria-label="Instagram">
+          <span class="large-insta">
+            <img src="{{ $thumb.RelPermalink }}" alt="Instagram" class="logo-small" />
+          </span>
+            </a>
+            {{ else }}
+            <!-- fallback: plain anchor if image missing -->
+            <a href="https://instagram.com/" class="icon-link" target="_blank" rel="noopener" aria-label="Instagram">
+                <span class="large-insta brand-fallback">IG</span>
+            </a>
+            {{ end }}
+        </div>
+
+    </div>
+</nav>

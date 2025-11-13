@@ -34,10 +34,19 @@
     </div>
 
     <!-- Grid Item 7 -->
-    <a href="/contact/" class="grid-item thumb-module" style="--i:7">
-        <img src="/images/5.jpeg" alt="Contact Preview" />
+    {{ $preview := resources.Get "images/4.jpeg" }}
+    {{ with $preview }}
+    {{ $thumb := .Resize "480x" }}
+    <a href='{{ "/gallery/" | relURL }}' class="grid-item thumb-module" aria-label="Open Gallery">
+    <div class="thumb-image">
+        <img src='{{ $thumb.RelPermalink }}' alt="Gallery preview" loading="lazy" />
+    </div>
+    <div class="thumb-meta">
+        <h3 class="thumb-title">Gallery</h3>
+        <p class="thumb-sub">Browse albums & photos</p>
+    </div>
     </a>
-
+    {{ end }}
     <!-- Grid Item 8 -->
     <div class="grid-item inactive" aria-hidden="true" style="--i:8"></div>
 

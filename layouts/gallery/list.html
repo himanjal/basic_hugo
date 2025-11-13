@@ -1,0 +1,34 @@
+{{ define "main" }}
+<main class="gallery-wrap" aria-label="Gallery">
+    {{ $imgs := resources.Match "images/featured/*.{jpg,jpeg,png,webp}" | sort }}
+    {{ if gt (len $imgs) 0 }}
+    <div class="scroller-outer">
+        <div id="peeler" class="peeler" tabindex="0" aria-label="Image carousel"
+             data-autoplay="true" data-interval="4000" data-pause-on-hover="true"
+             data-pause-on-interaction="true" data-resume-after="3000">
+            {{ range $i, $img := $imgs }}
+            <figure class="peel-slide" role="group" aria-roledescription="slide"
+                    aria-label="Slide {{ add $i 1 }} of {{ len $imgs }}">
+                <div class="peel-inner">
+                    {{ $hi := ($img.Resize "2000x") }}
+                    {{ $lq := ($img.Resize "40x") }}
+                    <img class="peel-img lazy"
+                         src="{{ $lq.RelPermalink }}"
+                         data-src="{{ $hi.RelPermalink }}"
+                         alt="{{ $img.Name }}"
+                         loading="lazy" />
+                </div>
+            </figure>
+            {{ end }}
+        </div>
+    </div>
+    {{ else }}
+    <p class="no-images">No images found in assets/images/featured.</p>
+    {{ end }}
+</main>
+
+{{/* If the base does not inject gallery JS automatically, you can add it here: */}}
+{{ block "scripts" . }}
+<script src="{{ "js/peel-scroller.js" | relURL }}" defer></script>
+{{ end }}
+{{ end }}

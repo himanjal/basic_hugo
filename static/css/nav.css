@@ -1,0 +1,204 @@
+/* nav.css — dynamic compact pill nav with global gaps */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+/* -------------- Base Pill Layout -------------- */
+.navbar-pill {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 0;
+    margin-top: 0;
+    box-sizing: border-box;
+}
+
+/* Dynamic-width black pill */
+.navbar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #0b0b0d;
+    color: #fff;
+    border-radius: 9999px;
+    padding: 6px 14px;
+    height: auto;
+    max-height: 44px;
+    width: fit-content;                /* ✅ dynamic pill width */
+    box-sizing: border-box;
+    box-shadow: 0 4px 12px rgba(11,11,13,0.3);
+    border: 1px solid rgba(255,255,255,0.05);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+
+    /* ✅ global gaps between left, center, right */
+    gap: 30px;
+}
+
+/* global item margins to balance spacing visually */
+.nav-left { margin-right: 15px; }
+.nav-right { margin-left: 25px; }
+
+/* -------------- Brand (Home) -------------- */
+.nav-left {
+    display: flex;
+    align-items: center;
+}
+
+.brand {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    overflow: hidden;
+    color: inherit;
+    border-radius: 999px;
+}
+
+.brand-name {
+    font-family: 'Inter', 'Poppins', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    color: rgba(255,255,255,0.9);
+    line-height: 1;
+    padding: 4px 8px;
+    z-index: 1;
+}
+
+/* Hover overlay for brand (Home) */
+.brand::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scaleX(0);
+    transform-origin: center;
+    width: 120%;
+    height: 80%;
+    background: rgba(255,255,255,0.05);
+    border-radius: 999px;
+    transition: transform .2s cubic-bezier(.2,.9,.2,1), background .16s ease;
+    z-index: 0;
+    pointer-events: none;
+}
+.brand:hover::before,
+.brand:focus::before {
+    transform: translate(-50%, -50%) scaleX(1);
+    background: rgba(255,255,255,0.10);
+}
+.brand:hover .brand-name { color: #fff; }
+
+/* -------------- Center Links -------------- */
+.nav-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+
+.nav-center a {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    color: rgba(255,255,255,0.9);
+    text-decoration: none;
+    border-radius: 999px;
+    z-index: 1;
+    transition: color .1s ease;
+}
+
+/* Hover overlay shared style */
+.nav-center a::before,
+.brand::before,
+.icon-link::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    transform-origin: center;
+    width: 120%;
+    height: 80%;
+    background: rgba(255,255,255,0.05);
+    border-radius: 999px;
+    transition: transform .2s cubic-bezier(.2,.9,.2,1), background .16s ease;
+    z-index: 0;
+    pointer-events: none;
+}
+.nav-center a:hover::before,
+.nav-center a:focus::before,
+.brand:hover::before,
+.brand:focus::before,
+.icon-link:hover::before,
+.icon-link:focus::before {
+    transform: translate(-50%, -50%) scale(1);
+    background: rgba(255,255,255,0.10);
+}
+
+.nav-center a:hover,
+.brand:hover,
+.icon-link:hover { color: #fff; }
+
+/* -------------- Right Icon (Instagram) -------------- */
+.nav-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.icon-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    border-radius: 50%;
+}
+
+.logo-small {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    border-radius: 5px;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.18s ease, opacity 0.18s ease;
+}
+.icon-link:hover .logo-small {
+    transform: scale(1.06);
+    opacity: 0.9;
+}
+
+/* -------------- Responsive (smaller screens) -------------- */
+@media (max-width: 640px) {
+    .navbar-inner {
+        padding: 4px 10px;
+        max-height: 38px;
+        width: fit-content;          /* ✅ still dynamic */
+        gap: 20px;                   /* smaller global gap */
+    }
+
+    .nav-left { margin-right: 10px; }
+    .nav-right { margin-left: 10px; }
+
+    .brand-name,
+    .nav-center a {
+        font-size: 12px;
+        padding: 4px 6px;
+    }
+
+    .nav-center { gap: 5px; }
+
+    .logo-small {
+        width: 26px;
+        height: 26px;
+    }
+}

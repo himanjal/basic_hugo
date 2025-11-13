@@ -1,27 +1,13 @@
-{{/* layouts/partials/header.html */}}
+<!-- layouts/partials/header.html -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
 
-{{ if .IsHome }}
-<header class="home-header">
-    <div class="home-header-inner">
-        <div class="hero-title-wrap">
-            <h1 class="hero-title">
-                <a href='{{ "/" | relURL }}' class="hero-title-link">Himanjal Sharma</a>
-            </h1>
-            <!-- <div class="hero-underline" aria-hidden="true"></div> -->
-        </div>
-    </div>
+
+<!-- header wrapper -->
+<header class="site-header" role="banner">
+    <!-- include nav partial -->
+    {{ partial "nav.html" . }}
 </header>
-
-{{ else }}
-<header class="site-header">
-    <div class="wrap header-inner">
-        <a class="brand" href='{{ "/" | relURL }}'>Himanjal Sharma</a>
-
-        <nav class="main-nav">
-            <a href='{{ "/" | relURL }}'>Home</a>
-            <a href='{{ "about/" | relURL }}'>About</a>
-            <a href='{{ "gallery/" | relURL }}'>Gallery</a>
-        </nav>
-    </div>
-</header>
-{{ end }}

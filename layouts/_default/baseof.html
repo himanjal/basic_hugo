@@ -3,36 +3,65 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>{{ .Title }} - {{ .Site.Title }}</title>
 
-    <!-- other global styles (load first) -->
-    <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/site-header.css">
+    {{/* Title: prefer page title, fall back to site title */}}
+    <title>{{ with .Title }}{{ . }} - {{ end }}{{ .Site.Title }}</title>
 
+    {{/* Description: page description -> site param fallback (for SEO + social) */}}
+    <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}">
+
+    {{/* Canonical URL (helpful for SEO). If pretty permalinks use .Permalink */}}
+    <link rel="canonical" href="{{ .Permalink | absURL }}">
+
+    {{/* Favicon (add your favicon to static/) */}}
+    <link rel="icon" href="{{ "favicon.ico" | relURL }}" />
+
+    {{/* Preconnect to Google fonts for slightly faster font loading */}}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    {{/* Default global CSS first (site-wide layout + header/nav) */}}
+    <link rel="stylesheet" href='{{ "css/main.css" | relURL }}' />
+
+    {{/* Page-specific CSS: home overrides (loaded after main so it can override) */}}
     {{ if .IsHome }}
-    <!-- homepage-specific styles: only header + grid (homepage.css removed) -->
-    <link rel="stylesheet" href="/css/homepage-header.css">
-    <link rel="stylesheet" href="/css/homepage-grid.css">
+    <link rel="stylesheet" href='{{ "css/homepage-grid.css" | relURL }}'>
     {{ end }}
 
+    {{/* Page authors or extra head content can be injected by child templates */}}
+    {{ block "head" . }}{{ end }}
+
+    <!-- 🎨 Fonts (kept last so preconnect runs earlier) -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
 </head>
-<body>
-{{ if .IsHome }}
-{{ partial "header-home.html" . }}
-{{ else }}
-{{ partial "header-site.html" . }}
-{{ end }}
 
-<main id="content">
+{{/* Add page/type based classes to <body> for scoped styles */}}
+<body class="{{ .Type | default "page" }}-page {{ if .IsHome }}home{{ end }}">
+
+<!--{{/* Accessibility: quick skip link to content */}}-->
+<!--<a class="skip-link" href="#content">Skip to content</a>-->
+
+{{/* Site header partial — ensures every page has the same header */}}
+{{ partial "header.html" . }}
+
+<main id="content" role="main" tabindex="-1">
     {{ block "main" . }}{{ end }}
 </main>
 
-<!-- Load scroll/typewriter/backdrop scripts only on home -->
+{{/* ------- Scripts ------- */}}
+{{/* Common site scripts. Keep defer so DOM is parsed first. */}}
+<!--<script src='{{ "js/theme-toggle.js" | relURL }}' defer></script>-->
+
+{{/* Page-specific scripts: home-only or others can be injected via blocks/conditions */}}
 {{ if .IsHome }}
-<script src="/js/scroll.js" defer></script>
-<script src="/js/hero-typewriter.js" defer></script>
-<script src="/js/backdrop-detect.js" defer></script>
+<!-- Homepage-only scripts -->
+<script src='{{ "js/scroll.js" | relURL }}' defer></script>
+<script src='{{ "js/hero-typewriter.js" | relURL }}' defer></script>
+<script src='{{ "js/backdrop-detect.js" | relURL }}' defer></script>
 {{ end }}
+
+{{/* Allow child templates to inject additional page scripts (gallery, posts, etc.) */}}
+{{ block "scripts" . }}{{ end }}
+
 </body>
 </html>
