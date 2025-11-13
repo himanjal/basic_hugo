@@ -8,16 +8,12 @@
 
 
 
-    <link rel="stylesheet" href='{{ "css/main.css" | relURL }}'>
-
-
     {{ if .IsHome }}
     <link rel="stylesheet" href='{{ "css/homepage-grid.css" | relURL }}'>
     {{ else }}
-    <!-- 🌐 Global site styles (load first) -->
-    <link rel="stylesheet" href='{{ "css/styles.css" | relURL }}'>
     {{ end }}
 
+    <link rel="stylesheet" href='{{ "css/main.css" | relURL }}'>
     <!-- 🎨 Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
 </head>
@@ -36,8 +32,6 @@
 <script src='{{ "js/hero-typewriter.js" | relURL }}' defer></script>
 <script src='{{ "js/backdrop-detect.js" | relURL }}' defer></script>
 {{ else }}
-<!-- Site-wide header scroll script -->
-<script src='{{ "js/site-header.js" | relURL }}' defer></script>
 <script src='{{ "js/theme-toggle.js" | relURL }}' defer></script>)
 {{ end }}
 

@@ -1,205 +1,121 @@
-/* static/css/gallery.css
-   Gallery page styles — updated: flat full-bleed scroller pinned to top-left,
-   no gaps between images, no shadow/border (flat)
-*/
+/* static/css/gallery.css — final peeler styling */
 
-/* Basic layout */
-.page-wrap { width: 100%; }
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding-top: 0;
-    box-sizing: border-box;
+/* Variables */
+:root {
+    --page-bg: #ff2d95;
+    --frame-bg: #ffffff;
+    --outer-pad: clamp(48px, 6vw, 160px);
+    --card-radius: 22px;
+    --scroller-aspect: 3 / 2;
+    --peel-duration: 420ms;
+    --peel-ease: cubic-bezier(.22,.9,.28,1);
+    --snap-ease: cubic-bezier(.18,.75,.4,1);
 }
 
-/* Header (title/subtitle above scroller) */
-.gallery-header {
-    text-align: center;
-    margin-bottom: 0.75rem;
-}
-.gallery-title {
-    font-family: "Inter", system-ui, sans-serif;
-    font-size: clamp(28px, 4.6vw, 56px);
-    margin: 0 0 0.25rem;
-    color: #fff;
-}
-.gallery-sub {
-    margin: 0 0 0.5rem;
-    color: rgba(255,255,255,0.7);
-    font-size: 0.95rem;
+/* Base */
+html, body { height:100%; margin:0; }
+body.gallery-page { background: var(--page-bg); -webkit-font-smoothing:antialiased; }
+
+/* Background layer */
+#gallery-bg { position:fixed; inset:0; background:var(--page-bg); z-index:0; pointer-events:none; }
+
+/* Layout */
+.gallery-wrap {
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:var(--outer-pad);
+    box-sizing:border-box;
 }
 
-/* === Featured scroller section (FLAT + pinned) === */
-/* full-bleed: span entire viewport width, pinned to top-left of viewport */
-.featured-scroller-wrap {
-    position: fixed;      /* pinned to viewport */
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: auto;        /* will size based on slides' min-height */
-    z-index: 0;          /* behind headers that have higher z-index */
-    pointer-events: auto;
-    overflow: hidden;
-}
-
-/* If your header isn't above the scroller, give header a higher z-index:
-   .site-header, .home-header { position: relative; z-index: 10; }
-   (I didn't change header styles here — set this in your header css if needed.) */
-
-/* scroller */
-.featured-scroller {
-    width: 100%;
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    gap: 0; /* NO gaps between images */
-    align-items: stretch;
-    scroll-behavior: smooth;
-    scrollbar-width: none;
-    padding: 0; /* no padding — slides touch edges */
-    margin: 0;
-}
-.featured-scroller::-webkit-scrollbar { display: none; }
-
-/* slides: full viewport width each, no internal padding, flat */
-.featured-scroller .slide {
-    flex: 0 0 100vw;             /* exactly viewport width */
-    scroll-snap-align: start;
+/* Frame */
+.scroller-outer {
+    width: min(
+            calc(100% - (var(--outer-pad) * 2)),
+            calc((100vh - (var(--outer-pad) * 2)) * 1.5)
+    );
+    max-width: 1600px;
+    aspect-ratio: var(--scroller-aspect);
+    background: var(--frame-bg);
+    border-radius: var(--card-radius);
+    overflow: hidden; /* critical to clip peels */
     position: relative;
-    box-sizing: border-box;
-    display: block;
-    min-height: clamp(260px, 40vw, 520px);
-    padding: 0;                  /* remove inner padding */
-    border-radius: 0;            /* no rounding */
-    background: transparent;     /* flat */
-    border: none;                /* remove border */
-    box-shadow: none;            /* remove shadow (flat) */
-    transition: none;            /* no hover lift */
+    z-index: 6;
 }
 
-/* images fill the slide and touch edges (bleed) */
-.featured-scroller .slide img {
+/* Peeler stack */
+.peeler {
+    position: relative;
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    display: block;
-    border-radius: 0;
-    margin: 0;
-    box-shadow: none;
+    user-select: none;
+    touch-action: manipulation;
 }
 
-/* if you previously used .slide-inner, keep it neutral */
-.featured-scroller .slide .slide-inner {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    padding: 0;
-}
-
-/* caption (optional) — positioned over image, unaffected */
-.slide-caption {
-    position: absolute;
-    left: clamp(18px, 4vw, 48px);
-    bottom: clamp(18px, 4vw, 48px);
-    color: #fff;
-    text-shadow: 0 8px 28px rgba(0,0,0,0.55);
-    pointer-events: none;
-}
-.slide-caption h2 {
-    margin: 0;
-    font-size: clamp(20px, 3.5vw, 36px);
-}
-
-/* navigation circles (if used) */
-.scroller-controls {
-    display: flex;
-    justify-content: center;
-    margin-top: 0.5rem;
-    gap: 6px;
-    position: relative; /* keep below scroller in DOM flow */
-}
-.scroller-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.3);
-    border: none;
-    cursor: pointer;
-    transition: transform .18s ease, background .18s ease;
-}
-.scroller-dot.active {
-    background: #fff;
-    transform: scale(1.25);
-}
-
-/* === Thumbnails grid (unchanged) === */
-.thumb-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1rem;
-    align-items: start;
-    margin-top: 1rem;
-}
-
-.thumb {
-    position: relative;
-    display: block;
-    text-decoration: none;
-    color: inherit;
-    background: rgba(255,255,255,0.02);
-    border-radius: 12px;
-    overflow: hidden;
-    transition: transform .22s cubic-bezier(.2,.9,.2,1), box-shadow .22s;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-}
-.thumb:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 26px rgba(0,0,0,0.35);
-}
-.thumb-image img {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    display: block;
-    transition: transform .25s ease, filter .25s ease;
-}
-.thumb-overlay {
+/* Slides stacked absolute (first = top) */
+.peel-slide {
     position: absolute;
     inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    margin: 0;
+    padding: 0;
+    border-radius: inherit;
+    transform: translateX(0);
+    transition: none;
+    cursor: grab;
+}
+
+/* ensure base z-order (we manipulate z-index inline during operations) */
+.peel-slide:first-child { z-index: 10; }
+.peel-slide:nth-child(2) { z-index: 9; }
+
+/* Inner container & image */
+.peel-inner { width:100%; height:100%; overflow:hidden; border-radius:inherit; }
+.peel-img { width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; }
+
+/* Forward: current slides left (0 -> -100%) */
+.is-peeling-left {
+    transition: transform var(--peel-duration) var(--peel-ease);
+    transform: translateX(-100%);
+}
+
+/* Reverse: current slides right (0 -> +100%) */
+.is-peeling-right {
+    transition: transform var(--peel-duration) var(--peel-ease);
+    transform: translateX(100%);
+}
+
+/* Drag state */
+.is-dragging { transition: none !important; cursor: grabbing; }
+
+/* Snap-back */
+.snap-back {
+    transition: transform 280ms var(--snap-ease);
+    transform: translateX(0) !important;
+}
+
+/* Controls */
+.peel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 46px; height: 46px;
+    border-radius: 999px;
+    border: none;
+    background: rgba(0,0,0,0.45);
     color: #fff;
-    font-family: "Inter", system-ui, sans-serif;
-    font-weight: 600;
-    font-size: 1rem;
-    opacity: 0;
-    background: rgba(0,0,0,0.35);
+    font-size: 24px;
+    z-index: 40;
+    cursor: pointer;
 }
-.thumb:hover .thumb-overlay {
-    opacity: 1;
-    background: rgba(0,0,0,0.55);
-}
-.thumb:hover img {
-    filter: brightness(0.85);
-    transform: scale(1.02);
+.peel-prev { left: 16px; }
+.peel-next { right: 16px; }
+
+/* responsive tweaks */
+@media (max-width:900px) {
+    :root { --outer-pad: clamp(24px,6vw,40px); --card-radius:14px; --peel-duration:360ms; }
+    .peel-btn { width:40px; height:40px; font-size:20px; }
 }
 
-/* hide old static text elements */
-.thumb-meta,
-.thumb-title,
-.thumb-sub {
-    display: none !important;
-}
-
-/* Responsive tweaks */
-@media (max-width: 900px) {
-    .slide-caption h2 { font-size: clamp(18px, 4.2vw, 28px); }
-    .thumb-image img { height: 150px; }
-}
-@media (max-width: 600px) {
-    .featured-scroller .slide { min-height: 240px; }
-    .thumb-image img { height: 120px; }
-    .container { padding-left: .5rem; padding-right: .5rem; }
-}
+/* fallback */
+.no-images { text-align:center; padding:2rem; }

@@ -1,98 +1,95 @@
 // static/js/gallery-scroller.js
-(function () {
-    function qs(sel, ctx) { return (ctx || document).querySelector(sel); }
-    function qsa(sel, ctx) { return Array.from((ctx || document).querySelectorAll(sel)); }
+document.addEventListener('DOMContentLoaded', function () {
+    const scroller = document.querySelector('.featured-scroller');
+    if (!scroller) return;
 
-    document.addEventListener('DOMContentLoaded', function () {
-        const scroller = qs('#featured-scroller');
-        if (!scroller) return;
+    const slides = Array.from(scroller.querySelectorAll('.slide'));
+    const dots = Array.from(document.querySelectorAll('.scroller-dot'));
 
-        const slides = qsa('.slide', scroller);
-        const dotsWrap = qs('#featured-controls');
-        const dots = dotsWrap ? qsa('.scroller-dot', dotsWrap) : [];
-        const intervalMs = parseInt(scroller.dataset.interval || 4200, 10);
-        let current = 0;
-        let autoId = null;
-        let isHovered = false;
+    function centerToIndex(i, smooth = true) {
+        const slide = slides[i];
+        if (!slide) return;
+        const left = slide.offsetLeft + (slide.offsetWidth / 2) - (scroller.clientWidth / 2);
+        scroller.scrollTo({ left: left, behavior: smooth ? 'smooth' : 'auto' });
+        updateActiveDot(i);
+    }
 
-        function goTo(idx, smooth = true) {
-            if (!slides[idx]) return;
-            current = idx;
-            const left = slides[idx].offsetLeft;
-            scroller.scrollTo({ left: left, behavior: smooth ? 'smooth' : 'auto' });
-            // update active class on dots
-            if (dots.length) {
-                dots.forEach((d, i) => d.classList.toggle('active', i === idx));
-            }
-        }
+    function updateActiveDot(index) {
+        if (!dots.length) return;
+        dots.forEach(d => d.classList.remove('active'));
+        if (dots[index]) dots[index].classList.add('active');
+    }
 
-        function next() {
-            const nxt = (current + 1) % slides.length;
-            goTo(nxt);
-        }
-
-        function startAuto() {
-            stopAuto();
-            autoId = setInterval(() => {
-                if (!isHovered) next();
-            }, intervalMs);
-        }
-        function stopAuto() { if (autoId) { clearInterval(autoId); autoId = null; } }
-
-        // attach dots click
-        if (dots.length) {
-            dots.forEach((d) => {
-                d.addEventListener('click', (ev) => {
-                    const i = parseInt(d.dataset.dotIndex, 10);
-                    goTo(i);
-                    startAuto();
-                });
-            });
-        }
-
-        // pause on hover/focus
-        scroller.addEventListener('mouseenter', () => { isHovered = true; });
-        scroller.addEventListener('mouseleave', () => { isHovered = false; });
-        scroller.addEventListener('focusin', () => { isHovered = true; });
-        scroller.addEventListener('focusout', () => { isHovered = false; });
-
-        // thumbnail clicks: scroll scroller to that slide if shot-index provided
-        document.addEventListener('click', (e) => {
-            const t = e.target.closest('[data-slide-index]');
-            if (!t) return;
-            const idx = parseInt(t.dataset.slideIndex, 10);
-            if (!isNaN(idx)) {
-                goTo(idx);
-                startAuto();
-            }
+    // find centered slide → used on scroll end
+    function findCenteredIndex() {
+        const center = scroller.scrollLeft + (scroller.clientWidth / 2);
+        let bestIdx = 0, bestDist = Infinity;
+        slides.forEach((s, i) => {
+            const sCenter = s.offsetLeft + s.offsetWidth / 2;
+            const dist = Math.abs(sCenter - center);
+            if (dist < bestDist) { bestDist = dist; bestIdx = i; }
         });
+        return bestIdx;
+    }
 
-        // Update current on manual scroll (snap end). Uses debounced scroll end detection.
-        let scrollTimer = null;
-        scroller.addEventListener('scroll', () => {
-            if (scrollTimer) clearTimeout(scrollTimer);
-            scrollTimer = setTimeout(() => {
-                // find slide nearest to scroller.scrollLeft
-                const scLeft = scroller.scrollLeft;
-                let best = 0; let bestDiff = Infinity;
-                slides.forEach((s, i) => {
-                    const diff = Math.abs(s.offsetLeft - scLeft);
-                    if (diff < bestDiff) { bestDiff = diff; best = i; }
-                });
-                current = best;
-                if (dots.length) dots.forEach((d, i) => d.classList.toggle('active', i === best));
-            }, 90);
-        });
-
-        // make first dot active
-        if (dots.length) {
-            dots.forEach((d, i) => d.classList.toggle('active', i === 0));
-        }
-
-        // Start automatic cycling
-        startAuto();
-
-        // Ensure initial alignment (no smooth for initial jump)
-        goTo(0, false);
+    // When scrolling stops, snap to nearest slide (ensures exact centering)
+    let scrollTimer;
+    scroller.addEventListener('scroll', () => {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => {
+            const idx = findCenteredIndex();
+            centerToIndex(idx, true);
+        }, 100);
     });
-})();
+
+    // center on a chosen initial slide (middle)
+    function initialCenter() {
+        if (!slides.length) return;
+        const mid = Math.floor(slides.length / 2);
+        centerToIndex(mid, false);
+    }
+
+    // prev/next buttons (if present)
+    const prevBtn = document.querySelector('.scroller-prev');
+    const nextBtn = document.querySelector('.scroller-next');
+    if (prevBtn) prevBtn.addEventListener('click', () => {
+        const idx = Math.max(0, findCenteredIndex() - 1);
+        centerToIndex(idx);
+    });
+    if (nextBtn) nextBtn.addEventListener('click', () => {
+        const idx = Math.min(slides.length - 1, findCenteredIndex() + 1);
+        centerToIndex(idx);
+    });
+
+    // dots
+    if (dots.length === slides.length) {
+        dots.forEach((dot, i) => dot.addEventListener('click', () => centerToIndex(i)));
+    }
+
+    // keyboard
+    scroller.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') {
+            const idx = Math.max(0, findCenteredIndex() - 1);
+            centerToIndex(idx);
+        }
+        if (e.key === 'ArrowRight') {
+            const idx = Math.min(slides.length - 1, findCenteredIndex() + 1);
+            centerToIndex(idx);
+        }
+    });
+
+    // Recalc on resize -> keep the same logical center slide visible
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            const idx = findCenteredIndex();
+            centerToIndex(idx, false); // instantly re-center without animation
+        }, 120);
+    });
+
+    // init
+    initialCenter();
+    // update dots initially
+    updateActiveDot(findCenteredIndex());
+});
