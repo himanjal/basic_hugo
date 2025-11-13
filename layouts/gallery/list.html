@@ -1,76 +1,34 @@
-{{/* layouts/gallery/list.html — straightforward JSON emission */}}
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>{{ .Title }}</title>
-
-    <link rel="stylesheet" href="{{ "css/gallery.css" | relURL }}" />
-    <style>
-        :root { --page-bg:#ff2d95; }
-        html,body { margin:0; height:100%; }
-        body { background:var(--page-bg); }
-    </style>
-</head>
-
-<body class="gallery-page">
-
-<main class="gallery-wrap" aria-label="Peeler gallery">
-
+{{ define "main" }}
+<main class="gallery-wrap" aria-label="Gallery">
     {{ $imgs := resources.Match "images/featured/*.{jpg,jpeg,png,webp}" | sort }}
     {{ if gt (len $imgs) 0 }}
-
     <div class="scroller-outer">
-        <div id="peeler" class="peeler" tabindex="0"></div>
-        <button id="prevBtn" class="peel-btn peel-prev" aria-label="Previous">‹</button>
-        <button id="nextBtn" class="peel-btn peel-next" aria-label="Next">›</button>
+        <div id="peeler" class="peeler" tabindex="0" aria-label="Image carousel"
+             data-autoplay="true" data-interval="4000" data-pause-on-hover="true"
+             data-pause-on-interaction="true" data-resume-after="3000">
+            {{ range $i, $img := $imgs }}
+            <figure class="peel-slide" role="group" aria-roledescription="slide"
+                    aria-label="Slide {{ add $i 1 }} of {{ len $imgs }}">
+                <div class="peel-inner">
+                    {{ $hi := ($img.Resize "2000x") }}
+                    {{ $lq := ($img.Resize "40x") }}
+                    <img class="peel-img lazy"
+                         src="{{ $lq.RelPermalink }}"
+                         data-src="{{ $hi.RelPermalink }}"
+                         alt="{{ $img.Name }}"
+                         loading="lazy" />
+                </div>
+            </figure>
+            {{ end }}
+        </div>
     </div>
-
-    <script>
-        (function(){
-            const peeler = document.getElementById('peeler');
-            if (!peeler) return;
-
-            // Emit a valid JS array literal using Hugo range.
-            const IMAGES = [
-                {{- range $i, $img := $imgs -}}
-            { "src": "{{ ($img.Resize "2000x").RelPermalink }}",
-                "lqip": "{{ ($img.Resize "40x").RelPermalink }}",
-                "alt": "{{ $img.Name }}" }{{ if lt (add $i 1) (len $imgs) }},{{ end }}
-            {{- end -}}
-        ];
-
-            // Render slides in DOM order (IMAGES[0] will be top)
-            peeler.innerHTML = '';
-            IMAGES.forEach((it, idx) => {
-                const fig = document.createElement('figure');
-                fig.className = 'peel-slide';
-                fig.tabIndex = idx + 1;
-
-                const inner = document.createElement('div');
-                inner.className = 'peel-inner';
-
-                const im = document.createElement('img');
-                im.className = 'peel-img lazy';
-                im.src = it.lqip || it.src || '';
-                im.dataset.src = it.src || '';
-                im.alt = it.alt || '';
-                im.loading = 'lazy';
-
-                inner.appendChild(im);
-                fig.appendChild(inner);
-                peeler.appendChild(fig);
-            });
-        })();
-    </script>
-
     {{ else }}
     <p class="no-images">No images found in assets/images/featured.</p>
     {{ end }}
-
 </main>
 
+{{/* If the base does not inject gallery JS automatically, you can add it here: */}}
+{{ block "scripts" . }}
 <script src="{{ "js/peel-scroller.js" | relURL }}" defer></script>
-</body>
-</html>
+{{ end }}
+{{ end }}

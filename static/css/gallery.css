@@ -1,26 +1,22 @@
-/* static/css/gallery.css — final peeler styling */
+/* static/css/gallery.css
+   Stack-style carousel: absolute stack, transforms for smooth sliding
+   Images scale to fully cover the frame. Visible slide-in/out animations.
+*/
 
-/* Variables */
-:root {
-    --page-bg: #ff2d95;
-    --frame-bg: #ffffff;
-    --outer-pad: clamp(48px, 6vw, 160px);
-    --card-radius: 22px;
-    --scroller-aspect: 3 / 2;
-    --peel-duration: 420ms;
-    --peel-ease: cubic-bezier(.22,.9,.28,1);
-    --snap-ease: cubic-bezier(.18,.75,.4,1);
+:root{
+    --page-bg: #fff;
+    --frame-bg: #fff;
+    --outer-pad: clamp(36px,6vw,120px);
+    --card-radius: 18px;
+    --scroller-aspect: 3/2;
+    --anim-ms: 560ms;   /* longer for slower, smoother slide */
+    --anim-ease: cubic-bezier(.2,.9,.25,1);
 }
 
-/* Base */
-html, body { height:100%; margin:0; }
-body.gallery-page { background: var(--page-bg); -webkit-font-smoothing:antialiased; }
-
-/* Background layer */
-#gallery-bg { position:fixed; inset:0; background:var(--page-bg); z-index:0; pointer-events:none; }
-
-/* Layout */
-.gallery-wrap {
+/* Page layout */
+html,body{height:100%;margin:0}
+body.gallery-page{background:var(--page-bg);-webkit-font-smoothing:antialiased}
+.gallery-wrap{
     min-height:100vh;
     display:flex;
     align-items:center;
@@ -30,92 +26,121 @@ body.gallery-page { background: var(--page-bg); -webkit-font-smoothing:antialias
 }
 
 /* Frame */
-.scroller-outer {
-    width: min(
-            calc(100% - (var(--outer-pad) * 2)),
-            calc((100vh - (var(--outer-pad) * 2)) * 1.5)
-    );
-    max-width: 1600px;
+.scroller-outer{
+    width: min(calc(100% - (var(--outer-pad) * 2)), calc((100vh - (var(--outer-pad) * 2)) * 1.5));
+    max-width:1600px;
     aspect-ratio: var(--scroller-aspect);
-    background: var(--frame-bg);
-    border-radius: var(--card-radius);
-    overflow: hidden; /* critical to clip peels */
-    position: relative;
-    z-index: 6;
+    background:var(--frame-bg);
+    border-radius:var(--card-radius);
+    overflow:hidden;
+    position:relative;
+    z-index:6;
+
+    /* Prevent the frame/container from animating — slides will still animate as before */
+    transition: none !important;
+    animation: none !important;
+    will-change: auto !important;
 }
 
-/* Peeler stack */
-.peeler {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    user-select: none;
-    touch-action: manipulation;
+
+/* The stack container */
+.peeler{
+    width:100%;
+    height:100%;
+    position:relative;
+    touch-action: pan-y;
+    -webkit-user-select:none;
+
+    /* Prevent container from animating while allowing slide transitions to run
+       Slides (.peel-slide and descendants) still have their transitions intact. */
+    transition: none !important;
+    animation: none !important;
+    will-change: auto !important;
+    contain: paint;
 }
 
-/* Slides stacked absolute (first = top) */
-.peel-slide {
-    position: absolute;
-    inset: 0;
-    margin: 0;
-    padding: 0;
-    border-radius: inherit;
+/* Slide basics */
+.peel-slide{
+    position:absolute;
+    inset:0;
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    border-radius:inherit;
+    will-change: transform, opacity;
+    pointer-events: none;
     transform: translateX(0);
-    transition: none;
-    cursor: grab;
+    opacity: 1;
+    transition: transform var(--anim-ms) var(--anim-ease), opacity calc(var(--anim-ms)/1.8) var(--anim-ease);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    backface-visibility:hidden;
 }
 
-/* ensure base z-order (we manipulate z-index inline during operations) */
-.peel-slide:first-child { z-index: 10; }
-.peel-slide:nth-child(2) { z-index: 9; }
-
-/* Inner container & image */
-.peel-inner { width:100%; height:100%; overflow:hidden; border-radius:inherit; }
-.peel-img { width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; }
-
-/* Forward: current slides left (0 -> -100%) */
-.is-peeling-left {
-    transition: transform var(--peel-duration) var(--peel-ease);
-    transform: translateX(-100%);
+.peel-inner{
+    width:100%;
+    height:100%;
+    display:block;
+    position:relative;
 }
 
-/* Reverse: current slides right (0 -> +100%) */
-.is-peeling-right {
-    transition: transform var(--peel-duration) var(--peel-ease);
-    transform: translateX(100%);
+.peel-img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    transform: translateZ(0);
+    user-select:none;
+    -webkit-user-drag: none;
+    transition: transform calc(var(--anim-ms)*1.1) var(--anim-ease);
 }
 
-/* Drag state */
-.is-dragging { transition: none !important; cursor: grabbing; }
+.peel-center    { transform: translateX(0); opacity: 1; pointer-events: auto; z-index:30; }
+.peel-off-right { transform: translateX(100%); opacity: 1; z-index:20; }
+.peel-off-left  { transform: translateX(-100%); opacity: 1; z-index:20; }
+.peel-far-right { transform: translateX(200%); opacity: 0; z-index:10; pointer-events:none; }
+.peel-far-left  { transform: translateX(-200%); opacity: 0; z-index:10; pointer-events:none; }
 
-/* Snap-back */
-.snap-back {
-    transition: transform 280ms var(--snap-ease);
-    transform: translateX(0) !important;
+.peel-center .peel-img { transform: scale(1.02); }
+.peel-slide:not(.peel-center) .peel-img { transform: scale(1); filter: saturate(.98) contrast(.98); }
+
+.peel-slide:focus { outline: 3px solid rgba(255,255,255,0.06); box-shadow: 0 8px 24px rgba(0,0,0,0.18); }
+
+.peeler::-webkit-scrollbar { display: none; height:0; width:0; }
+.peeler { -ms-overflow-style: none; scrollbar-width: none; }
+
+@media (max-width:900px){
+    :root{ --outer-pad: clamp(1px,2vw,1px);
+        --card-radius:12px;
+        --anim-ms: 420ms; }
 }
 
-/* Controls */
-.peel-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 46px; height: 46px;
-    border-radius: 999px;
-    border: none;
-    background: rgba(0,0,0,0.45);
-    color: #fff;
-    font-size: 24px;
-    z-index: 40;
-    cursor: pointer;
-}
-.peel-prev { left: 16px; }
-.peel-next { right: 16px; }
+.no-images { text-align:center; padding:2rem; color:#222; }
 
-/* responsive tweaks */
-@media (max-width:900px) {
-    :root { --outer-pad: clamp(24px,6vw,40px); --card-radius:14px; --peel-duration:360ms; }
-    .peel-btn { width:40px; height:40px; font-size:20px; }
+/* Force-disable any animations/transitions on the container and its non-slide children.
+   This prevents the container from animating while keeping .peel-slide and its descendants
+   free to animate as intended. */
+.scroller-outer,
+.scroller-outer *:not(.peel-slide):not(.peel-slide *),
+.peeler,
+.peeler *:not(.peel-slide):not(.peel-slide *) {
+    transition: none !important;
+    animation: none !important;
+    will-change: auto !important;
 }
 
-/* fallback */
-.no-images { text-align:center; padding:2rem; }
+/* If JavaScript is also setting inline transitions/animations on the container,
+   disable them at runtime by adding this JS somewhere after the DOM is ready:
+
+   const scroller = document.querySelector('.scroller-outer');
+   const peeler = document.querySelector('.peeler');
+   if (scroller) scroller.style.transition = 'none';
+   if (scroller) scroller.style.animation = 'none';
+   if (peeler) peeler.style.transition = 'none';
+   if (peeler) peeler.style.animation = 'none';
+
+   Also check for any JS using Element.animate() or web-animations API on these elements
+   — those must be removed or cancelled in JavaScript instead of via CSS.
+*/
