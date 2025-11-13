@@ -131,16 +131,4 @@ body.gallery-page{background:var(--page-bg);-webkit-font-smoothing:antialiased}
     will-change: auto !important;
 }
 
-/* If JavaScript is also setting inline transitions/animations on the container,
-   disable them at runtime by adding this JS somewhere after the DOM is ready:
 
-   const scroller = document.querySelector('.scroller-outer');
-   const peeler = document.querySelector('.peeler');
-   if (scroller) scroller.style.transition = 'none';
-   if (scroller) scroller.style.animation = 'none';
-   if (peeler) peeler.style.transition = 'none';
-   if (peeler) peeler.style.animation = 'none';
-
-   Also check for any JS using Element.animate() or web-animations API on these elements
-   — those must be removed or cancelled in JavaScript instead of via CSS.
-*/
