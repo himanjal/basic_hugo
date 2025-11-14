@@ -4,3 +4,68 @@ html, body {
     -moz-osx-font-smoothing: grayscale;
     -webkit-text-size-adjust: 100%;
 }
+
+
+/* ===========================================
+   Local font faces: wolf & wolf2
+   =========================================== */
+
+@font-face {
+    font-family: 'Wolf';
+    src: url('/fonts/font1.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Wolf2';
+    src: url('/fonts/font2.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Wolf3';
+    src: url('/fonts/font3.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+
+
+/* === GLOBAL RESET: Remove underlines from all text === */
+
+/* Remove text-decoration from all elements */
+* {
+    text-decoration: none !important;
+}
+
+/* But re-enable underline for elements that must remain accessible (optional) */
+abbr[title],
+ins,
+mark {
+    text-decoration: underline;
+}
+
+/* Ensure links don't have underlines by default */
+a,
+a:visited {
+    text-decoration: none;
+}
+
+/* Provide visual feedback on hover/focus */
+a:hover,
+a:focus-visible {
+    text-decoration: none; /* or underline if you prefer feedback */
+    outline: none;
+}
+
+/* If you use buttons or clickable tiles styled as links */
+button,
+.grid-btn,
+.thumb-link {
+    text-decoration: none;
+}

@@ -1,34 +1,26 @@
 /* ===========================================================
-   gallery-grid.css — fully parameterized version
+   gallery-grid.css — fully parameterized version (tight spacing)
    =========================================================== */
 
 :root {
-    /* layout & sizing (unchanged) */
     --gallery-max-width: 1400px;
     --gallery-gap: 24px;
-
-    /* distance between card edge and image */
     --card-padding: 7px;
-
-    /* zoom behavior */
     --zoom-scale: 1.1;
     --zoom-duration: 3500ms;
 
-    /* shutter logo */
-    --logo-size: 20px;
+    --logo-size: 25px;
     --logo-rotation-duration: 1.5s;
     --logo-offset: 15px;
     --logo-rotate: 90deg;
 
-    /* hover bounce: set this to 0px to disable bounce, or a negative px value to enable */
     --thumb-bounce: 0px; /* set to 0px to turn off bounce */
 
-    --corner-img-size: 26px;    /* final displayed width/height of corner image */
-    --corner-img-offset-x: 10px; /* horizontal offset from image edge */
-    --corner-img-offset-y: 10px; /* vertical offset from image edge */
-    --corner-img-z: 36;         /* z-index so corners appear above image but below logo */
+    --corner-img-size: 26px;
+    --corner-img-offset-x: 10px;
+    --corner-img-offset-y: 10px;
+    --corner-img-z: 36;
     --corner-rotation: 0deg;
-
 }
 
 
@@ -40,7 +32,7 @@
     clear: both;
     width: 100%;
     max-width: var(--gallery-max-width);
-    margin: 32px auto 72px;
+    margin: 12px auto 72px; /* reduced top margin from 32px → 12px for tighter gap */
     padding: 0 20px;
     box-sizing: border-box;
 }
@@ -59,6 +51,7 @@
     .thumbnail-grid { grid-template-columns: 1fr; gap: 18px; }
 }
 
+
 /* -----------------------------------------------------------
    Card container
 ----------------------------------------------------------- */
@@ -75,16 +68,13 @@
     border: 1px solid rgba(11,20,30,0.03);
     position: relative;
     overflow: visible;
-    /* ensure we have a default transform so transition has a start point */
     transform: translateY(0);
 }
 
-.thumb-card:hover,
-.thumb-card:focus,
-.thumb-card.touch-hover {
-    /* use the variable to control bounce distance; set to 0px to disable */
+.thumb-card:hover, .thumb-link:hover,
+.thumb-card:focus, .thumb-link:focus,
+.thumb-card.touch-hover, .thumb-link.touch-hover {
     transform: translateY(var(--thumb-bounce));
-    box-shadow: 0 26px 70px rgba(13, 20, 30, 0.12);
 }
 
 
@@ -99,8 +89,6 @@
     border-radius: 12px;
     background: linear-gradient(180deg,#f7f8fa 0%,#ffffff 100%);
     box-shadow: 0 2px 8px rgba(12,18,24,0.03) inset;
-
-    /* Center contents */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -123,18 +111,15 @@
     transform-origin: center center;
 }
 
-
-
-/* zoom on hover */
-.thumb-card:hover .thumb-img,
-.thumb-card:focus .thumb-img,
-.thumb-card.touch-hover .thumb-img {
+.thumb-card:hover .thumb-img, .thumb-link:hover .thumb-img,
+.thumb-card:focus .thumb-img, .thumb-link:focus .thumb-img,
+.thumb-card.touch-hover .thumb-img, .thumb-link.touch-hover .thumb-img {
     transform: scale(var(--zoom-scale));
 }
 
 
 /* -----------------------------------------------------------
-   Shutter logo
+   Shutter logo (rotation-only)
 ----------------------------------------------------------- */
 .shutter-logo {
     position: absolute;
@@ -143,34 +128,29 @@
     width: var(--logo-size);
     height: var(--logo-size);
     object-fit: contain;
-
-    /* subtle transparency and glow */
-    opacity: 0.9;
-    filter: drop-shadow(0 3px 8px rgba(0,0,0,0.15));
-
-    /* rotation base state */
+    opacity: 0.95;
+    filter: none;
     transform-origin: center center;
-    transform: rotate(0deg) scale(1);
-    transition:
-            transform var(--logo-rotation-duration) cubic-bezier(.3,.8,.3,1),
-            opacity 180ms ease;
+    transform: rotate(0deg) scale(1) translateZ(0);
+    -webkit-transform: rotate(0deg) scale(1) translateZ(0);
+    transition: transform var(--logo-rotation-duration) cubic-bezier(.3,.8,.3,1);
+    -webkit-transition: -webkit-transform var(--logo-rotation-duration) cubic-bezier(.3,.8,.3,1);
     z-index: 40;
     pointer-events: none;
 }
 
-
-.thumb-card:hover .shutter-logo,
-.thumb-card:focus .shutter-logo,
-.thumb-card.touch-hover .shutter-logo {
-    transform: rotate(var(--logo-rotate)) scale(1.02);
+.thumb-card:hover .shutter-logo, .thumb-link:hover .shutter-logo,
+.thumb-card:focus .shutter-logo, .thumb-link:focus .shutter-logo,
+.thumb-card.touch-hover .shutter-logo, .thumb-link.touch-hover .shutter-logo {
+    transform: rotate(var(--logo-rotate, 360deg)) translateZ(0);
+    -webkit-transform: rotate(var(--logo-rotate, 360deg)) translateZ(0);
 }
 
-/* -------------------------
-   corner image variables
-   ------------------------- */
 
-/* base style for corner images */
-.thumb-media { position: relative; } /* ensure positioning context (should already be present) */
+/* -----------------------------------------------------------
+   Corner images
+----------------------------------------------------------- */
+.thumb-media { position: relative; }
 
 .corner-img {
     position: absolute;
@@ -185,43 +165,11 @@
     filter: drop-shadow(0 2px 6px rgba(0,0,0,0.06));
 }
 
-/* top-left: image is already prepared for top-left orientation (no rotation needed) */
-.corner-img.tl {
-    top: var(--corner-img-offset-y);
-    left: var(--corner-img-offset-x);
-    transform: rotate(0deg);
-}
+.corner-img.tl { top: var(--corner-img-offset-y); left: var(--corner-img-offset-x); transform: rotate(0deg); }
+.corner-img.tr { top: var(--corner-img-offset-y); right: var(--corner-img-offset-x); transform: rotate(90deg); }
+.corner-img.br { bottom: var(--corner-img-offset-y); right: var(--corner-img-offset-x); transform: rotate(180deg); }
+.corner-img.bl { bottom: var(--corner-img-offset-y); left: var(--corner-img-offset-x); transform: rotate(270deg); }
 
-/* top-right: rotate 90deg clockwise */
-.corner-img.tr {
-    top: var(--corner-img-offset-y);
-    right: var(--corner-img-offset-x);
-    transform: rotate(90deg);
-}
-
-/* bottom-right: rotate 180deg */
-.corner-img.br {
-    bottom: var(--corner-img-offset-y);
-    right: var(--corner-img-offset-x);
-    transform: rotate(180deg);
-}
-
-/* bottom-left: rotate 270deg (or -90deg) */
-.corner-img.bl {
-    bottom: var(--corner-img-offset-y);
-    left: var(--corner-img-offset-x);
-    transform: rotate(270deg);
-}
-
-/*!* subtle hover scale on corners (optional) *!*/
-/*.thumb-card:hover .corner-img,*/
-/*.thumb-card:focus .corner-img,*/
-/*.thumb-card.touch-hover .corner-img {*/
-/*    transform: scale(1.04) rotate(var(--corner-rotation, 0deg));*/
-/*    opacity: 1;*/
-/*}
-
-/* responsive: smaller corners on narrow screens */
 @media (max-width:720px) {
     :root {
         --corner-img-size: 28px;
@@ -235,22 +183,24 @@
    Text area: title, caption, badge
 ----------------------------------------------------------- */
 .thumb-body {
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 12px;
-    padding: 6px 4px 4px 4px;
+    margin-top: 1px;
+    padding: 20px 12px 8px 12px;
 }
 
 .thumb-text {
-    display:flex;
-    flex-direction:column;
-    gap:6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
     min-width: 0;
 }
 
 .thumb-title {
-    font-weight: 500;
+    font-family: 'Wolf2', system-ui;
+    font-weight: 400;
     font-size: 1.03rem;
     margin: 0;
     color: #0f172a;
@@ -263,7 +213,7 @@
 .thumb-caption {
     margin: 0;
     color: #4b5563;
-    font-size: 0.90rem;
+    font-size: 0.95rem;
     line-height: 1.28;
     opacity: 1;
 }
@@ -279,115 +229,80 @@
     box-shadow: 0 6px 18px rgba(11,20,30,0.04);
 }
 
+
 /* -----------------------------------------------------------
-   Mobile tweaks
+   Gallery intro (tight spacing)
 ----------------------------------------------------------- */
-@media (max-width:720px) {
-    :root {
-        --card-padding: 12px;
-        --corner-length: 22px;
-        --corner-offset: 10px;
-        --corner-thickness: 5px;
-        --logo-size: 26px;
-    }
-    .thumb-title { font-size: 0.98rem; }
-    .thumb-caption { font-size: 0.9rem; }
-}
-
-
-/* ---------------------------
-   Gallery intro (between carousel & grid)
-   --------------------------- */
 .gallery-intro {
-    max-width: 1100px;
-    margin: 28px auto 40px;
-    padding: 0 18px;
     text-align: center;
+    padding: 80px 20px 8px;  /* reduced bottom padding */
+    border-radius: 24px;
+    max-width: 1100px;
+    margin: 40px auto 8px;   /* reduced bottom margin */
     color: #0f172a;
 }
 
-/* small pill above the heading */
 .intro-pill {
     display: inline-block;
+    padding: 8px 18px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.05);
     font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     font-weight: 600;
     font-size: 0.85rem;
-    padding: 8px 14px;
-    border-radius: 18px;
-    background: #ffffff;
-    border: 1px solid rgba(15,23,42,0.04);
-    box-shadow: 0 8px 20px rgba(15,23,42,0.04);
     color: #111827;
-    margin-bottom: 14px;
+    margin-bottom: 12px; /* was 24px */
 }
 
-/* main title — responsive, big and elegant */
 .intro-title {
-    margin: 8px 0 10px;
-    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    margin: 0;
+    font-family: 'Wolf2', system-ui;
     font-weight: 400;
-    letter-spacing: -0.05em;
+    letter-spacing: -0.02em;
     color: #0b1220;
-    /* large responsive size */
-    font-size: clamp(28px, 6vw, 56px);
-    line-height: 1.03;
+    font-size: clamp(28px, 5vw, 48px);
+    line-height: 1.1;
 }
 
-/* italic/emphasized phrase using a serif (Playfair Display) */
 .intro-em {
-    display: inline-block;
-    /*font-family: 'Playfair Display', Georgia, "Times New Roman", serif;*/
-    /*font-family: 'Great Vibes', cursive;*/
-    /*font-style: italic;*/
-    /*font-family: 'Dancing Script', cursive;*/
-    /*font-family: 'Pinyon Script', cursive;*/
-    font-family: 'Tangerine', cursive;
-    /*font-family: 'Satisfy', cursive;*/
-    font-weight: 400;
-    font-size: clamp(26px, 4.8vw, 48px);
+    font-family: 'Wolf3', cursive;
+    font-weight: 500;
+    letter-spacing: -0.01em;
     margin-left: 6px;
-    color: #0b1220;
-    vertical-align: baseline;
 }
 
-/* subtitle / descriptive line */
 .intro-sub {
-    margin: 12px auto 0;
-    max-width: 820px;
+    margin-top: 8px; /* was 14px */
     font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    font-weight: 300;
-    color: #475569;
-    font-size: clamp(13px, 1.6vw, 16px);
+    font-weight: 400;
+    color: #4b5563;
+    font-size: clamp(15px, 1.5vw, 17px);
     line-height: 1.6;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-/* transitions & transforms prefixes */
-.thumb-card, .thumb-img, .shutter-logo, .corner-img {
-    -webkit-transition: transform var(--zoom-duration) cubic-bezier(.2,.9,.25,1);
-    transition: transform var(--zoom-duration) cubic-bezier(.2,.9,.25,1);
-    -webkit-transform-origin: center center;
-    transform-origin: center center;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    -webkit-transform: translateZ(0); /* helps hardware accel */
-    transform: translateZ(0);
-}
-
-/* rotate with webkit prefix */
-.thumb-card:hover .shutter-logo,
-.thumb-card:focus .shutter-logo {
-    -webkit-transform: rotate(360deg) scale(1.05);
-    transform: rotate(360deg) scale(1.05);
-}
-
-
-/* subtle visual spacing when used inside existing grid layout */
 @media (max-width: 720px) {
-    .gallery-intro { margin: 22px auto 28px; }
-    .intro-pill { padding: 6px 12px; }
-    .intro-title { font-size: clamp(22px, 7.6vw, 40px); }
-    .intro-em { font-size: clamp(20px, 6.4vw, 34px); }
-    .intro-sub { font-size: 14px; }
+    .gallery-intro {
+        padding: 60px 16px 30px;
+        border-radius: 18px;
+    }
+    .intro-title {
+        font-size: clamp(22px, 7vw, 36px);
+    }
+    .intro-em {
+        font-size: clamp(20px, 6vw, 32px);
+    }
+    .intro-sub {
+        font-size: 15px;
+    }
 }
 
 
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    .grid-item, .grid-item * { transition: none !important; animation: none !important; }
+}

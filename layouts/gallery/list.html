@@ -3,20 +3,22 @@
     {{ $imgs := resources.Match "images/featured/*.{jpg,jpeg,png,webp}" | sort }}
     {{ if gt (len $imgs) 0 }}
     <div class="scroller-outer">
-        <div id="peeler" class="peeler" tabindex="0" aria-label="Image carousel"
+        <div id="peeler" class="peeler" aria-label="Image carousel"
              data-autoplay="true" data-interval="4000" data-pause-on-hover="true"
              data-pause-on-interaction="true" data-resume-after="3000">
             {{ range $i, $img := $imgs }}
             <figure class="peel-slide" role="group" aria-roledescription="slide"
                     aria-label="Slide {{ add $i 1 }} of {{ len $imgs }}">
                 <div class="peel-inner">
-                    {{ $hi := ($img.Resize "2000x") }}
-                    {{ $lq := ($img.Resize "40x") }}
+                    {{ $small := $img.Resize "600x" }}
+                    {{ $med   := $img.Resize "1200x" }}
+                    {{ $hi    := $img.Resize "2000x" }}
+                    {{ $lq    := $img.Resize "40x" }}
                     <img class="peel-img lazy"
-                         src="{{ $lq.RelPermalink }}"
-                         data-src="{{ $hi.RelPermalink }}"
-                         alt="{{ $img.Name }}"
-                         loading="lazy" />
+                         src="{{ $small.RelPermalink }}"
+                         srcset="{{ $small.RelPermalink }} 600w, {{ $med.RelPermalink }} 1200w, {{ $hi.RelPermalink }} 2000w"
+                         sizes="(max-width: 640px) 100vw, 60vw"
+                         alt="{{ $img.Name }}" loading="lazy" decoding="async" width="1200" height="800">
                 </div>
             </figure>
             {{ end }}
@@ -91,50 +93,48 @@
             {{ $thumbRes := $fs.Get "thumb" }}
             {{ $thumbSrc := $thumbRes.Resize "1200x" }}
 
-            <article class="thumb-card"
-                     tabindex="0"
-                     role="link"
-                     data-target="/gallery/{{ $folder | urlize }}/"
-                     aria-label="Open gallery {{ $folder }}">
-                <div class="thumb-media">
-                    <img class="thumb-img"
-                         src="{{ $thumbSrc.RelPermalink }}"
-                         alt="{{ index $meta "title" }}"
-                    loading="lazy"
-                    width="1200" height="800">
+            <article class="thumb-card">
+                <a class="thumb-link" href="/gallery/{{ $folder | urlize }}/" aria-label="Open gallery">
+                    <div class="thumb-media">
+                        <img class="thumb-img"
+                             src="{{ $thumbSrc.RelPermalink }}"
+                             alt="{{ index $meta "title" }}"
+                        loading="lazy"
+                        width="1200" height="800">
 
-                    {{/* shutter logo — handle SVG vs raster safely */}}
-                    {{ with resources.Get "images/shutter_logo.svg" }}
-                    {{ if eq .MediaType.SubType "svg" }}
-                    <img class="shutter-logo" src="{{ .RelPermalink }}" alt="shutter logo" aria-hidden="true">
-                    {{ else }}
-                    {{ $logo := .Resize "48x48" }}
-                    <img class="shutter-logo" src="{{ $logo.RelPermalink }}" alt="shutter logo" aria-hidden="true">
-                    {{ end }}
-                    {{ else }}
-                    {{ with resources.Get "images/shutter_logo.png" }}
-                    {{ $logo := .Resize "48x48" }}
-                    <img class="shutter-logo" src="{{ $logo.RelPermalink }}" alt="shutter logo" aria-hidden="true">
-                    {{ end }}
-                    {{ end }}
+                        {{/* shutter logo — handle SVG vs raster safely */}}
+                        {{ with resources.Get "images/shutter_logo.svg" }}
+                        {{ if eq .MediaType.SubType "svg" }}
+                        <img class="shutter-logo" src="{{ .RelPermalink }}" alt="shutter logo" aria-hidden="true">
+                        {{ else }}
+                        {{ $logo := .Resize "48x48" }}
+                        <img class="shutter-logo" src="{{ $logo.RelPermalink }}" alt="shutter logo" aria-hidden="true">
+                        {{ end }}
+                        {{ else }}
+                        {{ with resources.Get "images/shutter_logo.png" }}
+                        {{ $logo := .Resize "48x48" }}
+                        <img class="shutter-logo" src="{{ $logo.RelPermalink }}" alt="shutter logo" aria-hidden="true">
+                        {{ end }}
+                        {{ end }}
 
-                    {{ $cornerImg := $cornerScratch.Get "img" }}
-                    {{ if $cornerImg }}
-                    <img class="corner-img tl" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
-                    <img class="corner-img tr" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
-                    <img class="corner-img br" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
-                    <img class="corner-img bl" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
-                    {{ end }}
+                        {{ $cornerImg := $cornerScratch.Get "img" }}
+                        {{ if $cornerImg }}
+                        <img class="corner-img tl" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
+                        <img class="corner-img tr" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
+                        <img class="corner-img br" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
+                        <img class="corner-img bl" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
+                        {{ end }}
 
-                </div>
-
-                <div class="thumb-body">
-                    <div class="thumb-text">
-                        <h4 class="thumb-title">{{ index $meta "title" }}</h4>
-                        <p class="thumb-caption">{{ index $meta "caption" }}</p>
                     </div>
-                    <span class="thumb-badge">{{ index $meta "badge" }}</span>
-                </div>
+
+                    <div class="thumb-body">
+                        <div class="thumb-text">
+                            <h4 class="thumb-title">{{ index $meta "title" }}</h4>
+                            <p class="thumb-caption">{{ index $meta "caption" }}</p>
+                        </div>
+                        <span class="thumb-badge">{{ index $meta "badge" }}</span>
+                    </div>
+                </a>
             </article>
             {{ end }}
             {{ end }}

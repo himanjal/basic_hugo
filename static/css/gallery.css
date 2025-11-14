@@ -4,7 +4,7 @@
 */
 
 :root{
-    --page-bg: #fff;
+    --page-bg: #fbfcfd;;
     --frame-bg: #fff;
     --outer-pad: clamp(36px,6vw,120px);
     --card-radius: 18px;
@@ -128,14 +128,7 @@ body.gallery-page{background:var(--page-bg);-webkit-font-smoothing:antialiased}
 /* Force-disable any animations/transitions on the container and its non-slide children.
    This prevents the container from animating while keeping .peel-slide and its descendants
    free to animate as intended. */
-.scroller-outer,
-.scroller-outer *:not(.peel-slide):not(.peel-slide *),
-.peeler,
-.peeler *:not(.peel-slide):not(.peel-slide *) {
-    transition: none !important;
-    animation: none !important;
-    will-change: auto !important;
-}
+.scroller-outer { transition: none; animation: none; will-change: auto; }
 
 
 /* If any parent (like .gallery-wrap or .site-main) uses flexbox,
@@ -164,3 +157,8 @@ body.gallery-page{background:var(--page-bg);-webkit-font-smoothing:antialiased}
 /*}*/
 
 
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    .peel-slide, .peel-img { transition: none !important; animation: none !important; }
+}
