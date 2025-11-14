@@ -1,0 +1,290 @@
+/* ===========================================================
+   gallery-grid.css — fully parameterized version
+   =========================================================== */
+
+:root {
+    /* layout & sizing (unchanged) */
+    --gallery-max-width: 1400px;
+    --gallery-gap: 24px;
+
+    /* distance between card edge and image */
+    --card-padding: 7px;
+
+    /* zoom behavior */
+    --zoom-scale: 1.1;
+    --zoom-duration: 3500ms;
+
+    /* shutter logo */
+    --logo-size: 20px;
+    --logo-rotation-duration: 1.5s;
+    --logo-offset: 15px;
+    --logo-rotate: 90deg;
+
+    /* hover bounce: set this to 0px to disable bounce, or a negative px value to enable */
+    --thumb-bounce: 0px; /* set to 0px to turn off bounce */
+
+    --corner-img-size: 26px;    /* final displayed width/height of corner image */
+    --corner-img-offset-x: 10px; /* horizontal offset from image edge */
+    --corner-img-offset-y: 10px; /* vertical offset from image edge */
+    --corner-img-z: 36;         /* z-index so corners appear above image but below logo */
+    --corner-rotation: 0deg;
+
+}
+
+
+/* -----------------------------------------------------------
+   Grid layout
+----------------------------------------------------------- */
+.thumbnail-grid-wrap {
+    display: block;
+    clear: both;
+    width: 100%;
+    max-width: var(--gallery-max-width);
+    margin: 32px auto 72px;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+.thumbnail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--gallery-gap);
+    align-items: start;
+}
+
+@media (max-width: 1200px) {
+    .thumbnail-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 720px) {
+    .thumbnail-grid { grid-template-columns: 1fr; gap: 18px; }
+}
+
+/* -----------------------------------------------------------
+   Card container
+----------------------------------------------------------- */
+.thumb-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: var(--card-padding);
+    box-shadow: 0 12px 36px rgba(13, 20, 30, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: pointer;
+    transition: transform 260ms cubic-bezier(.2,.9,.25,1), box-shadow 260ms;
+    border: 1px solid rgba(11,20,30,0.03);
+    position: relative;
+    overflow: visible;
+    /* ensure we have a default transform so transition has a start point */
+    transform: translateY(0);
+}
+
+.thumb-card:hover,
+.thumb-card:focus,
+.thumb-card.touch-hover {
+    /* use the variable to control bounce distance; set to 0px to disable */
+    transform: translateY(var(--thumb-bounce));
+    box-shadow: 0 26px 70px rgba(13, 20, 30, 0.12);
+}
+
+
+/* -----------------------------------------------------------
+   Media area (image container)
+----------------------------------------------------------- */
+.thumb-media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/10;
+    overflow: hidden;
+    border-radius: 12px;
+    background: linear-gradient(180deg,#f7f8fa 0%,#ffffff 100%);
+    box-shadow: 0 2px 8px rgba(12,18,24,0.03) inset;
+
+    /* Center contents */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* image itself */
+.thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform var(--zoom-duration) cubic-bezier(.2,.9,.25,1);
+    will-change: transform;
+    border-radius: 10px;
+    transform-origin: center center;
+}
+
+
+
+/* zoom on hover */
+.thumb-card:hover .thumb-img,
+.thumb-card:focus .thumb-img,
+.thumb-card.touch-hover .thumb-img {
+    transform: scale(var(--zoom-scale));
+}
+
+
+/* -----------------------------------------------------------
+   Shutter logo
+----------------------------------------------------------- */
+.shutter-logo {
+    position: absolute;
+    top: var(--logo-offset);
+    right: var(--logo-offset);
+    width: var(--logo-size);
+    height: var(--logo-size);
+    object-fit: contain;
+
+    /* subtle transparency and glow */
+    opacity: 0.9;
+    filter: drop-shadow(0 3px 8px rgba(0,0,0,0.15));
+
+    /* rotation base state */
+    transform-origin: center center;
+    transform: rotate(0deg) scale(1);
+    transition:
+            transform var(--logo-rotation-duration) cubic-bezier(.3,.8,.3,1),
+            opacity 180ms ease;
+    z-index: 40;
+    pointer-events: none;
+}
+
+
+.thumb-card:hover .shutter-logo,
+.thumb-card:focus .shutter-logo,
+.thumb-card.touch-hover .shutter-logo {
+    transform: rotate(var(--logo-rotate)) scale(1.02);
+}
+
+/* -------------------------
+   corner image variables
+   ------------------------- */
+
+/* base style for corner images */
+.thumb-media { position: relative; } /* ensure positioning context (should already be present) */
+
+.corner-img {
+    position: absolute;
+    width: var(--corner-img-size);
+    height: var(--corner-img-size);
+    object-fit: contain;
+    pointer-events: none;
+    z-index: var(--corner-img-z);
+    opacity: 0.98;
+    transform-origin: center center;
+    transition: transform 260ms cubic-bezier(.2,.9,.25,1), opacity 180ms ease;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.06));
+}
+
+/* top-left: image is already prepared for top-left orientation (no rotation needed) */
+.corner-img.tl {
+    top: var(--corner-img-offset-y);
+    left: var(--corner-img-offset-x);
+    transform: rotate(0deg);
+}
+
+/* top-right: rotate 90deg clockwise */
+.corner-img.tr {
+    top: var(--corner-img-offset-y);
+    right: var(--corner-img-offset-x);
+    transform: rotate(90deg);
+}
+
+/* bottom-right: rotate 180deg */
+.corner-img.br {
+    bottom: var(--corner-img-offset-y);
+    right: var(--corner-img-offset-x);
+    transform: rotate(180deg);
+}
+
+/* bottom-left: rotate 270deg (or -90deg) */
+.corner-img.bl {
+    bottom: var(--corner-img-offset-y);
+    left: var(--corner-img-offset-x);
+    transform: rotate(270deg);
+}
+
+/*!* subtle hover scale on corners (optional) *!*/
+/*.thumb-card:hover .corner-img,*/
+/*.thumb-card:focus .corner-img,*/
+/*.thumb-card.touch-hover .corner-img {*/
+/*    transform: scale(1.04) rotate(var(--corner-rotation, 0deg));*/
+/*    opacity: 1;*/
+/*}
+
+/* responsive: smaller corners on narrow screens */
+@media (max-width:720px) {
+    :root {
+        --corner-img-size: 28px;
+        --corner-img-offset-x: 8px;
+        --corner-img-offset-y: 8px;
+    }
+}
+
+
+/* -----------------------------------------------------------
+   Text area: title, caption, badge
+----------------------------------------------------------- */
+.thumb-body {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 12px;
+    padding: 6px 4px 4px 4px;
+}
+
+.thumb-text {
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-width: 0;
+}
+
+.thumb-title {
+    font-weight: 500;
+    font-size: 1.03rem;
+    margin: 0;
+    color: #0f172a;
+    line-height: 1.1;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.thumb-caption {
+    margin: 0;
+    color: #4b5563;
+    font-size: 0.90rem;
+    line-height: 1.28;
+    opacity: 1;
+}
+
+.thumb-badge {
+    background: #f7f7fa;
+    color: #111827;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    opacity: 0;
+    box-shadow: 0 6px 18px rgba(11,20,30,0.04);
+}
+
+/* -----------------------------------------------------------
+   Mobile tweaks
+----------------------------------------------------------- */
+@media (max-width:720px) {
+    :root {
+        --card-padding: 12px;
+        --corner-length: 22px;
+        --corner-offset: 10px;
+        --corner-thickness: 5px;
+        --logo-size: 26px;
+    }
+    .thumb-title { font-size: 0.98rem; }
+    .thumb-caption { font-size: 0.9rem; }
+}

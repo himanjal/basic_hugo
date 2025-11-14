@@ -32,6 +32,7 @@ body.gallery-page{background:var(--page-bg);-webkit-font-smoothing:antialiased}
     aspect-ratio: var(--scroller-aspect);
     background:var(--frame-bg);
     border-radius:var(--card-radius);
+    margin: 0 auto 40px;
     overflow:hidden;
     position:relative;
     z-index:6;
@@ -111,10 +112,15 @@ body.gallery-page{background:var(--page-bg);-webkit-font-smoothing:antialiased}
 .peeler::-webkit-scrollbar { display: none; height:0; width:0; }
 .peeler { -ms-overflow-style: none; scrollbar-width: none; }
 
-@media (max-width:900px){
+@media (max-width:640px){
     :root{ --outer-pad: clamp(1px,2vw,1px);
+        --scroller-aspect: 3/4;
         --card-radius:12px;
         --anim-ms: 420ms; }
+
+    .gallery-wrap {
+        padding-top: clamp(100px, 5vw, 48px);
+    }
 }
 
 .no-images { text-align:center; padding:2rem; color:#222; }
@@ -130,5 +136,31 @@ body.gallery-page{background:var(--page-bg);-webkit-font-smoothing:antialiased}
     animation: none !important;
     will-change: auto !important;
 }
+
+
+/* If any parent (like .gallery-wrap or .site-main) uses flexbox,
+   force vertical stacking */
+.gallery-wrap,
+.site-main {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;               /* optional visual breathing space */
+}
+
+/* Prevent floats from affecting the next section */
+.scroller-outer::after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+/*!* Ensure carousel is a full-width block element *!*/
+/*.gallery-wrap,*/
+/*.scroller-outer,*/
+/*#peeler {*/
+/*    display: block;*/
+/*    width: 100%;*/
+/*    box-sizing: border-box;*/
+/*}*/
 
 
