@@ -1,32 +1,67 @@
 {{ define "main" }}
 <main class="gallery-wrap" aria-label="Gallery">
-    {{ $imgs := resources.Match "images/featured/*.{jpg,jpeg,png,webp}" | sort }}
-    {{ if gt (len $imgs) 0 }}
-    <div class="scroller-outer">
-        <div id="peeler" class="peeler" aria-label="Image carousel"
-             data-autoplay="true" data-interval="4000" data-pause-on-hover="true"
-             data-pause-on-interaction="true" data-resume-after="3000">
+<!--    {{ $imgs := resources.Match "images/featured/*.{jpg,jpeg,png,webp}" | sort }}-->
+<!--    {{ if gt (len $imgs) 0 }}-->
+<!--    <div class="scroller-outer">-->
+<!--        <div id="peeler" class="peeler" aria-label="Image carousel"-->
+<!--             data-autoplay="true" data-interval="4000" data-pause-on-hover="true"-->
+<!--             data-pause-on-interaction="true" data-resume-after="3000">-->
+<!--            {{ range $i, $img := $imgs }}-->
+<!--            <figure class="peel-slide" role="group" aria-roledescription="slide"-->
+<!--                    aria-label="Slide {{ add $i 1 }} of {{ len $imgs }}">-->
+<!--                <div class="peel-inner">-->
+<!--                    {{ $small := $img.Resize "600x" }}-->
+<!--                    {{ $med   := $img.Resize "1200x" }}-->
+<!--                    {{ $hi    := $img.Resize "2000x" }}-->
+<!--                    {{ $lq    := $img.Resize "40x" }}-->
+<!--                    <img class="peel-img lazy"-->
+<!--                         src="{{ $small.RelPermalink }}"-->
+<!--                         srcset="{{ $small.RelPermalink }} 600w, {{ $med.RelPermalink }} 1200w, {{ $hi.RelPermalink }} 2000w"-->
+<!--                         sizes="(max-width: 640px) 100vw, 60vw"-->
+<!--                         alt="{{ $img.Name }}" loading="lazy" decoding="async" width="1200" height="800">-->
+<!--                </div>-->
+<!--            </figure>-->
+<!--            {{ end }}-->
+<!--        </div>-->
+<!--    </div>-->
+<!--    {{ else }}-->
+<!--    <p class="no-images">No images found in assets/images/featured.</p>-->
+<!--    {{ end }}-->
+
+    <link rel="stylesheet" href="{{ "css/hover-carousal.css" | relURL }}">
+    <script src="{{ "js/hover-carousal.js" | relURL }}" defer></script>
+
+    <section class="featured-carousel">
+        {{ $resources := resources.Match "images/carousal/*" | sort }}
+        {{ $imgs := slice }}
+        {{ range $resources }}
+        {{ $ext := lower (replaceRE "^.*\\.([^.]+)$" "$1" .Name) }}
+        {{ if in (slice "jpg" "jpeg" "png" "webp") $ext }}
+        {{ $imgs = $imgs | append . }}
+        {{ end }}
+        {{ end }}
+
+        {{ $count := len $imgs }}
+
+        {{ if gt $count 0 }}
+        <nav class="hover-carousel" role="navigation">
             {{ range $i, $img := $imgs }}
-            <figure class="peel-slide" role="group" aria-roledescription="slide"
-                    aria-label="Slide {{ add $i 1 }} of {{ len $imgs }}">
-                <div class="peel-inner">
-                    {{ $small := $img.Resize "600x" }}
-                    {{ $med   := $img.Resize "1200x" }}
-                    {{ $hi    := $img.Resize "2000x" }}
-                    {{ $lq    := $img.Resize "40x" }}
-                    <img class="peel-img lazy"
-                         src="{{ $small.RelPermalink }}"
-                         srcset="{{ $small.RelPermalink }} 600w, {{ $med.RelPermalink }} 1200w, {{ $hi.RelPermalink }} 2000w"
-                         sizes="(max-width: 640px) 100vw, 60vw"
-                         alt="{{ $img.Name }}" loading="lazy" decoding="async" width="1200" height="800">
-                </div>
-            </figure>
+            {{ $thumb := $img.Resize "1000x" }}
+            <a href="#" class="hc-item"
+               style="--i: {{ $i }};"
+               aria-label="Featured {{ add $i 1 }}" data-thumb="{{ $thumb.RelPermalink }}" data-hires="{{ $img.RelPermalink }}">
+                <!-- new real img element (thumb for initial paint) -->
+                <img class="hc-img"
+                     src="{{ $thumb.RelPermalink }}"
+                     loading="lazy"
+                     alt="{{ $img.Name }}" />
+            </a>
             {{ end }}
-        </div>
-    </div>
-    {{ else }}
-    <p class="no-images">No images found in assets/images/featured.</p>
-    {{ end }}
+        </nav>
+        {{ else }}
+        <p>No featured images found in <code>assets/images/featured</code>.</p>
+        {{ end }}
+    </section>
 
     <!-- Gallery intro: insert between carousel and thumbnails -->
     <section class="gallery-intro" aria-hidden="false">
@@ -100,7 +135,7 @@
             {{ $thumbRes := $fs.Get "thumb" }}
 
             {{/* Generate sizes: small for grid, med for larger screens, hi for album viewer/lightbox */}}
-            {{ $small := $thumbRes.Fill "600x" }}
+            {{ $small := $thumbRes.Resize "600x" }}
             {{ $med := $thumbRes.Resize "1200x" }}
             {{ $hi := $thumbRes.Resize "2000x" }}
 
@@ -111,7 +146,7 @@
                              src="{{ $small.RelPermalink }}"
                              srcset="{{ $small.RelPermalink }} 600w, {{ $med.RelPermalink }} 1200w"
                              sizes="(max-width:640px) 100vw, (max-width:1200px) 50vw, 33vw"
-                             alt="{{ index $meta "title" }}"
+                             alt='{{ index $meta "title" }}'
                         loading="lazy"
                         width="1200" height="800">
 

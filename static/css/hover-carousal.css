@@ -1,0 +1,227 @@
+/* static/css/hover-carousal.css
+   Hover-wave vertical strip carousel
+   - All key tuning knobs are CSS variables at :root (documented)
+   - Uses <img class="hc-img"> so expanding boxes reveal more of the photo
+   - Ensures parent stacking via explicit z-index written by JS
+   - Adds .in-front helper class for extra safety (JS toggles it)
+*/
+
+/* ---------------------------
+   Tunable variables (edit ONLY these at top)
+   --------------------------- */
+
+:root{
+    /* Layout & sizing */
+    --carousel-width: 95vw;         /* overall carousel width */
+    --carousel-max-width: 1300px;
+    --carousel-height: 44vh;        /* visible carousel height */
+    --carousel-max-height: 260px;
+
+    --gap: 0;                    /* gap between vertical strips (px) */
+
+    /* Image bleed: baseline image box relative to strip size (unitless multiplier).
+       Increasing lets the image element extend beyond its strip before any hover. */
+    --img-width-mult: 0.8;
+
+    /* Disproportionate growth multipliers (unitless):
+       These are the scale factors applied at distances:
+         - center (hovered item)
+         - adjacent (distance = 1)
+         - next (distance = 2)
+       Increase center-scale-x to make hovered item much wider than tall (disproportionate).
+    */
+    --center-scale-x: 1.5;
+    --center-scale-y: 1.3;
+
+    --adjacent-scale-x: 1.28;
+    --adjacent-scale-y: 1.15;
+
+    --next-scale-x: 1.12;
+    --next-scale-y: 1.04;
+
+    /* brightness values (0..1) per ring */
+    --center-bright: 1.00;
+    --adjacent-bright: 0.75;
+    --next-bright: 0.5;
+    --base-bright: 0.2;
+
+    /* Horizontal translation for distance=1 (px). Movement decays multiplicatively by --tx-decay. */
+    --base-tx: 80px;
+    --tx-decay: 0.5;                 /* 0..1 multiplicative per extra distance */
+
+    /* global multiplier for translation (unitless) */
+    --tx-mult: 1;
+
+    /* tilt in degrees applied at distance=1, decays by tx-decay */
+    --base-tilt-deg: 18deg;
+
+    /* z-index base and decay:
+       --z-base is the numeric z-index used for center; --z-decay is multiplicative per distance.
+       If stacking still looks wrong for your design, increase --z-base. */
+    --z-base: 3000;
+    --z-decay: 0.5;
+
+    /* animation smoothing (CSS) */
+    --transition: 360ms cubic-bezier(.2,.9,.25,1);
+
+    /* niceties */
+    --shadow-color: rgba(0,0,0,0.45);
+    --img-border-radius: 4px;
+}
+
+/* ---------------------------
+   Structural styles (do not change unless necessary)
+   --------------------------- */
+
+* { box-sizing: border-box; }
+
+html,body {
+    height: 100%;
+    margin: 0;
+    /*background: #060616;*/
+    font-family: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* wrapper */
+.featured-carousel {
+    width: var(--carousel-width);
+    max-width: var(--carousel-max-width);
+    margin-inline: auto;
+    padding-top: 3rem;
+    padding-right: 5rem;
+    padding-left: 5rem;
+    padding-bottom: 3rem;
+    box-sizing: border-box;
+}
+
+/* container: allows overflow so images can bleed outside the container */
+.hover-carousel {
+    display: flex;
+    align-items: stretch;
+    gap: var(--gap);
+    width: 100%;
+    height: var(--carousel-height);
+    max-height: var(--carousel-max-height);
+    position: relative;
+    overflow: visible;
+    perspective: 1400px;           /* mild perspective for tilt */
+    transform-style: preserve-3d;
+}
+
+/* each vertical strip (hc-item) */
+.hc-item{
+    /* JS will write these per-item CSS variables:
+       --scaleX, --scaleY, --bright, --tx, --tilt, --z  */
+    --scaleX: 1;
+    --scaleY: 1;
+    --bright: var(--base-bright);
+    --tx: 0px;
+    --tilt: 0deg;
+    --z: 1;
+
+    /* flex uses horizontal scale so strip width expands */
+    flex: calc(var(--scaleX, 1)) 1 0%;
+    position: relative;            /* ensure z-index applies predictably */
+    display: block;
+    overflow: visible;             /* allow child <img> to overflow */
+    border-radius: 6px;
+    min-width: 26px;
+    aspect-ratio: 2 / 5;
+    transform-origin: center;
+    will-change: transform, flex;
+    transition:
+            transform var(--transition),
+            flex var(--transition),
+            box-shadow var(--transition);
+    cursor: pointer;
+    /* fallback var for CSS consumers */
+    z-index: calc(var(--z));
+}
+
+/* Compose transforms without translateZ (avoid stacking context oddities).
+   Order: translateX -> scaleX/scaleY -> rotateY */
+.hc-item {
+    transform:
+            translateX(var(--tx, 0px))
+            scaleX(var(--scaleX, 1))
+            scaleY(var(--scaleY, 1))
+            rotateY(var(--tilt, 0deg));
+    -webkit-transform:
+            translateX(var(--tx, 0px))
+            scaleX(var(--scaleX, 1))
+            scaleY(var(--scaleY, 1))
+            rotateY(var(--tilt, 0deg));
+    backface-visibility: hidden;
+}
+
+/* the actual <img> element that reveals more of the photo when the box changes */
+.hc-item .hc-img {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+
+    /* baseline image box slightly larger than strip */
+    width: calc(100% * var(--img-width-mult));
+    height: calc(100% * var(--img-width-mult));
+
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+    object-position: center center;
+
+    border-radius: var(--img-border-radius);
+    box-shadow: 0 10px 32px var(--shadow-color);
+    filter: brightness(var(--bright, var(--base-bright)));
+    transition:
+            width 420ms cubic-bezier(.2,.9,.25,1),
+            height 420ms cubic-bezier(.2,.9,.25,1),
+            transform var(--transition),
+            filter var(--transition),
+            box-shadow var(--transition);
+    pointer-events: none;
+    will-change: width, height, transform, filter;
+
+    /* Ensure image doesn't create its own higher stacking than the parent */
+    z-index: 0;
+}
+
+/* image box size derived from per-item scale vars (JS sets --scaleX/--scaleY) */
+.hc-item .hc-img {
+    width: calc(100% * var(--img-width-mult) * var(--scaleX, 1));
+    height: calc(100% * var(--img-width-mult) * var(--scaleY, 1));
+}
+
+/* slight extra pop for hovered item */
+.hc-item:hover .hc-img {
+    transform: translate(-50%, -50%) scale(1.01);
+}
+
+/* special visual for the top-most item (JS sets aria-current on highest z) */
+.hc-item[aria-current="true"] .hc-img {
+    box-shadow: 0 36px 120px rgba(0,0,0,0.68);
+}
+
+/* small helper class to force highest stacking when needed (JS toggles this) */
+.hc-item.in-front {
+    z-index: 9999999 !important;
+}
+
+/* keyboard focus outline */
+.hc-item:focus-visible { outline: 3px solid rgba(255,255,255,0.08); outline-offset: 6px; }
+
+/* responsive tweaks */
+@media (max-width: 1100px) {
+    :root {
+        --img-width-mult: 1.03;
+        --gap: 14px;
+        --carousel-height: 42vh;
+    }
+}
+@media (max-width: 700px) {
+    :root {
+        --img-width-mult: 1.02;
+        --gap: 10px;
+        --carousel-height: 38vh;
+    }
+    .hc-item { aspect-ratio: 2 / 4; min-width: 18px; }
+}
