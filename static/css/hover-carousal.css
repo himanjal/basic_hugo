@@ -1,128 +1,122 @@
-/* hover-carousal.css — Wave bounce + decay + brightness/shadow
-   Containers resize, bounce, and brighten on hover; neighbors decay.
-   Images remain fixed-size inside containers and are cropped (overflow hidden).
+/* hover-carousal.css — recreated
+   - All hover animation knobs are exposed as CSS variables
+   - Carousel width locked to 80% viewport on ALL sizes
+   - Containers locked to 1:4 aspect ratio (width:height = 1:4)
+   - Variables to control decay for each attribute included
 */
 
-/* ---------- VARIABLES (tweak these) ---------- */
 :root{
-    --gap: 6px;
-    --min-gap: 1px;
-
-    --tile-min: 56px;
-    --tile-preferred: 86px;
-    --tile-max: 160px;
-
-    --tile-aspect-w: 4;
-    --tile-aspect-h: 5;
-    --hc-min-aspect-wh: 0.25; /* 1:4 */
-    --hc-max-aspect-wh: 0.6666667; /* 2:3 */
-
-    --carousel-height: clamp(180px, 36vh, 320px);
-    --hc-max-aspect: 3;
-    /* max width the carousel can grow to (px) */
-    --carousel-max-width: 1300px;
-    --carousel-min-tile-width: 120;  /* JS reads this as minimum tile width (px) */
-
-    /* minimum width to maintain good layout (px) */
+    /* ---------- Layout ---------- */
+    --carousel-vw: 0.8;               /* fraction of viewport width (80%) — applied on all sizes */
+    --carousel-max-width: 1300px;     /* upper cap for carousel width */
     --carousel-min-width: 320px;
+    --carousel-side-padding: 50px;    /* breathing room on sides */
+    --carousel-margin: 20px;          /* margin around carousel (user requested) */
+    --carousel-top-gap: 20px;         /* distance between nav pill and top of carousel (user requested) */
+    --carousel-aspect: 4;             /* guidance ratio used in JS (width / height baseline) */
+    --carousel-max-height: 340px;     /* safety cap for carousel height */
 
-    /* how much horizontal padding to keep on each side of carousel (px)
-       used to keep breathing room for expanded tiles */
-    --carousel-side-padding: 50px;
+    /* ---------- Tile / Aspect ---------- */
+    --tile-aspect-w: 1;
+    --tile-aspect-h: 4;               /* enforces 1:4 aspect ratio */
+    --tile-preferred: 86px;           /* preferred base width per tile (fallback) */
+    --gap: 1px;
 
-    /* desired width:height aspect ratio for the carousel (width / height).
-       Example: 4 => carousel_width / carousel_height = 4 (so height = width / 4) */
-    --carousel-aspect: 4;
-
-    /* maximum carousel height (px) — do not let height exceed this even if width implies larger */
-    --carousel-max-height: 340px;
-
-
-    /* wave tuning */
-    --hover-width-boost: 2;      /* hovered width multiplier */
-    --hover-height-boost: 1.4;    /* hovered height multiplier */
-    --hover-bounce-px: 22;         /* how high hovered container bounces (px) */
-    --decay-factor: 0.7;          /* per-step decay multiplier for neighbor effect */
-    --decay-steps: 4;              /* how many neighbors get effect */
-    --hover-push-px: 18;           /* maximum horizontal push for immediate neighbors (px) */
-    --push-decay-factor: 0.55;     /* decay per step for horizontal push (keeps consistent with vertical) */
-
-
-    /* brightness/shadow */
-    --dimmer: 0.1;                /* default brightness */
-    --bright-max: 1;               /* brightness at hover */
-    --shadow-base: 0 8px 28px rgba(0,0,0,0.28);   /* default */
-    --shadow-max: 0 36px 120px rgba(0,0,0,0.66);  /* hover shadow */
-
-    /* image sizing inside container */
+    /* ---------- Image sizing control ---------- */
     --min-img-mult: 1.35;
     --max-img-mult: 2.0;
+    --img-height-mult: 1.5;
 
+    /* ---------- Animation / timing ---------- */
     --transition: 260ms cubic-bezier(.2,.9,.25,1);
-    --img-border-radius: 6px;
+    --inertia: 0.1;
+
+    /* ---------- Visual ---------- */
+    --dimmer: 0.30;                   /* baseline image brightness */
+    --bright-max: 1;                  /* brightness when focused */
+    --shadow-base: 0 8px 28px rgba(0,0,0,0.28);
+
+    /* ---------- Hover knobs (exposed) ----------
+       x increase: how much a hovered item grows horizontally (multiplier)
+       y increase: vertical growth multiplier
+       jump: vertical translate when hovered (px)
+       shadow-mult: applied to shadow strength on focus
+       dimmer-min: baseline dimmer (duplicate for clarity)
+    */
+    --hover-x-mult: 2.5;              /* width multiplier for hover center */
+    --hover-y-mult: 1.2;             /* height multiplier for hover center */
+    --hover-jump-px: 1;              /* vertical 'lift' in px for hovered item */
+    --hover-shadow-mult: 1.8;         /* shadow intensity multiplier for hovered item */
+    --hover-dimmer-min: var(--dimmer);/* min brightness */
+    --hover-bright-max: var(--bright-max);
+
+    /* ---------- Per-attribute decay factors:
+       How fast the effect decays as you move away from the hovered item.
+       closer to 0 => steep decay, closer to 1 => slow decay.
+    */
+    --decay-steps: 3;                 /* how many neighbors influence */
+    --decay-factor-width: 0.7;        /* decay for width */
+    --decay-factor-height: 0.72;      /* decay for height */
+    --decay-factor-jump: 0.6;         /* decay for vertical jump */
+    --decay-factor-shadow: 0.68;      /* decay for shadow growth */
+    --decay-factor-bright: 0.65;      /* decay for brightness */
+
+    /* ---------- Fallback tuning ---------- */
+    --hover-push-px: 18;              /* horizontal push for neighbors */
+    --hc-max-aspect: 3;               /* constrain image aspect in defensive sizing */
 }
 
-/* ---------- base ---------- */
+/* ---------- Base ---------- */
 * { box-sizing: border-box; }
-html,body {
-    margin: 0;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-    overflow-x: hidden;
+html,body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; overflow-x: hidden; }
 
-}
-
-/* outer wrapper */
 .featured-carousel {
-    width: 70vw;
-    max-width: 1400px;
-    max-height: 50vh;
-    margin: 2rem auto;
-    padding: 0 1rem;
+    width: calc(var(--carousel-vw) * 100vw); /* locked 80% of viewport */
+    max-width: var(--carousel-max-width);
+    margin: var(--carousel-margin) auto;
+    margin-top: var(--carousel-top-gap);
+    padding: 0;
+    padding-inline: max(12px, var(--carousel-side-padding));
     overflow: visible;
-    padding-inline: max(16px, var(--carousel-side-padding));
     box-sizing: border-box;
-    margin-inline: auto;
 }
 
 /* carousel strip */
 .hover-carousel {
     display: flex;
-    gap: max(var(--gap), var(--min-gap));
-    height: var(--carousel-height);
-    box-sizing: border-box;
+    gap: var(--gap);
     width: 100%;
-    max-width: var(--carousel-max-width, 1300px);
-    margin-inline: auto;      /* center */
-    padding-inline: 0;        /* JS will add further hover padding safely */
-    overflow: visible;        /* allow items to overflow visually, but outer container prevents page bleed */
+    max-width: var(--carousel-max-width);
+    margin-inline: auto;
+    padding-inline: 0;
+    overflow: visible;
     position: relative;
     align-items: center;
+    justify-content: center;
 }
 
-/* container baseline */
+/* container baseline — ensure locked aspect ratio 1:4 */
 .hc-container {
-    flex: 0 0 auto;             /* DO NOT let the container shrink/fill; widths come from JS */
-    width: var(--tile-preferred);/* fallback width for CSS-only nocode case */
-    min-width: calc(var(--carousel-min-tile-width, 120px));
-    aspect-ratio: calc(var(--tile-aspect-w) / var(--tile-aspect-h));
+    flex: 0 0 auto;
+    width: var(--tile-preferred);
+    aspect-ratio: calc(var(--tile-aspect-w) / var(--tile-aspect-h)); /* 1 / 4 */
     box-sizing: border-box;
     overflow: hidden;
     position: relative;
-    transition: box-shadow var(--transition);
+    transition: box-shadow var(--transition), transform var(--transition);
     will-change: width, height, transform;
+    box-shadow: var(--shadow-base);
 }
 
-/* focused/hover class applied by JS for accessibility */
-.hc-container.in-focus { box-shadow: var(--shadow-max); }
+/* hovered / focused state class for accessibility */
+.hc-container.in-focus { z-index: 30; }
 
-/* image inside container (fixed-size behavior)
-   JS will size image (width/height) and set integer left/top to center it.
-*/
+/* image inside container */
 .hc-img {
     position: absolute;
     left: 0;
     top: 0;
-    width: calc(var(--min-img-mult) * 100%); /* fallback */
+    width: calc(var(--min-img-mult) * 100%);
     height: auto;
     object-fit: cover;
     pointer-events: none;
@@ -131,69 +125,43 @@ html,body {
     image-rendering: auto;
     backface-visibility: hidden;
     will-change: left, top, filter;
-    background: transparent;
     transition: filter var(--transition) ease;
+    display: block;
+    filter: brightness(var(--dimmer));
 }
 
-/* default dim and shadow (will be overwritten inline by JS targets) */
-.hc-img { filter: brightness(var(--dimmer)); }
-.hc-container { box-shadow: var(--shadow-base); }
-
-/* responsive adjustments */
+/* responsive: keep same 80% rule on small screens, but reduce paddings */
 @media (max-width: 900px) {
     :root {
-        --carousel-side-padding: 16px;
-        --carousel-aspect: 4.5;          /* slightly shorter strip */
-        --carousel-max-width: 750px;
-        --img-height-mult: 1.35;
-        --hover-width-boost: 1.25;       /* smaller width increases */
-        --hover-height-boost: 1.12;
-        --hover-push-px: 8;
-        --decay-steps: 3;
-        --hc-max-aspect: 3;
+        --carousel-side-padding: 18px;
+        --carousel-max-width: 900px;
+        --carousel-min-width: 280px;
+        /* KEEP --carousel-vw = 0.8 (no change) */
     }
-
-    /* reduce spacing around carousel */
-    .featured-carousel { padding: 1.25rem 1.25rem 0.5rem; }
+    .featured-carousel { padding: 1rem 1rem 0.5rem; }
 }
 
-
-/* Narrow phones and tablets */
 @media (max-width: 640px) {
     :root {
         --carousel-side-padding: 12px;
-        /*--carousel-aspect: 5.5;        !* even shorter strip to save vertical space *!*/
-        --carousel-max-width: 500px;
-        --img-height-mult: 1.2;
-        --hover-width-boost: 1.08;     /* almost no width growth */
-        --hover-height-boost: 1.06;
-        --hover-push-px: 4;
-        --decay-steps: 2;
-        --hc-max-aspect: 2.6;
-        --min-img-mult: 1.05;
-        --max-img-mult: 1.8;
-        --dimmer: 0.35;
+        --carousel-max-width: 520px;
+        --carousel-min-width: 240px;
+        /* KEEP --carousel-vw = 0.8 (no change) to enforce same 80% rule */
+        /* On very small screens you may still override --carousel-vw in a theme var if needed */
     }
-
-    .featured-carousel { padding: 0.75rem 0.75rem 0.5rem; }
+    .featured-carousel { padding: 0.6rem 0.6rem 0.4rem; }
 }
 
-
-/* Pointer-coarse / no-hover devices (touch) -> simplify visuals and disable hover animations entirely */
+/* coarse pointer / touch: lower visual complexity */
 @media (hover: none), (pointer: coarse) {
     :root {
-        --hover-width-boost: 1.0;      /* no width growth on touch */
-        --hover-height-boost: 1.0;     /* no height growth on touch */
-        --hover-push-px: 0;
-        --hover-bounce-px: 0;
-        --decay-factor: 0.5;
-        --decay-steps: 0;
-        --inertia: 0.25;
+        --inertia: 0.28;
     }
-
-    /* reduce shadows and animation cost */
     .hc-container { transition: box-shadow 180ms linear; }
     .hc-img { transition: opacity 160ms linear, filter 160ms linear; }
 }
 
+/* small helper */
+.gallery-intro { margin-top: 12px; }
 
+/* keep layout responsibility to JS for fine-grained animations — CSS exposes knobs only */

@@ -1,182 +1,193 @@
 // static/js/hover-carousal-containers.js
-// Full drop-in file: wave carousel with responsive sizing, mobile optimizations,
-// defensive image handling, tap-to-load hi-res on mobile, pointermove throttle.
-
+// Recreated: reads new CSS variables for per-attribute hover control and decay
 (function () {
     'use strict';
 
     const nav = document.querySelector('.hover-carousel');
-    if (!nav) {
-        console.warn('Hover carousel: .hover-carousel not found.');
-        return;
-    }
+    if (!nav) { console.warn('Hover carousel: .hover-carousel not found.'); return; }
     const containers = Array.from(nav.querySelectorAll('.hc-container'));
-    if (!containers.length) {
-        console.warn('Hover carousel: no .hc-container elements found.');
-        return;
-    }
+    if (!containers.length) { console.warn('Hover carousel: no .hc-container elements found.'); return; }
 
-    // ---------- helpers to read CSS numeric variables ----------
+    // ---------- helpers to read CSS vars ----------
+    function cssRaw(name, fallback) {
+        const v = getComputedStyle(document.documentElement).getPropertyValue(name);
+        return v ? v.trim() : fallback;
+    }
     function cssNum(name, fallback) {
-        const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-        const m = v.match(/^(-?\d+(\.\d+)?)/);
-        return m ? parseFloat(m[1]) : fallback;
+        const raw = cssRaw(name, null);
+        if (!raw) return fallback;
+        const m = raw.match(/-?\d+(\.\d+)?/);
+        return m ? parseFloat(m[0]) : fallback;
     }
+    function cssFloat(name, fallback) { return cssNum(name, fallback); }
 
-    // ---------- config (read from CSS vars where possible) ----------
+    // ---------- config read from CSS vars ----------
     const cfg = {
-        gap: Math.max(cssNum('--gap', 6), cssNum('--min-gap', 1)),
-        hoverWidthBoost: cssNum('--hover-width-boost', 1.5),
-        hoverHeightBoost: cssNum('--hover-height-boost', 1.18),
-        hoverBounce: cssNum('--hover-bounce-px', 22),
-        decayFactor: cssNum('--decay-factor', 0.55),
-        decaySteps: Math.max(1, Math.floor(cssNum('--decay-steps', 4))),
-        dimmer: cssNum('--dimmer', 0.28),
-        brightMax: cssNum('--bright-max', 1),
-        shadowBase: getComputedStyle(document.documentElement).getPropertyValue('--shadow-base') || '0 8px 28px rgba(0,0,0,0.28)',
-        shadowMax: getComputedStyle(document.documentElement).getPropertyValue('--shadow-max') || '0 36px 120px rgba(0,0,0,0.66)',
+        gap: Math.max(cssNum('--gap', 8), 1),
         minImgMult: cssNum('--min-img-mult', 1.35),
         maxImgMult: cssNum('--max-img-mult', 2.0),
         imgHeightMult: cssNum('--img-height-mult', 1.5),
-        hoverPushPx: cssNum('--hover-push-px', 18),
-        inertia: cssNum('--inertia', 0.16)
+        inertia: cssNum('--inertia', 0.16),
+        dimmer: cssNum('--dimmer', 0.1),
+        brightMax: cssNum('--bright-max', 1),
+        hoverXMult: Math.max(1, cssNum('--hover-x-mult', 1.5)),
+        hoverYMult: Math.max(1, cssNum('--hover-y-mult', 1.12)),
+        hoverJumpPx: Math.max(0, cssNum('--hover-jump-px', 18)),
+        hoverShadowMult: Math.max(0, cssNum('--hover-shadow-mult', 1.8)),
+        hoverBrightMin: cssNum('--hover-dimmer-min', cssNum('--dimmer', 0.1)),
+        hoverBrightMax: cssNum('--hover-bright-max', cssNum('--bright-max', 1)),
+        decaySteps: Math.max(1, Math.floor(cssNum('--decay-steps', 3))),
+        decayWidth: cssFloat('--decay-factor-width', 0.7),
+        decayHeight: cssFloat('--decay-factor-height', 0.72),
+        decayJump: cssFloat('--decay-factor-jump', 0.6),
+        decayShadow: cssFloat('--decay-factor-shadow', 0.68),
+        decayBright: cssFloat('--decay-factor-bright', 0.65),
+        hoverPushPx: Math.max(0, cssNum('--hover-push-px', 18)),
     };
 
-    // ---------- Mobile / small-screen runtime optimizations ----------
+    // mobile detection and lighter interactions
     (function applyMobileOptimizations() {
         const smallViewport = (window.innerWidth || document.documentElement.clientWidth) <= 640;
         const coarsePointer = window.matchMedia && (window.matchMedia('(pointer: coarse)').matches || window.matchMedia('(hover: none)').matches);
         const touchDevice = 'ontouchstart' in window || coarsePointer || smallViewport;
-
         cfg._mobileMode = Boolean(touchDevice);
-
         if (cfg._mobileMode) {
-            // dial down heavy animation effects
-            cfg.hoverWidthBoost = Math.min(cfg.hoverWidthBoost, 1.08);
-            cfg.hoverHeightBoost = Math.min(cfg.hoverHeightBoost, 1.06);
-            cfg.hoverPushPx = 0;            // no horizontal push on touch
-            cfg.decaySteps = 1;
-            cfg.decayFactor = Math.max(cfg.decayFactor * 0.7, 0.4);
-            cfg.inertia = 0.28;            // slightly snappier
-            cfg.imgHeightMult = Math.max(cfg.imgHeightMult * 0.85, 1.05);
-
-            // lower image multipliers to prefer smaller assets
-            cfg.minImgMult = Math.max(cfg.minImgMult * 0.8, 1.0);
-            cfg.maxImgMult = Math.min(cfg.maxImgMult * 0.9, 2.0);
-
-            // reduce shadow intensity
-            cfg.shadowBase = '0 6px 20px rgba(0,0,0,0.18)';
-            cfg.shadowMax = '0 18px 64px rgba(0,0,0,0.4)';
-
-            // Prevent aggressive preloading of hi-res images: move data-hi2x -> data-_hi2x for later
-            containers.forEach((el) => {
-                const h = el.dataset.hi2x;
-                if (h) { el.dataset._hi2x = h; delete el.dataset.hi2x; }
-            });
+            cfg.inertia = Math.min(cfg.inertia * 1.8, 0.36);
+            // soften hover multipliers on touch
+            cfg.hoverXMult = Math.max(1, Math.min(cfg.hoverXMult, 1.12));
+            cfg.hoverYMult = Math.max(1, Math.min(cfg.hoverYMult, 1.06));
+            cfg.hoverJumpPx = Math.min(cfg.hoverJumpPx, 8);
+            cfg.hoverPushPx = 0;
         }
     })();
 
-    // ---------- per-container state ----------
+    // state
     const state = containers.map(() => ({
-        width: 0, height: 0, translateX: 0, translateY: 0, bright: cfg.dimmer, shadow: cfg.shadowBase,
-        targetWidth: 0, targetHeight: 0, targetTranslateX: 0, targetTranslateY: 0, targetBright: cfg.dimmer, targetShadow: cfg.shadowBase
+        width: 0, height: 0, translateX: 0, translateY: 0, bright: cfg.dimmer,
+        targetWidth: 0, targetHeight: 0, targetTranslateX: 0, targetTranslateY: 0, targetBright: cfg.dimmer
     }));
 
-    // ---------- measurement helpers ----------
-    function measure() {
-        const rect = nav.getBoundingClientRect();
-        const gapPx = cfg.gap;
-        const totalGap = gapPx * Math.max(0, containers.length - 1);
-        const avail = Math.max(0, Math.round(rect.width - totalGap));
-        return { rect, gapPx, totalGap, avail };
-    }
-
-    // ---------- responsive baselineSizes (reads CSS responsive vars) ----------
+    // ---------- baseline sizing (enforce 80% vw and 1:4 tiles) ----------
     function baselineSizes() {
         const css = getComputedStyle(document.documentElement);
-        const maxW = parseInt(css.getPropertyValue('--carousel-max-width')) || 1300;
-        const minW = parseInt(css.getPropertyValue('--carousel-min-width')) || 320;
-        const sidePad = parseInt(css.getPropertyValue('--carousel-side-padding')) || 24;
-        const aspect = parseFloat(css.getPropertyValue('--carousel-aspect')) || 4;
-        const maxH = parseInt(css.getPropertyValue('--carousel-max-height')) || 340;
+        const maxW = Math.max(1, parseInt(css.getPropertyValue('--carousel-max-width')) || 1300);
+        const minW = Math.max(1, parseInt(css.getPropertyValue('--carousel-min-width')) || 320);
+        const vwFrac = parseFloat(css.getPropertyValue('--carousel-vw')) || 0.8;
+        const sidePad = Math.max(0, parseInt(css.getPropertyValue('--carousel-side-padding')) || 24);
+        const maxHCap = Math.max(80, parseInt(css.getPropertyValue('--carousel-max-height')) || 340);
 
-        const viewportW = Math.max(0, (window.innerWidth || document.documentElement.clientWidth));
-        const availW = Math.max(0, viewportW - (sidePad * 2));
-        const effectiveWidth = Math.max(minW, Math.min(maxW, availW));
+        const viewportW = Math.max(320, (window.innerWidth || document.documentElement.clientWidth));
+        let effectiveWidth = Math.round(Math.max(minW, Math.min(maxW, Math.round(viewportW * vwFrac))));
 
-        let effectiveHeight = Math.round(effectiveWidth / aspect);
-        if (effectiveHeight > maxH) effectiveHeight = maxH;
+        // subtract side padding
+        effectiveWidth = Math.max(160, effectiveWidth - (sidePad * 2));
 
-        const baseW = Math.max(24, Math.floor(effectiveWidth / Math.max(1, containers.length)));
-        const baseH = Math.max(40, Math.round(effectiveHeight));
+        // tile aspect
+        const tileAW = Math.max(1, cssNum('--tile-aspect-w', 1));
+        const tileAH = Math.max(1, cssNum('--tile-aspect-h', 4));
+        const count = Math.max(1, containers.length);
 
-        nav.style.maxWidth = effectiveWidth + 'px';
-        // ensure at least CSS sidePad but keep JS hover pad additive later
+        // base tile width
+        let baseW = Math.max(24, Math.floor(effectiveWidth / count));
+        let baseH = Math.max(40, Math.round(baseW * (tileAH / tileAW)));
+
+        // shrink height slightly as items increase (keeps carousel compact)
+        const extraCount = Math.max(0, count - 4);
+        const reduceFactor = Math.min(0.35, extraCount * 0.05);
+        baseH = Math.round(baseH * (1 - reduceFactor));
+
+        // cap by guide and explicit cap
+        const guideH = Math.round(effectiveWidth / (parseFloat(css.getPropertyValue('--carousel-aspect')) || 4));
+        const finalH = Math.min(baseH, Math.max(80, Math.min(maxHCap, guideH)));
+
+        // recompute width to maintain exact aspect
+        const finalW = Math.max(24, Math.round(finalH * (tileAW / tileAH)));
+
+        // ensure finalW fits per tile
+        const maxPerTileAvailable = Math.max(24, Math.floor(effectiveWidth / count));
+        const usedW = Math.min(finalW, maxPerTileAvailable);
+
+        // keep nav width consistent (JS + CSS)
+        nav.style.maxWidth = (usedW * count + (count - 1) * cfg.gap) + 'px';
         nav.style.paddingInline = sidePad + 'px';
         nav.style.marginInline = 'auto';
 
-        return { baseW, baseH };
+        return { baseW: usedW, baseH: Math.round(usedW * (tileAH / tileAW)) };
     }
 
-    // ---------- shadow interpolation ----------
-    function buildInterpolatedShadow(norm) {
-        if (norm >= 0.999) return cfg.shadowMax;
-        if (norm <= 0.01) return cfg.shadowBase;
-        const baseAlpha = 0.28;
-        const maxAlpha = 0.66;
-        const a = +(baseAlpha + (maxAlpha - baseAlpha) * norm).toFixed(3);
-        return `0 16px 48px rgba(0,0,0,${a})`;
-    }
-
-    // ---------- computeTargets (includes width growth and horizontal push) ----------
+    // ---------- compute attribute-specific targets with per-attribute decay ----------
     function computeTargets(centerIndex = -1, pointerFrac = 0) {
         const { baseW, baseH } = baselineSizes();
-        const weights = [];
-
-        for (let i = 0; i < containers.length; i++) {
-            if (centerIndex < 0) { weights.push(0); continue; }
-            const distRaw = Math.abs(i - centerIndex - pointerFrac);
-            if (distRaw > cfg.decaySteps) { weights.push(0); continue; }
-            const w = Math.pow(cfg.decayFactor, distRaw);
-            weights.push(w);
-        }
-        const maxW = Math.max(...weights, 0.0001);
-
+        const n = containers.length;
         const targets = {
-            widths: new Array(containers.length).fill(baseW),
-            heights: new Array(containers.length).fill(baseH),
-            translateXs: new Array(containers.length).fill(0),
-            translateYs: new Array(containers.length).fill(0),
-            brights: new Array(containers.length).fill(cfg.dimmer),
-            shadows: new Array(containers.length).fill(cfg.shadowBase)
+            widths: new Array(n).fill(baseW),
+            heights: new Array(n).fill(baseH),
+            translateXs: new Array(n).fill(0),
+            translateYs: new Array(n).fill(0),
+            brights: new Array(n).fill(cfg.dimmer)
         };
-
         if (centerIndex < 0) return targets;
 
-        for (let i = 0; i < containers.length; i++) {
-            const norm = weights[i] / maxW; // 0..1
-            const wMul = 1 + (cfg.hoverWidthBoost - 1) * norm;
+        // distance and attribute weights
+        const dArr = new Array(n);
+        for (let i = 0; i < n; i++) {
+            const d = Math.abs(i - centerIndex - pointerFrac);
+            dArr[i] = d;
+        }
+
+        // compute raw attribute weights using per-attribute decay factors
+        const widthWeights = dArr.map(d => (d > cfg.decaySteps ? 0 : Math.pow(cfg.decayWidth, d)));
+        const heightWeights = dArr.map(d => (d > cfg.decaySteps ? 0 : Math.pow(cfg.decayHeight, d)));
+        const jumpWeights = dArr.map(d => (d > cfg.decaySteps ? 0 : Math.pow(cfg.decayJump, d)));
+        const shadowWeights = dArr.map(d => (d > cfg.decaySteps ? 0 : Math.pow(cfg.decayShadow, d)));
+        const brightWeights = dArr.map(d => (d > cfg.decaySteps ? 0 : Math.pow(cfg.decayBright, d)));
+
+        // normalization not strictly needed since center weight==1, but keep max normalization per attribute for stability
+        const maxW = Math.max(1, ...widthWeights);
+        const maxH = Math.max(1, ...heightWeights);
+        const maxJ = Math.max(1, ...jumpWeights);
+        const maxS = Math.max(1, ...shadowWeights);
+        const maxB = Math.max(1, ...brightWeights);
+
+        for (let i = 0; i < n; i++) {
+            const wNorm = widthWeights[i] / maxW;
+            const hNorm = heightWeights[i] / maxH;
+            const jNorm = jumpWeights[i] / maxJ;
+            const sNorm = shadowWeights[i] / maxS;
+            const bNorm = brightWeights[i] / maxB;
+
+            // width/height multipliers
+            const wMul = 1 + (cfg.hoverXMult - 1) * wNorm;
+            const hMul = 1 + (cfg.hoverYMult - 1) * hNorm;
             targets.widths[i] = Math.max(8, Math.round(baseW * wMul));
+            targets.heights[i] = Math.max(8, Math.round(baseH * hMul));
 
-            const hMul = 1 + (cfg.hoverHeightBoost - 1) * norm;
-            targets.heights[i] = Math.round(baseH * hMul);
+            // jump (vertical lift) — negative translateY to lift upwards
+            targets.translateYs[i] = Math.round(-cfg.hoverJumpPx * jNorm);
 
-            targets.translateYs[i] = -Math.round(cfg.hoverBounce * norm);
-
-            targets.brights[i] = cfg.dimmer + (cfg.brightMax - cfg.dimmer) * norm;
-            targets.shadows[i] = buildInterpolatedShadow(norm);
-
-            // horizontal push: left of center push left, right of center push right
+            // simple horizontal push for neighbors to create breathing room
             const side = Math.sign(i - centerIndex - pointerFrac);
-            const pointerAttenuation = 1 - Math.abs(pointerFrac) * 0.6;
-            const push = Math.round(side * cfg.hoverPushPx * norm * pointerAttenuation);
-            targets.translateXs[i] = push;
+            targets.translateXs[i] = Math.round(side * (cfg.hoverPushPx) * wNorm);
+
+            // brightness
+            targets.brights[i] = cfg.hoverBrightMin + (cfg.hoverBrightMax - cfg.hoverBrightMin) * bNorm;
+
+            // attach computed shadow hint (store in targetShadow for RAF loop to consume)
+            // We'll encode as an object saved to state.targetShadow
+            const baseDepth = 8;
+            const depth = Math.round(baseDepth + 20 * sNorm * cfg.hoverShadowMult);
+            const blur = Math.round(28 + 90 * sNorm * cfg.hoverShadowMult);
+            const alpha = Math.min(0.9, 0.28 + 0.5 * sNorm * (cfg.hoverShadowMult / 2));
+            // store as a string
+            const shadowStr = `0 ${depth}px ${blur}px rgba(0,0,0,${alpha})`;
+            targets.shadowStr = targets.shadowStr || [];
+            targets.shadowStr[i] = shadowStr;
         }
 
         return targets;
     }
 
-    // ---------- setters that update state.target* and start RAF ----------
+    // ---------- state setter ----------
     function setTargets(centerIndex = -1, pointerFrac = 0) {
         const t = computeTargets(centerIndex, pointerFrac);
         for (let i = 0; i < containers.length; i++) {
@@ -185,7 +196,7 @@
             state[i].targetTranslateX = t.translateXs[i] || 0;
             state[i].targetTranslateY = t.translateYs[i] || 0;
             state[i].targetBright = t.brights[i] || cfg.dimmer;
-            state[i].targetShadow = t.shadows[i] || cfg.shadowBase;
+            state[i].targetShadow = (t.shadowStr && t.shadowStr[i]) ? t.shadowStr[i] : null;
         }
         if (!rafId) rafId = requestAnimationFrame(rafLoop);
     }
@@ -198,17 +209,16 @@
             state[i].targetTranslateX = 0;
             state[i].targetTranslateY = 0;
             state[i].targetBright = cfg.dimmer;
-            state[i].targetShadow = cfg.shadowBase;
+            state[i].targetShadow = getComputedStyle(document.documentElement).getPropertyValue('--shadow-base') || '0 8px 28px rgba(0,0,0,0.28)';
         }
         if (!rafId) rafId = requestAnimationFrame(rafLoop);
     }
 
-    // ---------- defensive image helpers ----------
+    // ---------- ensure images visible (defensive) ----------
     function ensureImageVisibility(imgEl, containerEl) {
         if (!imgEl) return;
         try {
-            const srcAttr = imgEl.getAttribute('src') || '';
-            if (!srcAttr.trim()) {
+            if (!imgEl.getAttribute('src') || imgEl.getAttribute('src').trim() === '') {
                 const hi = containerEl.dataset.hi2x || containerEl.dataset._hi2x || '';
                 if (hi) imgEl.src = hi;
                 else {
@@ -219,15 +229,14 @@
             }
             imgEl.style.display = 'block';
             imgEl.style.visibility = 'visible';
-            imgEl.style.opacity = imgEl.style.opacity || '1';
-            imgEl.style.position = 'absolute';
             imgEl.style.pointerEvents = 'none';
+            imgEl.style.position = 'absolute';
         } catch (e) {
             console.warn('ensureImageVisibility error', e);
         }
     }
 
-    // ---------- RAF loop (lerp container size + translateX+translateY, center image using fixed size) ----------
+    // ---------- RAF loop ----------
     let rafId = null;
     function rafLoop() {
         let active = false;
@@ -244,7 +253,7 @@
             const w = Math.round(s.width);
             const h = Math.round(s.height);
             const tx = Math.round(s.translateX || 0);
-            const ty = Math.round(s.translateY);
+            const ty = Math.round(s.translateY || 0);
             const br = +(s.bright.toFixed(3));
 
             if (el._lastW !== w) { el.style.width = w + 'px'; el._lastW = w; }
@@ -253,7 +262,8 @@
             const tr = `translateX(${tx}px) translateY(${ty}px)`;
             if (el._lastTr !== tr) { el.style.transform = tr; el._lastTr = tr; }
 
-            if (el._lastShadow !== s.targetShadow) {
+            // shadow
+            if (s.targetShadow && el._lastShadow !== s.targetShadow) {
                 el.style.boxShadow = s.targetShadow;
                 el._lastShadow = s.targetShadow;
             }
@@ -262,8 +272,9 @@
             if (img) {
                 if (img._lastBright !== br) { img.style.filter = `brightness(${br})`; img._lastBright = br; }
 
-                const iw = img._fixedW || img.naturalWidth || parseInt(getComputedStyle(img).width) || Math.round(el.clientWidth * cfg.minImgMult);
-                const ih = img._fixedH || img.naturalHeight || parseInt(getComputedStyle(img).height) || Math.round(el.clientHeight * cfg.minImgMult);
+                // fixed image sizing if previously computed
+                const iw = img._fixedW || img.naturalWidth || Math.max(1, Math.round(el.clientWidth * cfg.minImgMult));
+                const ih = img._fixedH || img.naturalHeight || Math.max(1, Math.round(el.clientHeight * cfg.minImgMult));
 
                 const cw = el.clientWidth;
                 const ch = el.clientHeight;
@@ -277,7 +288,6 @@
             if (Math.abs(s.width - s.targetWidth) > 0.5 ||
                 Math.abs(s.height - s.targetHeight) > 0.5 ||
                 Math.abs((s.translateX || 0) - s.targetTranslateX) > 0.5 ||
-                Math.abs(s.translateY - s.targetTranslateY) > 0.5 ||
                 Math.abs(s.bright - s.targetBright) > 0.005) {
                 active = true;
             }
@@ -287,77 +297,59 @@
         else rafId = null;
     }
 
-    // ---------- initLayout: sizes images once, freezes dimensions, computes nav padding to allow growth ----------
+    // ---------- initLayout: compute sizes and freeze image sizing ----------
     function initLayout() {
-        // measurement & nav padding to allow expansion
         const b = baselineSizes();
         const baseW = b.baseW;
-        // estimate maximum extra width for hovered tile
-        const maxHoverBoost = Math.max(1, cfg.hoverWidthBoost || 1.5);
-        const perTileExtra = Math.ceil(baseW * (maxHoverBoost - 1));
-        const neighborAllowance = Math.ceil(perTileExtra * Math.min(cfg.decaySteps || 4, 3) * 0.6);
+        const baseH = b.baseH;
+
+        // add extra padding to allow hover expansion
+        const perTileExtra = Math.ceil(baseW * (cfg.hoverXMult - 1));
+        const neighborAllowance = Math.ceil(perTileExtra * 0.6);
         const pad = Math.ceil(perTileExtra + neighborAllowance);
 
-        // add pad to existing nav padding (baselineSizes set css side pad)
         const existingPad = parseInt(getComputedStyle(nav).paddingInline) || 0;
         nav.style.paddingInline = (existingPad + pad) + 'px';
         nav.style.justifyContent = 'center';
 
-        const minMult = cssNum('--min-img-mult', cfg.minImgMult);
-        const maxMultCfg = cssNum('--max-img-mult', cfg.maxImgMult);
-        const imgHeightMult = cssNum('--img-height-mult', cfg.imgHeightMult);
-        const safety = 1;
+        // freeze sizes and compute image fixed size
         const absoluteMaxMult = 4.0;
-
-        // baseline sizes (recompute after padding)
-        const b2 = baselineSizes();
 
         for (let i = 0; i < containers.length; i++) {
             const el = containers[i];
             const img = el.querySelector('.hc-img');
 
-            // initialize container state & geometry
-            state[i].width = b2.baseW;
-            state[i].height = b2.baseH;
+            state[i].width = baseW;
+            state[i].height = baseH;
             state[i].bright = cfg.dimmer;
-            el.style.width = b2.baseW + 'px';
-            el.style.height = b2.baseH + 'px';
+
+            el.style.width = baseW + 'px';
+            el.style.height = baseH + 'px';
             el.style.transform = 'translateX(0px) translateY(0px)';
-            el.style.boxShadow = cfg.shadowBase;
+            el.style.boxShadow = getComputedStyle(document.documentElement).getPropertyValue('--shadow-base');
 
             if (!img) continue;
-
             ensureImageVisibility(img, el);
 
             const sizeAndFreeze = () => {
                 const cw = Math.max(1, el.clientWidth);
                 const ch = Math.max(1, el.clientHeight);
 
-                const targetH_byMult = Math.round(ch * imgHeightMult);
-                const minW = Math.round(cw * minMult);
-                const minH = Math.round(ch * minMult);
-                let capW = Math.round(cw * maxMultCfg);
-                let capH = Math.round(ch * maxMultCfg);
+                const targetH_byMult = Math.round(ch * cfg.imgHeightMult);
+                const minW = Math.round(cw * cfg.minImgMult);
+                const capW = Math.round(cw * cfg.maxImgMult);
 
                 const natW = img.naturalWidth || 0;
                 const natH = img.naturalHeight || 0;
                 let finalW, finalH;
 
                 if (natW && natH) {
-                    // compute needed width to meet targetH
                     const neededWidthForTargetHeight = Math.round(targetH_byMult * (natW / natH));
-                    const neededMaxMult = neededWidthForTargetHeight / cw;
-                    let effectiveMaxMult = Math.max(maxMultCfg, neededMaxMult);
-                    effectiveMaxMult = Math.min(effectiveMaxMult, absoluteMaxMult);
+                    const effectiveMaxMult = Math.min(absoluteMaxMult, Math.max(cfg.maxImgMult, neededWidthForTargetHeight / cw));
+                    const capWAdj = Math.round(cw * effectiveMaxMult);
 
-                    capW = Math.round(cw * effectiveMaxMult);
-                    capH = Math.round(ch * effectiveMaxMult);
-
-                    const scaleW = minW / natW;
-                    const scaleH = minH / natH;
-                    let scale = Math.max(scaleW, scaleH, 1);
-
-                    const maxAllowedScale = Math.max(1, Math.min((capW / natW) || Infinity, (capH / natH) || Infinity));
+                    let scale = Math.max(minW / natW, 1);
+                    const maxAllowedScale = Math.max(1, Math.min((capWAdj / natW) || Infinity, absoluteMaxMult));
                     if (scale > maxAllowedScale) scale = maxAllowedScale;
 
                     finalW = Math.round(natW * scale);
@@ -365,68 +357,21 @@
 
                     if (finalH < targetH_byMult) {
                         const needScale = targetH_byMult / finalH;
-                        let scaledW = Math.round(finalW * needScale);
-                        let scaledH = Math.round(finalH * needScale);
-                        const absoluteCapW = Math.round(cw * absoluteMaxMult);
-                        const absoluteCapH = Math.round(ch * absoluteMaxMult);
-                        if (scaledW > absoluteCapW) { scaledW = absoluteCapW; scaledH = Math.round(scaledW * natH / natW); }
-                        if (scaledH > absoluteCapH) { scaledH = absoluteCapH; scaledW = Math.round(scaledH * natW / natH); }
-                        finalW = scaledW; finalH = scaledH;
+                        finalW = Math.round(Math.min(finalW * needScale, cw * absoluteMaxMult));
+                        finalH = Math.round(finalW * natH / natW);
                     }
-
-                    if (finalW > capW) { finalW = capW; finalH = Math.round(finalW * natH / natW); }
-                    if (finalH > capH) { finalH = capH; finalW = Math.round(finalH * natW / natH); }
+                    if (finalW > capWAdj) { finalW = capWAdj; finalH = Math.round(finalW * natH / natW); }
                 } else {
-                    finalH = Math.min(Math.round(ch * absoluteMaxMult), Math.max(targetH_byMult, Math.round(ch * minMult)));
-                    finalW = Math.min(Math.round(cw * absoluteMaxMult), Math.max(Math.round(cw * minMult), Math.round(finalH * (cw / ch))));
+                    finalH = Math.min(Math.round(ch * absoluteMaxMult), Math.max(targetH_byMult, Math.round(ch * cfg.minImgMult)));
+                    finalW = Math.min(Math.round(cw * absoluteMaxMult), Math.max(Math.round(cw * cfg.minImgMult), Math.round(finalH * (cw / ch))));
                 }
 
-                // ---------- START: enforce max aspect ratio (height ÷ width) ----------
-                // read desired max aspect ratio from CSS (height / width)
-                const maxAspect = cssNum('--hc-max-aspect', 3); // fallback 3:1
-
-                if (finalW > 0) {
-                    const currentAspect = finalH / finalW;
-                    if (currentAspect > maxAspect) {
-                        // Try reducing finalH to match maxAspect while still covering container height if possible
-                        const reducedH = Math.round(finalW * maxAspect);
-
-                        if (reducedH >= ch + safety) {
-                            // safe to reduce height and still cover the container vertically
-                            finalH = reducedH;
-                        } else {
-                            // reducing would uncover container; compute the width required for target cover respecting maxAspect:
-                            // neededWidth such that neededWidth * maxAspect >= container height
-                            const neededWidth = Math.ceil((ch + safety) / maxAspect);
-                            // cap the neededWidth by absoluteMaxMult limit
-                            const allowedMaxW = Math.round(cw * absoluteMaxMult);
-                            finalW = Math.min( Math.max(finalW, neededWidth), allowedMaxW );
-                            finalH = Math.round(finalW * maxAspect);
-                        }
-                    }
-                }
-                // ---------- END: enforce max aspect ratio ----------
-
-                // FINAL COVER clamp: ensure final dims at least container dims + safety (preserve aspect)
-                if (finalW < cw + safety || finalH < ch + safety) {
-                    if (natW && natH) {
-                        const needScaleW = (cw + safety) / finalW;
-                        const needScaleH = (ch + safety) / finalH;
-                        const needScale = Math.max(needScaleW, needScaleH, 1);
-                        let scaledW = Math.round(finalW * needScale);
-                        let scaledH = Math.round(finalH * needScale);
-                        const absoluteCapW = Math.round(cw * absoluteMaxMult);
-                        const absoluteCapH = Math.round(ch * absoluteMaxMult);
-                        if (scaledW > absoluteCapW) { scaledW = absoluteCapW; scaledH = Math.round(scaledW * natH / natW); }
-                        if (scaledH > absoluteCapH) { scaledH = absoluteCapH; scaledW = Math.round(scaledH * natW / natH); }
-                        finalW = scaledW; finalH = scaledH;
-                    } else {
-                        finalW = Math.max(finalW, cw + safety);
-                        finalH = Math.max(finalH, ch + safety);
-                    }
+                // ensure final dims at least container dims
+                if (finalW < cw || finalH < ch) {
+                    finalW = Math.max(finalW, cw);
+                    finalH = Math.max(finalH, ch);
                 }
 
-                // freeze and defensively apply inline styles
                 img.style.width = finalW + 'px';
                 img.style.height = finalH + 'px';
                 img._fixedW = finalW;
@@ -449,9 +394,8 @@
                 img.style.filter = `brightness(${cfg.dimmer})`;
             };
 
-            if (img.complete) {
-                setTimeout(sizeAndFreeze, 0);
-            } else {
+            if (img.complete) setTimeout(sizeAndFreeze, 0);
+            else {
                 const onLoad = () => { sizeAndFreeze(); img.removeEventListener('load', onLoad); };
                 img.addEventListener('load', onLoad);
                 setTimeout(() => { if (img.complete) sizeAndFreeze(); }, 60);
@@ -459,14 +403,14 @@
         }
     }
 
-    // ---------- pointer and keyboard bindings (with rAF throttle for pointermove) ----------
+    // ---------- pointer & keyboard bindings ----------
     let lastPointerMoveRaf = null;
     let pendingPointer = null;
     let navRect = nav.getBoundingClientRect();
 
     function handlePointerMoveEvent(ev) {
         navRect = nav.getBoundingClientRect();
-        const rel = Math.max(0, Math.min(1, (ev.clientX - navRect.left) / navRect.width));
+        const rel = Math.max(0, Math.min(1, (ev.clientX - navRect.left) / Math.max(1, navRect.width)));
         const floatIndex = rel * containers.length - 0.5;
         const center = Math.round(floatIndex);
         const pointerFrac = floatIndex - center;
@@ -489,7 +433,7 @@
         c.addEventListener('pointerenter', () => { c.classList.add('in-focus'); setTargets(idx, 0); });
         c.addEventListener('pointermove', (ev) => {
             const r = c.getBoundingClientRect();
-            const local = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width));
+            const local = Math.max(0, Math.min(1, (ev.clientX - r.left) / Math.max(1, r.width)));
             const frac = (local - 0.5) * 2;
             setTargets(idx, frac);
         });
@@ -498,17 +442,14 @@
         c.addEventListener('blur', () => resetTargets());
     });
 
-    // Tap-to-load hi-res on mobile (only if mobileMode moved data-hi2x -> data-_hi2x)
+    // mobile quick-tap loads hi-res image if present
     if (cfg._mobileMode) {
         containers.forEach((el) => {
             el.addEventListener('pointerup', function onTap(e) {
-                // quick tap: swap to hi-res if available in dataset._hi2x
                 const img = el.querySelector('.hc-img');
                 const hi = el.dataset._hi2x || el.dataset.hi2x;
                 if (img && hi) {
                     img.src = hi;
-                    // optionally set srcset for higher DPRs: (commented, can be enabled)
-                    // img.srcset = `${hi} 2x`;
                     delete el.dataset._hi2x;
                 }
             }, { passive: true });
@@ -520,16 +461,15 @@
     window.addEventListener('resize', () => {
         clearTimeout(resizeTO);
         resizeTO = setTimeout(() => {
-            navRect = nav.getBoundingClientRect();
             initLayout();
             resetTargets();
         }, 120);
     });
 
-    // ---------- initialize ----------
+    // ---------- start ----------
     initLayout();
     resetTargets();
     if (!rafId) rafId = requestAnimationFrame(rafLoop);
-    console.debug('Hover carousel (full updated JS) initialized — items:', containers.length);
+    console.debug('Hover carousel initialized — items:', containers.length);
 
 })();
