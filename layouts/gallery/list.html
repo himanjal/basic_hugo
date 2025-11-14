@@ -52,7 +52,7 @@
         {{ end }}
         {{ end }}
 
-        {{/* Preload corner image resource once (use PNG path you mentioned) */}}
+        {{/* Preload corner image resource once */}}
         {{ $cornerScratch := newScratch }}
         {{ with resources.Get "images/image_corner.png" }}
         {{ with .Resize "48x48" }}
@@ -60,12 +60,19 @@
         {{ end }}
         {{ end }}
 
-
         {{ if gt (len $folders) 0 }}
         <div class="thumbnail-grid">
             {{ range $idx, $folder := $folders }}
-            {{ $pattern := printf "images/gallery/%s/*.{jpg,jpeg,png,webp}" $folder }}
-            {{ $imgs := resources.Match $pattern | sort }}
+            {{ $pattern := printf "images/gallery/%s/*" $folder }}
+            {{ $resources := resources.Match $pattern | sort }}
+            {{/* Build $imgs by extension to avoid meta.json and others */}}
+            {{ $imgs := slice }}
+            {{ range $resources }}
+            {{ $ext := lower (replaceRE "^.*\\.([^.]+)$" "$1" .Name) }}
+            {{ if in (slice "jpg" "jpeg" "png" "webp" "gif") $ext }}
+            {{ $imgs = $imgs | append . }}
+            {{ end }}
+            {{ end }}
             {{ if gt (len $imgs) 0 }}
             {{ $defaultChosen := index $imgs 0 }}
 
@@ -91,25 +98,26 @@
             {{ $fs.Set "thumb" $defaultChosen }}
             {{ end }}
             {{ $thumbRes := $fs.Get "thumb" }}
-            {{ $thumbSrc := $thumbRes.Resize "1200x" }}
 
-            <article class="thumb-card">
-                <a class="thumb-link" href="/gallery/{{ $folder | urlize }}/" aria-label="Open gallery">
+            {{/* Generate sizes: small for grid, med for larger screens, hi for album viewer/lightbox */}}
+            {{ $small := $thumbRes.Fill "600x" }}
+            {{ $med := $thumbRes.Resize "1200x" }}
+            {{ $hi := $thumbRes.Resize "2000x" }}
+
+            <article class="thumb-card" tabindex="0" role="link" aria-label="Open album {{ $folder }}" data-album="{{ $folder }}">
+                <a class="thumb-link" href="/album-viewer/{{ $folder | urlize }}/" aria-hidden="true">
                     <div class="thumb-media">
                         <img class="thumb-img"
-                             src="{{ $thumbSrc.RelPermalink }}"
+                             src="{{ $small.RelPermalink }}"
+                             srcset="{{ $small.RelPermalink }} 600w, {{ $med.RelPermalink }} 1200w"
+                             sizes="(max-width:640px) 100vw, (max-width:1200px) 50vw, 33vw"
                              alt="{{ index $meta "title" }}"
                         loading="lazy"
                         width="1200" height="800">
 
-                        {{/* shutter logo — handle SVG vs raster safely */}}
+                        {{/* shutter logo */}}
                         {{ with resources.Get "images/shutter_logo.svg" }}
-                        {{ if eq .MediaType.SubType "svg" }}
                         <img class="shutter-logo" src="{{ .RelPermalink }}" alt="shutter logo" aria-hidden="true">
-                        {{ else }}
-                        {{ $logo := .Resize "48x48" }}
-                        <img class="shutter-logo" src="{{ $logo.RelPermalink }}" alt="shutter logo" aria-hidden="true">
-                        {{ end }}
                         {{ else }}
                         {{ with resources.Get "images/shutter_logo.png" }}
                         {{ $logo := .Resize "48x48" }}
@@ -124,17 +132,16 @@
                         <img class="corner-img br" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
                         <img class="corner-img bl" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
                         {{ end }}
-
-                    </div>
-
-                    <div class="thumb-body">
-                        <div class="thumb-text">
-                            <h4 class="thumb-title">{{ index $meta "title" }}</h4>
-                            <p class="thumb-caption">{{ index $meta "caption" }}</p>
-                        </div>
-                        <span class="thumb-badge">{{ index $meta "badge" }}</span>
                     </div>
                 </a>
+
+                <div class="thumb-body">
+                    <div class="thumb-text">
+                        <h4 class="thumb-title">{{ index $meta "title" }}</h4>
+                        <p class="thumb-caption">{{ index $meta "caption" }}</p>
+                    </div>
+                    <span class="thumb-badge">{{ index $meta "badge" }}</span>
+                </div>
             </article>
             {{ end }}
             {{ end }}
@@ -146,32 +153,33 @@
 </main>
 
 {{ block "scripts" . }}
-<script src="{{ "js/peel-scroller.js" | relURL }}" defer></script>
-
 <script>
     (function () {
-        // click / keyboard handlers
+        'use strict';
+
+        // Navigate to album-viewer page on click
         document.addEventListener('click', function (e) {
-            var card = e.target.closest && e.target.closest('.thumb-card');
+            const card = e.target.closest && e.target.closest('.thumb-card');
             if (!card) return;
-            var target = card.getAttribute('data-target');
-            if (target) window.location.href = target;
+            const album = card.getAttribute('data-album');
+            if (album) window.location.href = `/album-viewer/${album}/`;
         }, true);
 
+        // Keyboard navigation (Enter / Space)
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' || e.key === ' ') {
-                var el = document.activeElement;
+                const el = document.activeElement;
                 if (el && el.classList.contains('thumb-card')) {
-                    var target = el.getAttribute('data-target');
-                    if (target) {
+                    const album = el.getAttribute('data-album');
+                    if (album) {
                         e.preventDefault();
-                        window.location.href = target;
+                        window.location.href = `/album-viewer/${album}/`;
                     }
                 }
             }
         });
 
-        // touch devices: quick tap toggles hover-like state so caption/logo animation can show
+        // Touch devices: quick tap toggles hover-like state
         document.querySelectorAll('.thumb-card').forEach(function(card){
             card.addEventListener('touchstart', function(){
                 card.classList.add('touch-hover');
@@ -181,5 +189,6 @@
 
     })();
 </script>
+
 {{ end }}
 {{ end }}
