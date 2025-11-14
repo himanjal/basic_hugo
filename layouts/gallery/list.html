@@ -1,67 +1,49 @@
 {{ define "main" }}
 <main class="gallery-wrap" aria-label="Gallery">
-<!--    {{ $imgs := resources.Match "images/featured/*.{jpg,jpeg,png,webp}" | sort }}-->
-<!--    {{ if gt (len $imgs) 0 }}-->
-<!--    <div class="scroller-outer">-->
-<!--        <div id="peeler" class="peeler" aria-label="Image carousel"-->
-<!--             data-autoplay="true" data-interval="4000" data-pause-on-hover="true"-->
-<!--             data-pause-on-interaction="true" data-resume-after="3000">-->
-<!--            {{ range $i, $img := $imgs }}-->
-<!--            <figure class="peel-slide" role="group" aria-roledescription="slide"-->
-<!--                    aria-label="Slide {{ add $i 1 }} of {{ len $imgs }}">-->
-<!--                <div class="peel-inner">-->
-<!--                    {{ $small := $img.Resize "600x" }}-->
-<!--                    {{ $med   := $img.Resize "1200x" }}-->
-<!--                    {{ $hi    := $img.Resize "2000x" }}-->
-<!--                    {{ $lq    := $img.Resize "40x" }}-->
-<!--                    <img class="peel-img lazy"-->
-<!--                         src="{{ $small.RelPermalink }}"-->
-<!--                         srcset="{{ $small.RelPermalink }} 600w, {{ $med.RelPermalink }} 1200w, {{ $hi.RelPermalink }} 2000w"-->
-<!--                         sizes="(max-width: 640px) 100vw, 60vw"-->
-<!--                         alt="{{ $img.Name }}" loading="lazy" decoding="async" width="1200" height="800">-->
-<!--                </div>-->
-<!--            </figure>-->
-<!--            {{ end }}-->
-<!--        </div>-->
-<!--    </div>-->
-<!--    {{ else }}-->
-<!--    <p class="no-images">No images found in assets/images/featured.</p>-->
-<!--    {{ end }}-->
 
-    <link rel="stylesheet" href="{{ "css/hover-carousal.css" | relURL }}">
-    <script src="{{ "js/hover-carousal.js" | relURL }}" defer></script>
+    {{/* ===== Styles =====
+    If you prefer to include this CSS in the <head>, paste the following line
+    into your head partial instead of leaving it here:
+    <link rel="stylesheet" href='{{ "css/hover-carousal.css" | relURL }}'>
+    */}}
+    <link rel="stylesheet" href='{{ "css/hover-carousal.css" | relURL }}'>
 
+    {{- $images := resources.Match "images/carousal/*" | sort -}}
+    {{- $allowed := slice "jpg" "jpeg" "png" "webp" "avif" -}}
+
+    {{- if gt (len $images) 0 }}
     <section class="featured-carousel">
-        {{ $resources := resources.Match "images/carousal/*" | sort }}
-        {{ $imgs := slice }}
-        {{ range $resources }}
-        {{ $ext := lower (replaceRE "^.*\\.([^.]+)$" "$1" .Name) }}
-        {{ if in (slice "jpg" "jpeg" "png" "webp") $ext }}
-        {{ $imgs = $imgs | append . }}
-        {{ end }}
-        {{ end }}
+        <nav class="hover-carousel" role="navigation" aria-label="Featured">
+            {{- range $i, $res := $images }}
+            {{- $ext := lower (replaceRE "^.*\\.([^.]+)$" "$1" $res.Name) }}
+            {{- if in $allowed $ext }}
+            {{- $one := $res.Resize "600x" -}}
+            {{- $two := $res.Resize "1200x" -}}
+            {{- $three := $res.Resize "2000x" -}}
+            {{- $firstAttr := "" -}}
+            {{- if eq $i 0 }}{{- $firstAttr = ` fetchpriority="high"` -}}{{- end -}}
 
-        {{ $count := len $imgs }}
-
-        {{ if gt $count 0 }}
-        <nav class="hover-carousel" role="navigation">
-            {{ range $i, $img := $imgs }}
-            {{ $thumb := $img.Resize "1000x" }}
-            <a href="#" class="hc-item"
-               style="--i: {{ $i }};"
-               aria-label="Featured {{ add $i 1 }}" data-thumb="{{ $thumb.RelPermalink }}" data-hires="{{ $img.RelPermalink }}">
-                <!-- new real img element (thumb for initial paint) -->
-                <img class="hc-img"
-                     src="{{ $thumb.RelPermalink }}"
-                     loading="lazy"
-                     alt="{{ $img.Name }}" />
-            </a>
-            {{ end }}
+            <div class="hc-container"
+                 tabindex="0"
+                 role="button"
+                 aria-label="Featured {{ add $i 1 }}"
+                 data-hi2x="{{ $three.RelPermalink }}">
+                <img
+                        class="hc-img"
+                        src="{{ $one.RelPermalink }}"
+                        srcset="{{ $one.RelPermalink }} 600w, {{ $two.RelPermalink }} 1200w, {{ $three.RelPermalink }} 2000w"
+                        sizes="(max-width:640px) 90vw, (max-width:1100px) 45vw, 600px"
+                        loading="lazy"
+                        decoding="async"
+                        alt="{{ $res.Name }}"{{ $firstAttr }} />
+            </div>
+            {{- end }}
+            {{- end }}
         </nav>
-        {{ else }}
-        <p>No featured images found in <code>assets/images/featured</code>.</p>
-        {{ end }}
     </section>
+    {{- else }}
+    <p>No images found in <code>assets/images/carousal</code>.</p>
+    {{- end }}
 
     <!-- Gallery intro: insert between carousel and thumbnails -->
     <section class="gallery-intro" aria-hidden="false">
@@ -75,7 +57,6 @@
             I take way too many photos. Some of my favorites are here.
         </p>
     </section>
-
 
     {{/* Thumbnail grid below the carousel */}}
     <section class="thumbnail-grid-wrap" aria-label="Gallery thumbnails">
@@ -147,8 +128,8 @@
                              srcset="{{ $small.RelPermalink }} 600w, {{ $med.RelPermalink }} 1200w"
                              sizes="(max-width:640px) 100vw, (max-width:1200px) 50vw, 33vw"
                              alt='{{ index $meta "title" }}'
-                        loading="lazy"
-                        width="1200" height="800">
+                             loading="lazy"
+                             width="1200" height="800">
 
                         {{/* shutter logo */}}
                         {{ with resources.Get "images/shutter_logo.svg" }}
@@ -188,11 +169,14 @@
 </main>
 
 {{ block "scripts" . }}
+{{/* Carousel script (external) - placed here so it loads before the inline behaviour below */}}
+<script src='{{ "js/hover-carousal-containers.js" | relURL }}' defer></script>
+
 <script>
     (function () {
         'use strict';
 
-        // Navigate to album-viewer page on click
+        // Click delegation: navigate when a .thumb-card or a child is clicked
         document.addEventListener('click', function (e) {
             const card = e.target.closest && e.target.closest('.thumb-card');
             if (!card) return;
@@ -200,11 +184,11 @@
             if (album) window.location.href = `/album-viewer/${album}/`;
         }, true);
 
-        // Keyboard navigation (Enter / Space)
+        // Keyboard navigation (Enter / Space) for focused .thumb-card elements
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' || e.key === ' ') {
                 const el = document.activeElement;
-                if (el && el.classList.contains('thumb-card')) {
+                if (el && el.classList && el.classList.contains('thumb-card')) {
                     const album = el.getAttribute('data-album');
                     if (album) {
                         e.preventDefault();
@@ -214,16 +198,21 @@
             }
         });
 
-        // Touch devices: quick tap toggles hover-like state
-        document.querySelectorAll('.thumb-card').forEach(function(card){
-            card.addEventListener('touchstart', function(){
-                card.classList.add('touch-hover');
-                setTimeout(function(){ card.classList.remove('touch-hover'); }, 2500);
-            }, {passive:true});
-        });
+        // Use delegated touchstart handling to avoid attaching many listeners.
+        // Toggles a transient 'touch-hover' class on the touched .thumb-card.
+        let touchHoverTimer = null;
+        document.addEventListener('touchstart', function (e) {
+            const card = e.target.closest && e.target.closest('.thumb-card');
+            if (!card) return;
+            card.classList.add('touch-hover');
+            if (touchHoverTimer) clearTimeout(touchHoverTimer);
+            touchHoverTimer = setTimeout(function () {
+                card.classList.remove('touch-hover');
+                touchHoverTimer = null;
+            }, 2500);
+        }, { passive: true });
 
     })();
 </script>
-
 {{ end }}
 {{ end }}
