@@ -1,2 +1,6 @@
-@import "header.css";
-@import "nav.css";
+/* global css to be applied to every page */
+html, body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+}

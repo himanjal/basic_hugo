@@ -26,6 +26,20 @@
     <p class="no-images">No images found in assets/images/featured.</p>
     {{ end }}
 
+    <!-- Gallery intro: insert between carousel and thumbnails -->
+    <section class="gallery-intro" aria-hidden="false">
+        <div class="intro-pill">My Portfolios</div>
+
+        <h2 class="intro-title">
+            A glimpse through <span class="intro-em">my perspective</span>
+        </h2>
+
+        <p class="intro-sub">
+            I take way too many photos. Some of my favorites are here.
+        </p>
+    </section>
+
+
     {{/* Thumbnail grid below the carousel */}}
     <section class="thumbnail-grid-wrap" aria-label="Gallery thumbnails">
         {{ $entries := readDir "assets/images/gallery" }}
