@@ -32,7 +32,7 @@
     clear: both;
     width: 100%;
     max-width: var(--gallery-max-width);
-    margin: 12px auto 72px; /* reduced top margin from 32px → 12px for tighter gap */
+    margin: 5px auto 72px;
     padding: 0 20px;
     box-sizing: border-box;
 }
@@ -235,7 +235,7 @@
 ----------------------------------------------------------- */
 .gallery-intro {
     text-align: center;
-    padding: 80px 20px 8px;  /* reduced bottom padding */
+    padding: 15px 20px 8px;  /* reduced bottom padding */
     border-radius: 24px;
     max-width: 1100px;
     margin: 40px auto 8px;   /* reduced bottom margin */
@@ -287,7 +287,7 @@
 
 @media (max-width: 720px) {
     .gallery-intro {
-        padding: 60px 16px 30px;
+        padding: 20px 16px 30px;
         border-radius: 18px;
     }
     .intro-title {

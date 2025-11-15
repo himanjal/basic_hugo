@@ -6,4 +6,4 @@ node_modules/
 .DS_Store
 *.DS_Store/
 backup/
-#assets/images/gallery/.DS_Store/
+assets/images/gallery/.DS_Store/

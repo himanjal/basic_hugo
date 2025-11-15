@@ -12,7 +12,7 @@
     --carousel-min-width: 320px;
     --carousel-side-padding: 50px;    /* breathing room on sides */
     --carousel-margin: 20px;          /* margin around carousel (user requested) */
-    --carousel-top-gap: 20px;         /* distance between nav pill and top of carousel (user requested) */
+    --carousel-top-gap: 5px;         /* distance between nav pill and top of carousel (user requested) */
     --carousel-aspect: 4;             /* guidance ratio used in JS (width / height baseline) */
     --carousel-max-height: 340px;     /* safety cap for carousel height */
 
