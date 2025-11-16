@@ -1,10 +1,11 @@
 /* static/js/lightbox.js
-   Hardened double-tap/dblclick handling:
-   - double-tap & dblclick now ONLY reset zoom to native 1 (no zoom-in)
-   - actively prevents native browser double-tap/dblclick-to-zoom by preventing default
-     and scheduling a short suppressNativeZoom window during which document-level touchend
-     events are prevented (works on iOS/Safari / Chrome).
-   - retains wheel/pinch/pan, clamped pan, download, full-res load
+   Robust lightbox with:
+   - full-resolution loading (reads data-hi2x or data-hi)
+   - wheel zoom, pointer pan, pinch-to-zoom
+   - pinch & double-tap support on touch
+   - dblclick on desktop to toggle/reset zoom
+   - pan clamping so image edges remain visible
+   - download anchor uses the hi-res URL
 */
 
 (function () {
@@ -30,11 +31,6 @@
         return;
     }
 
-    // Try to block "gesturestart" (iOS)
-    try {
-        document.addEventListener('gesturestart', function (e) { e.preventDefault(); }, { passive: false });
-    } catch (err) { /* ignore if not supported */ }
-
     // Collect carousel items in DOM order
     const containers = Array.from(document.querySelectorAll('.featured-carousel .hc-container'));
     const items = containers.map((el, idx) => ({
@@ -43,10 +39,15 @@
         index: idx
     }));
 
+    if (!items.length) {
+        // Not fatal; user may open lightbox elsewhere
+        // console.info('[lightbox] no carousel items found');
+    }
+
     let current = -1;
     let lastFocused = null;
 
-    // transform state (center-based)
+    // Transform state using center-based transforms (tx/ty = offset from center)
     const state = {
         scale: 1,
         minScale: 1,
@@ -55,26 +56,21 @@
         ty: 0
     };
 
-    // gesture timing
     const DOUBLE_TAP_TIMEOUT = 320;
     let lastTap = 0;
 
-    // if true, we actively suppress browser-native double-tap zoom for a short window
-    let suppressNativeZoom = false;
-    let suppressTimer = null;
-
-    // when opening from a thumbnail double-tap, ignore the immediate dbl inside the lightbox
-    let justOpened = false;
-
     function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
+    // Apply transform to image (center-based)
     function applyTransform() {
         clampTranslation();
         img.style.transform = `translate(${state.tx}px, ${state.ty}px) scale(${state.scale})`;
     }
 
+    // Clamp translation so image edges remain visible (gives center-based math)
     function clampTranslation() {
         if (!img.naturalWidth || !img.naturalHeight) return;
+
         const vpRect = viewport.getBoundingClientRect();
         const vpW = Math.max(1, vpRect.width);
         const vpH = Math.max(1, vpRect.height);
@@ -87,6 +83,7 @@
         const halfImgW = imgW / 2;
         const halfImgH = imgH / 2;
 
+        // if image smaller than viewport at current scale -> center it
         if (halfImgW <= halfVpW) {
             state.tx = 0;
         } else {
@@ -102,6 +99,7 @@
         }
     }
 
+    // Compute minScale: never allow zoom-out below native (1), but allow a fit if image larger than viewport
     function computeMinScale() {
         if (!img.naturalWidth || !img.naturalHeight) return 1;
         const vpRect = viewport.getBoundingClientRect();
@@ -145,7 +143,10 @@
             }
         }
 
+        // attach handlers before setting src to ensure onload fires into our logic
         img.onload = () => {
+            // set DOM image size to natural pixels to keep it crisp at native scale
+            // (we rely on transforms to fit/scale visually)
             try {
                 img.style.width = img.naturalWidth + 'px';
                 img.style.height = img.naturalHeight + 'px';
@@ -154,10 +155,12 @@
                 img.style.height = '';
             }
 
+            // compute minScale and initial scale to fit if necessary
             state.minScale = computeMinScale();
             const vpRect = viewport.getBoundingClientRect();
             const fitScale = Math.min(vpRect.width / img.naturalWidth, vpRect.height / img.naturalHeight);
             state.scale = Math.min(1, Math.max(fitScale, state.minScale));
+            // reset translation and center
             state.tx = 0;
             state.ty = 0;
             centerAndResetPosition();
@@ -178,11 +181,6 @@
         if (!items[i]) return;
         lastFocused = document.activeElement;
         lightbox.setAttribute('aria-hidden', 'false');
-
-        // guard against immediate dbl/double-tap
-        justOpened = true;
-        window.setTimeout(() => { justOpened = false; }, 420);
-
         show(i);
         if (btnClose && btnClose.focus) btnClose.focus();
         document.addEventListener('keydown', onKey);
@@ -216,7 +214,7 @@
     if (btnClose) btnClose.addEventListener('click', (e) => { e.stopPropagation(); close(); });
     if (backdrop) backdrop.addEventListener('click', close);
 
-    // Wheel zoom
+    // Wheel zoom (pointer location relative to center)
     viewport.addEventListener('wheel', function (e) {
         if (!img.src) return;
         e.preventDefault();
@@ -237,7 +235,7 @@
         applyTransform();
     }, { passive: false });
 
-    // Pointer pan
+    // Pointer pan (desktop)
     let isPointerDown = false;
     let ptrStart = { x: 0, y: 0 };
     let txStart = 0, tyStart = 0;
@@ -273,51 +271,27 @@
         applyTransform();
     });
 
-    // Touch gestures: pinch & double-tap RESET ONLY (no zoom-in)
+    // Touch gestures: pinch & double-tap toggle
     let ongoingTouches = [];
     function copyTouch(t) { return { id: t.identifier, x: t.clientX, y: t.clientY }; }
 
-    // Document-level touchend to suppress native zoom when requested
-    function startSuppressNativeZoom(duration = 500) {
-        suppressNativeZoom = true;
-        if (suppressTimer) clearTimeout(suppressTimer);
-        suppressTimer = window.setTimeout(() => { suppressNativeZoom = false; suppressTimer = null; }, duration);
-    }
-
-    document.addEventListener('touchend', function (e) {
-        if (suppressNativeZoom) {
-            try { e.preventDefault(); e.stopImmediatePropagation(); } catch (err) {}
-        }
-    }, { passive: false });
-
     viewport.addEventListener('touchstart', (e) => {
         if (!img.src) return;
-        if (justOpened) {
-            // ignore immediate touches that result from the thumbnail action
-            lastTap = Date.now();
-            return;
-        }
         if (e.touches.length === 1) {
             const now = Date.now();
             if (now - lastTap <= DOUBLE_TAP_TIMEOUT) {
-                // DOUBLE-TAP detected on viewport: we want to RESET ONLY
-                try { e.preventDefault(); e.stopImmediatePropagation(); } catch (err) {}
-                // Suppress native browser zoom for a short while to ensure reset only
-                startSuppressNativeZoom(600);
-
-                if (img.naturalWidth) {
-                    state.scale = 1;
-                    state.tx = 0;
-                    state.ty = 0;
-                    applyTransform();
-                }
+                // double-tap: toggle between native (1) and fit (minScale)
+                const targetScale = (Math.abs(state.scale - 1) < 0.05) ? state.minScale : 1;
+                state.scale = clamp(targetScale, state.minScale, state.maxScale);
+                centerAndResetPosition();
                 lastTap = 0;
+                applyTransform();
                 return;
             }
             lastTap = now;
         }
         ongoingTouches = Array.from(e.touches).map(copyTouch);
-    }, { passive: false });
+    }, { passive: true });
 
     viewport.addEventListener('touchmove', (e) => {
         if (!img.src) return;
@@ -368,23 +342,18 @@
     viewport.addEventListener('touchend', (e) => {
         ongoingTouches = Array.from(e.touches).map(copyTouch);
         applyTransform();
-    }, { passive: false });
+    }, { passive: true });
 
-    // Thumbnails: open on click; double-tap on thumbnail opens but we suppress immediate native zoom
+    // Thumbnails: open on click / dblclick / double-tap
     containers.forEach((el, i) => {
         el.addEventListener('click', (ev) => { ev.stopPropagation(); open(i); });
-
         el.addEventListener('dblclick', (ev) => { ev.stopPropagation(); open(i); });
 
         let lastTouchTime = 0;
         el.addEventListener('touchend', function (ev) {
             const now = Date.now();
             if (now - lastTouchTime <= DOUBLE_TAP_TIMEOUT) {
-                // double-tap on thumbnail: open and suppress native zoom for a bit
-                try { ev.preventDefault(); ev.stopImmediatePropagation(); } catch (err) {}
-                startSuppressNativeZoom(600);
-                justOpened = true;
-                window.setTimeout(() => { justOpened = false; }, 420);
+                ev.preventDefault();
                 open(i);
                 lastTouchTime = 0;
                 return;
@@ -400,33 +369,31 @@
         });
     });
 
-    // dblclick on viewport & image (desktop) RESET ONLY, and suppress native zoom briefly
-    function resetZoomToNativeIfAllowed() {
-        if (justOpened) {
-            // ignore immediate dbl that may come from the thumbnail action
-            justOpened = false;
-            return;
-        }
-        // also suppress native browser zoom
-        startSuppressNativeZoom(600);
+    // --- dblclick on viewport & image (desktop) to toggle/reset zoom ---
+    function toggleResetZoomAtCenter() {
         if (!img.src || !img.naturalWidth) return;
-        state.scale = 1;
+        const nearNative = Math.abs(state.scale - 1) < 0.05;
+        const target = nearNative ? state.minScale : 1;
+        state.scale = clamp(target, state.minScale, state.maxScale);
+        // re-center
         state.tx = 0;
         state.ty = 0;
         applyTransform();
     }
 
     viewport.addEventListener('dblclick', function (e) {
-        try { e.preventDefault(); e.stopImmediatePropagation(); } catch (err) {}
-        resetZoomToNativeIfAllowed();
+        e.preventDefault();
+        e.stopPropagation();
+        toggleResetZoomAtCenter();
     }, false);
 
     img.addEventListener('dblclick', function (e) {
-        try { e.preventDefault(); e.stopImmediatePropagation(); } catch (err) {}
-        resetZoomToNativeIfAllowed();
+        e.preventDefault();
+        e.stopPropagation();
+        toggleResetZoomAtCenter();
     }, false);
 
-    // debug helper (optional)
+    // Expose small debug API (optional)
     window.__lightboxDebug = {
         state,
         items,
