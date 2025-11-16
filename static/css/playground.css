@@ -7,6 +7,7 @@
     --hg-min-opacity: 0.28; /* min opacity for last permanent images */
     --hg-visible-count: 10;
     --hg-permanent-count: 5;
+    --hg-drag-threshold: 40;
 }
 
 
