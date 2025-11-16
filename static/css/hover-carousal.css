@@ -8,18 +8,18 @@
 :root{
     /* ---------- Layout ---------- */
     --carousel-vw: 0.8;               /* fraction of viewport width (80%) — applied on all sizes */
-    --carousel-max-width: 1300px;     /* upper cap for carousel width */
+    --carousel-max-width: 3300px;     /* upper cap for carousel width */
     --carousel-min-width: 320px;
     --carousel-side-padding: 50px;    /* breathing room on sides */
-    --carousel-margin: 20px;          /* margin around carousel (user requested) */
+    --carousel-margin: 5px;          /* margin around carousel (user requested) */
     --carousel-top-gap: 5px;         /* distance between nav pill and top of carousel (user requested) */
-    --carousel-aspect: 4;             /* guidance ratio used in JS (width / height baseline) */
-    --carousel-max-height: 340px;     /* safety cap for carousel height */
+    --carousel-aspect: 3;             /* guidance ratio used in JS (width / height baseline) */
+    --carousel-max-height: 1540px;     /* safety cap for carousel height */
 
     /* ---------- Tile / Aspect ---------- */
     --tile-aspect-w: 1;
     --tile-aspect-h: 4;               /* enforces 1:4 aspect ratio */
-    --tile-preferred: 86px;           /* preferred base width per tile (fallback) */
+    --tile-preferred: clamp(56px, 6vw, 140px);           /* preferred base width per tile (fallback) */
     --gap: 1px;
 
     /* ---------- Image sizing control ---------- */
@@ -144,7 +144,7 @@ html,body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto
 @media (max-width: 640px) {
     :root {
         --carousel-side-padding: 12px;
-        --carousel-max-width: 520px;
+        --carousel-max-width: 600px;
         --carousel-min-width: 240px;
         /* KEEP --carousel-vw = 0.8 (no change) to enforce same 80% rule */
         /* On very small screens you may still override --carousel-vw in a theme var if needed */
@@ -160,8 +160,5 @@ html,body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto
     .hc-container { transition: box-shadow 180ms linear; }
     .hc-img { transition: opacity 160ms linear, filter 160ms linear; }
 }
-
-/* small helper */
-.gallery-intro { margin-top: 12px; }
 
 /* keep layout responsibility to JS for fine-grained animations — CSS exposes knobs only */

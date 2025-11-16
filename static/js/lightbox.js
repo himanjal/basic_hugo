@@ -83,21 +83,24 @@
         const halfImgW = imgW / 2;
         const halfImgH = imgH / 2;
 
-        // if image smaller than viewport at current scale -> center it
-        if (halfImgW <= halfVpW) {
-            state.tx = 0;
-        } else {
+        // --- NEW BEHAVIOR ---
+        // Never forcibly center tx/ty.
+        // If the image is smaller than viewport, allow free translation
+        // without snapping to center. Only clamp when the image is larger.
+
+        if (halfImgW > halfVpW) {
             const maxTx = halfImgW - halfVpW;
             state.tx = clamp(state.tx, -maxTx, maxTx);
         }
+        // else: do NOT reset tx to zero
 
-        if (halfImgH <= halfVpH) {
-            state.ty = 0;
-        } else {
+        if (halfImgH > halfVpH) {
             const maxTy = halfImgH - halfVpH;
             state.ty = clamp(state.ty, -maxTy, maxTy);
         }
+        // else: do NOT reset ty to zero
     }
+
 
     // Compute minScale: never allow zoom-out below native (1), but allow a fit if image larger than viewport
     function computeMinScale() {
@@ -215,6 +218,7 @@
     if (backdrop) backdrop.addEventListener('click', close);
 
     // Wheel zoom (pointer location relative to center)
+    // Wheel zoom (pointer location relative to center)
     viewport.addEventListener('wheel', function (e) {
         if (!img.src) return;
         e.preventDefault();
@@ -226,14 +230,16 @@
         const zoomFactor = Math.exp(delta * 0.0016);
         const newScale = clamp(state.scale * zoomFactor, state.minScale, state.maxScale);
 
-        const ix = cx / state.scale;
-        const iy = cy / state.scale;
-
-        state.tx = cx - ix * newScale;
-        state.ty = cy - iy * newScale;
-        state.scale = newScale;
-        applyTransform();
+        // Keep point under cursor fixed: correct focal math preserves existing tx/ty
+        if (newScale !== state.scale) {
+            const ratio = newScale / state.scale;
+            state.tx = state.tx * ratio + cx * (1 - ratio);
+            state.ty = state.ty * ratio + cy * (1 - ratio);
+            state.scale = newScale;
+            applyTransform();
+        }
     }, { passive: false });
+
 
     // Pointer pan (desktop)
     let isPointerDown = false;
@@ -323,20 +329,23 @@
                     const newScale = clamp(state.scale * ratio, state.minScale, state.maxScale);
 
                     const vpRect = viewport.getBoundingClientRect();
+                    // midpoint relative to viewport center
                     const midX = ((t0.clientX + t1.clientX) / 2) - (vpRect.left + vpRect.width / 2);
                     const midY = ((t0.clientY + t1.clientY) / 2) - (vpRect.top + vpRect.height / 2);
 
-                    const ix = midX / state.scale;
-                    const iy = midY / state.scale;
-
-                    state.tx = midX - ix * newScale;
-                    state.ty = midY - iy * newScale;
-                    state.scale = newScale;
+                    // Preserve the point under the midpoint while scaling (same math as wheel)
+                    if (newScale !== state.scale) {
+                        const sratio = newScale / state.scale;
+                        state.tx = state.tx * sratio + midX * (1 - sratio);
+                        state.ty = state.ty * sratio + midY * (1 - sratio);
+                        state.scale = newScale;
+                    }
                 }
             }
             ongoingTouches = [copyTouch(t0), copyTouch(t1)];
             applyTransform();
         }
+
     }, { passive: false });
 
     viewport.addEventListener('touchend', (e) => {
