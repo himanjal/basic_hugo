@@ -1,13 +1,16 @@
 :root{
     --page-bg: #fbfcfd;;
     --hg-max-stack: 30;
+    --hg-drag-threshold: 40; /* pointer minimum drag to show new image */
     --hg-spawn-threshold: 48; /* pixels */
+    --hg-landscape-scale : 1.5; /* scaling factor for landscape images */
+    --hg-last-three-hold: 1000; /*hold value for last images after movement stops*/
+    --hg-mouse-stop-delay: 120ms; /* how long a mouse needs to stop to kickoff last 3 fade */
     --hg-img-size: clamp(120px, 20vmin, 420px);
     --hg-fade-duration: 1200ms;
     --hg-min-opacity: 0.28; /* min opacity for last permanent images */
     --hg-visible-count: 10;
     --hg-permanent-count: 5;
-    --hg-drag-threshold: 40;
 }
 
 
@@ -58,11 +61,11 @@ body, main.hg-wrap {
     will-change: transform, opacity;
     width: var(--hg-img-size);
     height: auto;
-    max-width: 90vw;
-    max-height: 90vh;
+    max-width: 420px;
+    max-height: 280px;
     border-radius: 10px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-    transition: transform 600ms cubic-bezier(.2,.9,.2,1), opacity 600ms ease-out;
+    transition: opacity 280ms ease, transform 220ms ease;
     opacity: 1;
 }
 
@@ -80,6 +83,12 @@ body, main.hg-wrap {
 }
 .hg-img.decay-full {
     animation: hg_decay_full var(--hg-fade-duration) forwards;
+}
+
+.hg-img.hg-landscape {
+    /* nothing required — scaling applied inline — but you can tweak visual treatment here */
+    box-shadow: 0 8px 22px rgba(0,0,0,0.35);
+    border-radius: 6px;
 }
 
 /* partial decay: fade to a minimum opacity and keep in DOM */

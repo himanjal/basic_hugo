@@ -1,6 +1,8 @@
 // static/js/playground.js — playground spawn + left-click lightbox opener
-// Mobile: touch & drag spawn images only after drag threshold; single-tap last image opens lightbox.
-// Last 3 images stay fully opaque; older images decay in opacity.
+// Mouse & touch: spawn images on drag threshold; last-N opacity kept; thumbnails centered on pointer.
+// Landscapes are scaled (configurable via --hg-landscape-scale).
+// New: last 3 stick around for --hg-last-three-hold ms (default 1000ms), then fade sequentially.
+// Desktop starts the hold countdown when mouse movement *stops* (debounced by --hg-mouse-stop-delay).
 (function () {
     const TAG = '[playground]';
     const LOG = (...a) => console.log('%c' + TAG, 'color:#0a7; font-weight:700;', ...a);
@@ -45,6 +47,13 @@
             return parseInt(String(v || '').replace(/[^0-9.-]+/g, ''), 10) || fallback;
         } catch (e) { return fallback; }
     }
+    function cssFloat(name, fallback) {
+        try {
+            const v = getComputedStyle(document.documentElement).getPropertyValue(name);
+            const n = parseFloat(String(v || '').replace(/[^0-9.-]+/g, ''));
+            return isNaN(n) ? fallback : n;
+        } catch (e) { return fallback; }
+    }
     function cssTimeMs(name, fallback) {
         try {
             const v = (getComputedStyle(document.documentElement).getPropertyValue(name) || '').trim();
@@ -64,35 +73,56 @@
     const activeNodes = [];
     let z = 1000;
     function removeNode(node){ if(!node)return; const idx = activeNodes.indexOf(node); if(idx!==-1) activeNodes.splice(idx,1); if(node.parentNode) node.parentNode.removeChild(node); }
-    // NEW: controls for opacity decay
-    const KEEP_OPACITY_LAST_N = 3; // last 3 images stay opacity 1
+
+    // controls for opacity decay & last-three scheduling
+    const KEEP_OPACITY_LAST_N = 3; // last N images remain fully opaque while interacting
     const MIN_OPACITY = 0.16; // clamp so images never fully disappear
+
+    // NEW: exposed via CSS
+    const LAST_THREE_HOLD = cssTimeMs('--hg-last-three-hold', 1000); // ms (default 1000)
+    const MOUSE_STOP_DELAY = cssNumber('--hg-mouse-stop-delay', 120); // ms (default 120)
+    const STEP_DELAY = cssNumber('--hg-last-three-step', 140); // ms between fading each of the three (configurable)
+
+    // schedule handles for sequential fade after stop
+    let lastThreeFadeTimers = []; // will hold timeout ids for scheduled fades
+    let lastThreeFadeStarted = false; // whether scheduled fade run is active
+    let mouseStopTimer = null; // debounce timer for mouse-stop detection
+
+    // helper to clear any scheduled last-three fades (call on new interaction / spawn)
+    function clearScheduledLastThreeFade(){
+        lastThreeFadeTimers.forEach(t => clearTimeout(t));
+        lastThreeFadeTimers = [];
+        lastThreeFadeStarted = false;
+    }
+
+    function computeDecayedOpacity(fromNewestIndex){
+        // same decay curve used elsewhere: decayed = max(MIN_OPACITY, 1 - (d * 0.12))
+        const d = Math.max(0, fromNewestIndex - (KEEP_OPACITY_LAST_N - 1));
+        return Math.max(MIN_OPACITY, 1 - (d * 0.12));
+    }
+
     function applyStackRules(){
         // cap visible count by removing oldest beyond MAX_VISIBLE
         while(activeNodes.length>MAX_VISIBLE){ const o=activeNodes.shift(); if(o&&o.parentNode) o.parentNode.removeChild(o); }
+
         for(let i=0;i<activeNodes.length;i++){
             const node = activeNodes[i];
             const fromNewest = activeNodes.length - 1 - i;
-            // keep transition for smooth fade when classes/styles change
             node.style.transition = node.style.transition || 'opacity 280ms ease, transform 220ms ease';
-            if(fromNewest < KEEP_OPACITY_LAST_N){
-                // newest images — full opacity and stronger pointer interactions
+            // If fade sequence hasn't started, keep last N fully opaque while interacting
+            if(!lastThreeFadeStarted && fromNewest < KEEP_OPACITY_LAST_N){
                 node.style.opacity = '1';
                 node.style.pointerEvents = 'auto';
                 node.classList.remove('decay-full','decay-partial');
                 if(node._decayTimeout){ clearTimeout(node._decayTimeout); node._decayTimeout=null; }
             } else {
-                // older images — compute a gentle decay proportional to distance
-                const d = fromNewest - (KEEP_OPACITY_LAST_N - 1); // 0 means first decayed image
-                // decay step (0.12 per step) — adjust to taste
-                const decayed = Math.max(MIN_OPACITY, 1 - (d * 0.12));
+                const decayed = computeDecayedOpacity(fromNewest);
                 node.style.opacity = String(decayed);
                 node.style.pointerEvents = 'none';
                 node.classList.remove('decay-partial');
                 node.classList.add('decay-full');
-                // schedule eventual removal for very old images (existing timeout logic)
                 if(!node._decayTimeout){
-                    node._decayTimeout = setTimeout(()=>{ if(activeNodes.indexOf(node)!==-1) removeNode(node); }, DECAY_MS + 240 + (d*80));
+                    node._decayTimeout = setTimeout(()=>{ if(activeNodes.indexOf(node)!==-1) removeNode(node); }, DECAY_MS + 240 + (fromNewest*80));
                 }
             }
         }
@@ -100,6 +130,9 @@
 
     function spawnAt(clientX, clientY){
         if(!images.length) return;
+        // New spawn cancels any scheduled fades so last-3 remain visible
+        clearScheduledLastThreeFade();
+
         const item = images[Math.floor(Math.random()*images.length)];
         const thumbUrl = item && item.thumb ? item.thumb : (item||'');
         const fullUrl = item && item.full ? item.full : thumbUrl;
@@ -110,10 +143,12 @@
         img.loading = 'lazy';
         img.alt = '';
         img.draggable = false;
+        // center thumbnails on the pointer by default
         img.style.position = 'absolute';
         img.style.pointerEvents = 'auto';
-        // Ensure transform-origin doesn't cause visual shift when opacity changes
         img.style.transformOrigin = 'center center';
+        img.style.transform = 'translate(-50%,-50%) scale(1)';
+        img.style.willChange = 'transform, opacity';
         const r = canvas.getBoundingClientRect();
         const x = clientX - r.left, y = clientY - r.top;
         img.style.left = x + 'px';
@@ -124,7 +159,28 @@
         img._decayTimeout = null;
         canvas.appendChild(img);
         activeNodes.push(img);
-        // After append, re-run stack rules to set opacities correctly
+
+        // when image loads, check orientation and optionally enlarge if landscape
+        img.onload = () => {
+            try {
+                const natW = img.naturalWidth || img.width;
+                const natH = img.naturalHeight || img.height;
+                if (natW && natH && natW > natH) {
+                    img.classList.add('hg-landscape');
+                    const LANDSCAPE_SCALE = cssFloat('--hg-landscape-scale', 1.18);
+                    img.style.transform = `translate(-50%,-50%) scale(${LANDSCAPE_SCALE})`;
+                } else {
+                    img.classList.add('hg-portrait');
+                    img.style.transform = 'translate(-50%,-50%) scale(1)';
+                }
+            } catch (err) {
+                console.warn(TAG, 'orientation/scale apply failed', err);
+            } finally {
+                applyStackRules();
+            }
+        };
+
+        // In case cached image loaded before onload binding, ensure stack rules run.
         requestAnimationFrame(()=> setTimeout(()=> {
             img.classList.remove('spawn');
             applyStackRules();
@@ -134,9 +190,8 @@
     let lastPos = { x:-9999, y:-9999 };
     function dist(a,b){ const dx=a.x-b.x, dy=a.y-b.y; return Math.sqrt(dx*dx+dy*dy); }
     const THRESH = cssNumber('--hg-spawn-threshold', 48);           // spacing between spawn points while dragging
-    const DRAG_SENSITIVITY = cssNumber('--hg-drag-threshold', 24);  // how much finger must move before first spawn (configurable)
+    const DRAG_SENSITIVITY = cssNumber('--hg-drag-threshold', 24);  // how much pointer must move before first spawn (configurable)
     function handleMove(e){ const p={x:e.clientX,y:e.clientY}; if(dist(p,lastPos)>=THRESH){ spawnAt(e.clientX,e.clientY); lastPos=p; } }
-    function handleEnter(e){ lastPos={x:e.clientX,y:e.clientY}; /* no spawn on enter for desktop - keep */ }
 
     // --- Make findTopImageAtPoint globally available to both mouse and touch handlers ---
     function findTopImageAtPoint(x,y){
@@ -149,18 +204,122 @@
         return null;
     }
 
+    // --- When interaction stops, schedule the last 3 to fade sequentially after LAST_THREE_HOLD ---
+    // order: bottom of the three (oldest) fades first, then middle, then top (newest).
+    function scheduleLastThreeFade(){
+        clearScheduledLastThreeFade();
+
+        if(!activeNodes.length) return;
+        const n = Math.min(KEEP_OPACITY_LAST_N, activeNodes.length);
+        if(n === 0) return;
+
+        const holdDelay = LAST_THREE_HOLD; // ms from CSS var (now default 1000)
+        const stepDelay = STEP_DELAY;      // ms between each fade
+
+        // we mark started only when holdDelay expires and actual fade begins
+        lastThreeFadeStarted = false;
+        const starter = setTimeout(()=>{
+            lastThreeFadeStarted = true;
+            const startIndex = Math.max(0, activeNodes.length - n);
+            for(let i = 0; i < n; i++){
+                const nodeIndex = startIndex + i; // i=0 oldest of last-n
+                const node = activeNodes[nodeIndex];
+                if(!node) continue;
+                const t = setTimeout(()=>{
+                    const idx = activeNodes.indexOf(node);
+                    if(idx === -1) return;
+                    const fromNewest = activeNodes.length - 1 - idx;
+                    const decayed = computeDecayedOpacity(fromNewest);
+                    node.style.transition = node.style.transition || 'opacity 280ms ease, transform 220ms ease';
+                    node.style.opacity = String(decayed);
+                    node.style.pointerEvents = 'none';
+                    node.classList.remove('decay-partial');
+                    node.classList.add('decay-full');
+                    if(!node._decayTimeout){
+                        node._decayTimeout = setTimeout(()=>{ if(activeNodes.indexOf(node)!==-1) removeNode(node); }, DECAY_MS + 240 + (fromNewest*80));
+                    }
+                }, i * stepDelay);
+                lastThreeFadeTimers.push(t);
+            }
+            const finalize = setTimeout(()=> applyStackRules(), n * stepDelay + 40);
+            lastThreeFadeTimers.push(finalize);
+        }, holdDelay);
+        lastThreeFadeTimers.push(starter);
+    }
+
+    // helper to cancel scheduled fade when interaction resumes
+    function onInteractionResume(){
+        clearScheduledLastThreeFade();
+        lastThreeFadeStarted = false;
+        applyStackRules();
+    }
+
+    // --- State & event wiring for mouse hover threshold & movement-stop detection ---
     let pointerActive=false;
-    // mouse hover behavior remains — pointerenter/pointermove/pointerleave for mouse
-    canvas.addEventListener('pointerenter',(e)=>{ pointerActive=true; handleEnter(e); });
-    canvas.addEventListener('pointermove',(e)=>{ if(pointerActive) handleMove(e); });
-    canvas.addEventListener('pointerleave',()=>{ pointerActive=false; });
+    let mouseEntryPos = null;
+    let mouseHasMovedEnough = false;
+
+    // mouse enter: reset movement-stop debouncer & treat as interaction resume
+    canvas.addEventListener('pointerenter',(e)=>{
+        if(e.pointerType === 'mouse'){
+            mouseEntryPos = { x: e.clientX, y: e.clientY };
+            mouseHasMovedEnough = false;
+            pointerActive = false;
+            onInteractionResume();
+        } else {
+            pointerActive = true;
+            onInteractionResume();
+        }
+    });
+
+    canvas.addEventListener('pointermove',(e)=>{
+        if(e.pointerType === 'mouse'){
+            // any mouse movement resets scheduled fades and mouse-stop debounce
+            if(mouseStopTimer){ clearTimeout(mouseStopTimer); mouseStopTimer = null; }
+            onInteractionResume();
+
+            if(!mouseEntryPos) mouseEntryPos = { x: e.clientX, y: e.clientY };
+            const dx = e.clientX - mouseEntryPos.x;
+            const dy = e.clientY - mouseEntryPos.y;
+            const moved = Math.sqrt(dx*dx + dy*dy);
+            if(!mouseHasMovedEnough){
+                if(moved >= DRAG_SENSITIVITY){
+                    mouseHasMovedEnough = true;
+                    pointerActive = true;
+                    lastPos = { x: e.clientX, y: e.clientY };
+                    spawnAt(e.clientX, e.clientY);
+                }
+            } else {
+                if(pointerActive) handleMove(e);
+            }
+
+            // start debounce timer to detect mouse STOPPED moving
+            mouseStopTimer = setTimeout(()=>{
+                // when the mouse has stopped moving for MOUSE_STOP_DELAY, begin the last-three hold countdown
+                scheduleLastThreeFade();
+                mouseStopTimer = null;
+            }, Math.max(10, cssNumber('--hg-mouse-stop-delay', MOUSE_STOP_DELAY)));
+        } else {
+            // touch/pen move — behave like before
+            if(pointerActive) handleMove(e);
+        }
+    });
+
+    canvas.addEventListener('pointerleave',()=>{
+        // If mouse leaves, we also treat as interaction stopping — start schedule immediately (user wanted stop on movement stop)
+        if(mouseStopTimer){ clearTimeout(mouseStopTimer); mouseStopTimer = null; }
+        pointerActive = false;
+        mouseEntryPos = null;
+        mouseHasMovedEnough = false;
+        scheduleLastThreeFade();
+    });
 
     // keyboard support (unchanged)
     canvas.addEventListener('keydown',(e)=>{ if(e.key==='Enter'||e.key===' '){ const r=canvas.getBoundingClientRect(); const cx=r.left+r.width/2+(Math.random()-0.5)*80; const cy=r.top+r.height/2+(Math.random()-0.5)*80; spawnAt(cx,cy); } });
 
     (function preloadSome(){ const sample = images.slice(0, Math.min(images.length,8)); sample.forEach(u=>{ if(u&&u.thumb){ const i=new Image(); i.src=u.thumb; i.loading='lazy'; } }); })();
 
-    // --- Lightbox: enforce fit-to-screen (explicit calc values) ---
+    // --- Lightbox (unchanged) ---
     let _lightbox = null;
     function createLightbox(){
         if(_lightbox) return _lightbox;
@@ -179,10 +338,8 @@
         overlay.style.cursor = 'zoom-out';
         overlay.style.backdropFilter = 'blur(3px)';
 
-        // wrapper centers and constrains image to viewport with a consistent gap
         const wrapper = document.createElement('div');
         wrapper.style.position = 'relative';
-        // explicit calc ensures portrait images fit within viewport
         wrapper.style.maxWidth = 'calc(100vw - 40px)';
         wrapper.style.maxHeight = 'calc(100vh - 40px)';
         wrapper.style.width = 'auto';
@@ -190,10 +347,10 @@
         wrapper.style.display = 'flex';
         wrapper.style.alignItems = 'center';
         wrapper.style.justifyContent = 'center';
-        wrapper.style.overflow = 'hidden'; // prevent any internal scroll
+        wrapper.style.overflow = 'hidden';
         wrapper.style.pointerEvents = 'auto';
         wrapper.style.boxSizing = 'border-box';
-        wrapper.style.padding = '0'; // ensure no extra padding eats space
+        wrapper.style.padding = '0';
 
         const img = document.createElement('img');
         img.className = 'hg-lightbox-img';
@@ -201,14 +358,13 @@
         img.draggable = false;
         img.style.display = 'block';
         img.style.boxShadow = '0 10px 40px rgba(0,0,0,0.6)';
-        // EXPLICIT fit-to-screen using viewport calc values (stronger than %)
         img.style.maxWidth = 'calc(100vw - 40px)';
         img.style.maxHeight = 'calc(100vh - 40px)';
         img.style.width = 'auto';
         img.style.height = 'auto';
         img.style.objectFit = 'contain';
         img.style.boxSizing = 'border-box';
-        img.style.transform = 'none'; // clear any transforms that might shift position
+        img.style.transform = 'none';
         img.style.margin = '0';
         img.style.pointerEvents = 'auto';
 
@@ -272,7 +428,6 @@
         overlay.addEventListener('click', onOverlayClick);
         img.addEventListener('click', (ev)=> ev.stopPropagation());
 
-        // dblclick: toggle to natural size ONLY if it still fits viewport-with-gap
         img.addEventListener('dblclick', (ev)=>{
             ev.stopPropagation();
             if(fitMode){
@@ -289,7 +444,6 @@
                     img.style.width = naturalW + 'px';
                     img.style.height = naturalH + 'px';
                 } else {
-                    // don't toggle if natural would overflow — keep fit
                     return;
                 }
             } else {
@@ -314,16 +468,10 @@
                 if(filename) btnDownload.setAttribute('download', filename); else btnDownload.setAttribute('download','');
                 if(!document.body.contains(overlay)){
                     document.body.appendChild(overlay);
-                    // lock scroll
                     document.documentElement.style.overflow = 'hidden';
                     window.addEventListener('keydown', onKey);
                 }
-                // ensure no layout shift; image will scale to fit
-                img.onload = () => {
-                    // Force reflow to ensure computed constraints apply
-                    void img.offsetWidth;
-                    LOG('lightbox image loaded; natural size:', img.naturalWidth, img.naturalHeight);
-                };
+                img.onload = () => { void img.offsetWidth; LOG('lightbox image loaded; natural size:', img.naturalWidth, img.naturalHeight); };
                 LOG('lightbox opened (strict fit-to-screen):', src);
             },
             close
@@ -342,13 +490,12 @@
         }
     }
 
-    // --- Delegated left-click handler (mouse only) ---
+    // delegated left-click handler (mouse only)
     (function installDelegatedLightbox(){
         if(!canvas) return;
         if(canvas._playgroundLightboxHandler){ canvas.removeEventListener('pointerdown', canvas._playgroundLightboxHandler); canvas._playgroundLightboxHandler = null; }
 
         const handler = function(ev){
-            // Only handle mouse pointer events here (avoid touching behavior)
             if(ev.pointerType && ev.pointerType !== 'mouse') return;
             if(ev.button !== 0) return;
             const x = ev.clientX, y = ev.clientY;
@@ -364,74 +511,61 @@
         canvas._playgroundLightboxHandler = handler;
     })();
 
-    // --- Touch / Pen support: start/continue/stop spawning while dragging.
-    // Also detect double-tap to open image in lightbox. Single-tap will open the LAST image if tapped.
-    // CHANGED: Do NOT spawn on pointerdown. Spawn only once pointer has moved past DRAG_SENSITIVITY.
+    // touch/pen support: spawn only after drag threshold; single-tap last image opens lightbox
     (function installTouchDragDoubleTap(){
         if(!canvas) return;
 
-        // track taps for double-tap and single-tap detection
         let lastTapTime = 0;
         let lastTapPos = { x: 0, y: 0 };
         const DOUBLE_TAP_MS = 350;
         const DOUBLE_TAP_DIST = 30; // px
         const TAP_MOVE_DIST = 12; // px — if movement <= this, treat as a tap
 
-        // state while pointer is down
-        let pointerDownPos = null;   // {x,y,t}
-        let pointerHasMovedEnough = false; // whether we've passed DRAG_SENSITIVITY and started spawning
+        let pointerDownPos = null;
+        let pointerHasMovedEnough = false;
         let pointerIdForCapture = null;
 
         function onPointerDown(e){
             if(!(e.pointerType === 'touch' || e.pointerType === 'pen' || e.pointerType === 'touchpad')) return;
-            // DON'T spawn here — just record start pos and capture pointer
-            pointerActive = false; // not yet actively spawning until movement exceeds DRAG_SENSITIVITY
+            pointerActive = false;
             pointerHasMovedEnough = false;
             pointerDownPos = { x: e.clientX, y: e.clientY, t: Date.now() };
             pointerIdForCapture = e.pointerId;
             try { e.target.setPointerCapture && e.target.setPointerCapture(e.pointerId); } catch (err) {}
-            // prevent synthetic mouse events on some devices
             e.preventDefault && e.preventDefault();
+            // interaction resumed — cancel scheduled fades
+            onInteractionResume();
         }
 
         function onPointerMove(e){
             if(!(e.pointerType === 'touch' || e.pointerType === 'pen' || e.pointerType === 'touchpad')) return;
-
             if(!pointerDownPos) return;
             const dx = e.clientX - pointerDownPos.x;
             const dy = e.clientY - pointerDownPos.y;
             const movedSinceDown = Math.sqrt(dx*dx + dy*dy);
 
             if(!pointerHasMovedEnough){
-                // if movement exceeds drag sensitivity, start spawning and mark lastPos for spacing
                 if(movedSinceDown >= DRAG_SENSITIVITY){
                     pointerHasMovedEnough = true;
                     pointerActive = true;
                     lastPos = { x: e.clientX, y: e.clientY };
-                    // spawn first image at current position
                     spawnAt(e.clientX, e.clientY);
                 }
-                // else — still within tap/intent; do not spawn
             } else {
-                // already in spawning mode — continue spawning per THRESH spacing
                 if(pointerActive) handleMove(e);
             }
         }
 
         function onPointerUp(e){
             if(!(e.pointerType === 'touch' || e.pointerType === 'pen' || e.pointerType === 'touchpad')) return;
-            // release capture
             try { e.target.releasePointerCapture && e.target.releasePointerCapture(e.pointerId); } catch (err) {}
             const now = Date.now();
-            // if pointer never moved enough to spawn, consider this a tap (or small move)
             const dx = e.clientX - (pointerDownPos ? pointerDownPos.x : e.clientX);
             const dy = e.clientY - (pointerDownPos ? pointerDownPos.y : e.clientY);
             const moved = Math.sqrt(dx*dx + dy*dy);
 
-            // Double-tap detection (existing behavior)
             const distFromLastTap = Math.sqrt(Math.pow(e.clientX - lastTapPos.x,2) + Math.pow(e.clientY - lastTapPos.y,2));
             if(now - lastTapTime <= DOUBLE_TAP_MS && distFromLastTap <= DOUBLE_TAP_DIST){
-                // double-tap detected — open lightbox if tapped an image
                 const hit = findTopImageAtPoint(e.clientX, e.clientY);
                 if(hit){
                     const full = hit.dataset && hit.dataset.full ? hit.dataset.full : hit.src;
@@ -439,17 +573,16 @@
                     openLightbox(full);
                     lastTapTime = 0;
                     lastTapPos = { x: 0, y: 0 };
-                    // reset pointer state
                     pointerDownPos = null;
                     pointerHasMovedEnough = false;
                     pointerActive = false;
                     pointerIdForCapture = null;
+                    // schedule fade after stop (if no further interaction)
+                    scheduleLastThreeFade();
                     return;
                 }
             }
 
-            // SINGLE TAP: if user did NOT move past DRAG_SENSITIVITY (pointerHasMovedEnough === false)
-            // and the movement was small (moved <= TAP_MOVE_DIST), treat as tap — open last image if tapped.
             if(!pointerHasMovedEnough && moved <= TAP_MOVE_DIST){
                 const hit = findTopImageAtPoint(e.clientX, e.clientY);
                 if(hit && activeNodes.length){
@@ -458,36 +591,36 @@
                         const full = hit.dataset && hit.dataset.full ? hit.dataset.full : hit.src;
                         LOG('open full (single-tap on last image — lightbox):', full);
                         openLightbox(full);
-                        // record tap for double-tap tracking
                         lastTapTime = now;
                         lastTapPos = { x: e.clientX, y: e.clientY };
-                        // reset pointer state
                         pointerDownPos = null;
                         pointerHasMovedEnough = false;
                         pointerActive = false;
                         pointerIdForCapture = null;
+                        scheduleLastThreeFade();
                         return;
                     }
                 }
             }
 
-            // if pointer was spawning, allow decay rules to run; otherwise just record last tap (for double tap)
             lastTapTime = now;
             lastTapPos = { x: e.clientX, y: e.clientY };
             pointerDownPos = null;
             pointerHasMovedEnough = false;
             pointerActive = false;
             pointerIdForCapture = null;
+            // schedule fade after stop
+            scheduleLastThreeFade();
         }
 
         canvas.addEventListener('pointerdown', onPointerDown, { passive: false });
         canvas.addEventListener('pointermove', onPointerMove, { passive: true });
         canvas.addEventListener('pointerup', onPointerUp, { passive: true });
-        canvas.addEventListener('pointercancel', ()=>{ pointerActive=false; pointerDownPos=null; pointerHasMovedEnough=false; }, { passive: true });
+        canvas.addEventListener('pointercancel', ()=>{ pointerActive=false; pointerDownPos=null; pointerHasMovedEnough=false; scheduleLastThreeFade(); }, { passive: true });
 
     })();
 
-    // --- Mobile scroll handling + draggable-pointer fallback (unchanged) ---
+    // mobile scroll handling + draggable-pointer fallback (unchanged)
     (function mobileScrollHandlerAndFallback(){
         if(!canvas || typeof spawnAt !== 'function') { WARN('mobile scroll handler needs canvas & spawnAt'); return; }
 
@@ -495,7 +628,6 @@
         const LOGM = (...a)=>console.log('%c'+TAGM,'color:#0a7;font-weight:700;',...a);
         const WARNM = (...a)=>console.warn('%c'+TAGM,'color:#ea0;font-weight:700;',...a);
 
-        // Try to disable native scrolling while interacting with the canvas.
         let scrollPreventionActive = false;
         try {
             canvas.style.touchAction = 'none';
@@ -550,7 +682,7 @@
                 userSelect:'none',
                 opacity: '0.98'
             });
-            p.innerHTML = '&#9679;'; // small dot
+            p.innerHTML = '&#9679;';
 
             let dragging = false;
             let pointerId = null;
@@ -561,6 +693,8 @@
                 pointerId = ev.pointerId;
                 p.style.cursor = 'grabbing';
                 try{ p.setPointerCapture && p.setPointerCapture(pointerId); } catch(e){}
+                // interaction resumed — cancel scheduled fades
+                onInteractionResume();
             }
             function onMove(ev){
                 if(!dragging) return;
@@ -584,6 +718,8 @@
                 pointerId = null;
                 p.style.cursor = 'grab';
                 try{ p.releasePointerCapture && p.releasePointerCapture(ev.pointerId); } catch(e){}
+                // schedule fades after pointer stops
+                scheduleLastThreeFade();
             }
 
             p.addEventListener('pointerdown', onStart, { passive: false });
@@ -625,7 +761,6 @@
             }
         });
 
-        // Expose a helper to force toggle fallback pointer
         window.HG_ForcePointerFallback = function(enabled){
             if(enabled) createDraggablePointer();
             else {
@@ -639,5 +774,5 @@
 
     })();
 
-    LOG('playground initialized — maxVisible=' + MAX_VISIBLE + ', permanentLast=' + PERMANENT_LAST + ', dragThreshold=' + DRAG_SENSITIVITY);
+    LOG('playground initialized — maxVisible=' + MAX_VISIBLE + ', permanentLast=' + PERMANENT_LAST + ', dragThreshold=' + DRAG_SENSITIVITY + ', lastThreeHold=' + LAST_THREE_HOLD + 'ms, mouseStopDelay=' + MOUSE_STOP_DELAY + 'ms');
 })();
