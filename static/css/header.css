@@ -1,9 +1,16 @@
 /* assets/css/header.css
    Basic header wrapper placement and small heuristics.
 */
+
+:root {
+    --site-header-top-offset: 18px;   /* match .site-header top */
+    --navbar-inner-height: 44px;      /* approximate nav pill height */
+    --site-header-occupy: calc(var(--site-header-top-offset) + var(--navbar-inner-height));
+}
+
 .site-header {
     position: fixed;
-    top: 18px;               /* matches the screenshot vertical offset */
+    top: var(--site-header-top-offset);               /* matches the screenshot vertical offset */
     left: 0;
     right: 0;
     display: flex;

@@ -3,3 +3,7 @@ resources/
 node_modules/
 .DS_Store/
 .idea
+.DS_Store
+*.DS_Store/
+backup/
+assets/images/gallery/.DS_Store/

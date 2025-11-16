@@ -1,34 +1,223 @@
 {{ define "main" }}
 <main class="gallery-wrap" aria-label="Gallery">
-    {{ $imgs := resources.Match "images/featured/*.{jpg,jpeg,png,webp}" | sort }}
-    {{ if gt (len $imgs) 0 }}
-    <div class="scroller-outer">
-        <div id="peeler" class="peeler" tabindex="0" aria-label="Image carousel"
-             data-autoplay="true" data-interval="4000" data-pause-on-hover="true"
-             data-pause-on-interaction="true" data-resume-after="3000">
-            {{ range $i, $img := $imgs }}
-            <figure class="peel-slide" role="group" aria-roledescription="slide"
-                    aria-label="Slide {{ add $i 1 }} of {{ len $imgs }}">
-                <div class="peel-inner">
-                    {{ $hi := ($img.Resize "2000x") }}
-                    {{ $lq := ($img.Resize "40x") }}
-                    <img class="peel-img lazy"
-                         src="{{ $lq.RelPermalink }}"
-                         data-src="{{ $hi.RelPermalink }}"
-                         alt="{{ $img.Name }}"
-                         loading="lazy" />
+
+    {{/* ===== Styles =====
+    If you prefer to include this CSS in the <head>, paste the following line
+    into your head partial instead of leaving it here:
+    <link rel="stylesheet" href='{{ "css/hover-carousal.css" | relURL }}'>
+    */}}
+    <link rel="stylesheet" href='{{ "css/hover-carousal.css" | relURL }}'>
+
+    {{- $images := resources.Match "images/carousal/*" | sort -}}
+    {{- $allowed := slice "jpg" "jpeg" "png" "webp" "avif" -}}
+
+    {{- if gt (len $images) 0 }}
+    <section class="featured-carousel">
+        <nav class="hover-carousel" role="navigation" aria-label="Featured">
+            {{- range $i, $res := $images }}
+            {{- $ext := lower (replaceRE "^.*\\.([^.]+)$" "$1" $res.Name) }}
+            {{- if in $allowed $ext }}
+            {{- $one := $res.Resize "600x" -}}
+            {{- $two := $res.Resize "1200x" -}}
+            {{- $three := $res.Resize "2000x" -}}
+            {{- $firstAttr := "" -}}
+            {{- if eq $i 0 }}{{- $firstAttr = ` fetchpriority="high"` -}}{{- end -}}
+
+            <div class="hc-container"
+                 tabindex="0"
+                 role="button"
+                 aria-label="Featured {{ add $i 1 }}"
+                 data-hi2x="{{ $res.RelPermalink }}">
+                <img
+                        class="hc-img"
+                        src="{{ $one.RelPermalink }}"
+                        srcset="{{ $one.RelPermalink }} 600w, {{ $two.RelPermalink }} 1200w, {{ $three.RelPermalink }} 2000w"
+                        sizes="(max-width:640px) 90vw, (max-width:1100px) 45vw, 600px"
+                        loading="lazy"
+                        decoding="async"
+                        alt="{{ $res.Name }}"{{ $firstAttr }} />
+            </div>
+            {{- end }}
+            {{- end }}
+        </nav>
+    </section>
+    {{- else }}
+    <p>No images found in <code>assets/images/carousal</code>.</p>
+    {{- end }}
+
+    <!-- Gallery intro: insert between carousel and thumbnails -->
+    <section class="gallery-intro" aria-hidden="false">
+<!--        <div class="intro-pill">My Portfolios</div>-->
+
+        <h2 class="intro-title">
+            A glimpse through <span class="intro-em">my perspective</span>
+        </h2>
+
+        <p class="intro-sub">
+            I take way too many photos. Some of my favorites are here.
+        </p>
+    </section>
+
+    {{/* Thumbnail grid below the carousel */}}
+    <section class="thumbnail-grid-wrap" aria-label="Gallery thumbnails">
+        {{ $entries := readDir "assets/images/gallery" }}
+        {{ $folders := slice }}
+        {{ range $entries }}
+        {{ if .IsDir }}
+        {{ $folders = $folders | append .Name }}
+        {{ end }}
+        {{ end }}
+
+        {{/* Preload corner image resource once */}}
+        {{ $cornerScratch := newScratch }}
+        {{ with resources.Get "images/image_corner.png" }}
+        {{ with .Resize "48x48" }}
+        {{ $cornerScratch.Set "img" . }}
+        {{ end }}
+        {{ end }}
+
+        {{ if gt (len $folders) 0 }}
+        <div class="thumbnail-grid">
+            {{ range $idx, $folder := $folders }}
+            {{ $pattern := printf "images/gallery/%s/*" $folder }}
+            {{ $resources := resources.Match $pattern | sort }}
+            {{/* Build $imgs by extension to avoid meta.json and others */}}
+            {{ $imgs := slice }}
+            {{ range $resources }}
+            {{ $ext := lower (replaceRE "^.*\\.([^.]+)$" "$1" .Name) }}
+            {{ if in (slice "jpg" "jpeg" "png" "webp" "gif") $ext }}
+            {{ $imgs = $imgs | append . }}
+            {{ end }}
+            {{ end }}
+            {{ if gt (len $imgs) 0 }}
+            {{ $defaultChosen := index $imgs 0 }}
+
+            {{ $meta := dict "title" (printf "%s" $folder) "badge" "Gallery" "caption" "" "thumbnail" "" }}
+            {{ $metaPath := printf "assets/images/gallery/%s/meta.json" $folder }}
+            {{ if fileExists $metaPath }}
+            {{ $raw := readFile $metaPath }}
+            {{ $parsed := transform.Unmarshal $raw }}
+            {{ if $parsed }}
+            {{ $meta = merge $meta $parsed }}
+            {{ end }}
+            {{ end }}
+
+            {{ $fs := newScratch }}
+            {{ $thumbFilename := printf "%s" (index $meta "thumbnail") }}
+            {{ if ne $thumbFilename "" }}
+            {{ $maybePath := printf "images/gallery/%s/%s" $folder $thumbFilename }}
+            {{ with resources.Get $maybePath }}
+            {{ $fs.Set "thumb" . }}
+            {{ end }}
+            {{ end }}
+            {{ if not ($fs.Get "thumb") }}
+            {{ $fs.Set "thumb" $defaultChosen }}
+            {{ end }}
+            {{ $thumbRes := $fs.Get "thumb" }}
+
+            {{/* Generate sizes: small for grid, med for larger screens, hi for album viewer/lightbox */}}
+            {{ $small := $thumbRes.Resize "600x" }}
+            {{ $med := $thumbRes.Resize "1200x" }}
+            {{ $hi := $thumbRes.Resize "2000x" }}
+
+            <article class="thumb-card" tabindex="0" role="link" aria-label="Open album {{ $folder }}" data-album="{{ $folder }}">
+                <a class="thumb-link" href="/album-viewer/{{ $folder | urlize }}/" aria-hidden="true">
+                    <div class="thumb-media">
+                        <img class="thumb-img"
+                             src="{{ $small.RelPermalink }}"
+                             srcset="{{ $small.RelPermalink }} 600w, {{ $med.RelPermalink }} 1200w"
+                             sizes="(max-width:640px) 100vw, (max-width:1200px) 50vw, 33vw"
+                             alt='{{ index $meta "title" }}'
+                             loading="lazy"
+                             width="1200" height="800">
+
+                        {{/* shutter logo */}}
+                        {{ with resources.Get "images/shutter_logo.svg" }}
+                        <img class="shutter-logo" src="{{ .RelPermalink }}" alt="shutter logo" aria-hidden="true">
+                        {{ else }}
+                        {{ with resources.Get "images/shutter_logo.png" }}
+                        {{ $logo := .Resize "48x48" }}
+                        <img class="shutter-logo" src="{{ $logo.RelPermalink }}" alt="shutter logo" aria-hidden="true">
+                        {{ end }}
+                        {{ end }}
+
+                        {{ $cornerImg := $cornerScratch.Get "img" }}
+                        {{ if $cornerImg }}
+                        <img class="corner-img tl" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
+                        <img class="corner-img tr" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
+                        <img class="corner-img br" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
+                        <img class="corner-img bl" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
+                        {{ end }}
+                    </div>
+                </a>
+
+                <div class="thumb-body">
+                    <div class="thumb-text">
+                        <h4 class="thumb-title">{{ index $meta "title" }}</h4>
+                        <p class="thumb-caption">{{ index $meta "caption" }}</p>
+                    </div>
+                    <span class="thumb-badge">{{ index $meta "badge" }}</span>
                 </div>
-            </figure>
+            </article>
+            {{ end }}
             {{ end }}
         </div>
-    </div>
-    {{ else }}
-    <p class="no-images">No images found in assets/images/featured.</p>
-    {{ end }}
+        {{ else }}
+        <p class="no-thumbs">No gallery folders found in <code>assets/images/gallery</code>.</p>
+        {{ end }}
+    </section>
+    {{ partial "lightbox.html" . }}
+
+
 </main>
 
-{{/* If the base does not inject gallery JS automatically, you can add it here: */}}
 {{ block "scripts" . }}
-<script src="{{ "js/peel-scroller.js" | relURL }}" defer></script>
+{{/* Carousel script (external) - placed here so it loads before the inline behaviour below */}}
+<script src='{{ "js/hover-carousal-containers.js" | relURL }}' defer></script>
+<link rel="stylesheet" href='{{ "css/lightbox.css" | relURL }}'>
+<script defer src='{{ "js/lightbox.js" | relURL }}'></script>
+
+<script>
+    (function () {
+        'use strict';
+
+        // Click delegation: navigate when a .thumb-card or a child is clicked
+        document.addEventListener('click', function (e) {
+            const card = e.target.closest && e.target.closest('.thumb-card');
+            if (!card) return;
+            const album = card.getAttribute('data-album');
+            if (album) window.location.href = `/album-viewer/${album}/`;
+        }, true);
+
+        // Keyboard navigation (Enter / Space) for focused .thumb-card elements
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                const el = document.activeElement;
+                if (el && el.classList && el.classList.contains('thumb-card')) {
+                    const album = el.getAttribute('data-album');
+                    if (album) {
+                        e.preventDefault();
+                        window.location.href = `/album-viewer/${album}/`;
+                    }
+                }
+            }
+        });
+
+        // Use delegated touchstart handling to avoid attaching many listeners.
+        // Toggles a transient 'touch-hover' class on the touched .thumb-card.
+        let touchHoverTimer = null;
+        document.addEventListener('touchstart', function (e) {
+            const card = e.target.closest && e.target.closest('.thumb-card');
+            if (!card) return;
+            card.classList.add('touch-hover');
+            if (touchHoverTimer) clearTimeout(touchHoverTimer);
+            touchHoverTimer = setTimeout(function () {
+                card.classList.remove('touch-hover');
+                touchHoverTimer = null;
+            }, 2500);
+        }, { passive: true });
+
+    })();
+</script>
 {{ end }}
 {{ end }}
