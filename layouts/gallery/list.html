@@ -70,7 +70,7 @@
 
         {{/* Preload corner image resource once */}}
         {{ $cornerScratch := newScratch }}
-        {{ with resources.Get "images/image_corner.png" }}
+        {{ with resources.Get "logos/image_corner.png" }}
         {{ with .Resize "48x48" }}
         {{ $cornerScratch.Set "img" . }}
         {{ end }}
@@ -132,10 +132,10 @@
                              width="1200" height="800">
 
                         {{/* shutter logo */}}
-                        {{ with resources.Get "images/shutter_logo.svg" }}
+                        {{ with resources.Get "logos/shutter_logo.svg" }}
                         <img class="shutter-logo" src="{{ .RelPermalink }}" alt="shutter logo" aria-hidden="true">
                         {{ else }}
-                        {{ with resources.Get "images/shutter_logo.png" }}
+                        {{ with resources.Get "logos/shutter_logo.png" }}
                         {{ $logo := .Resize "48x48" }}
                         <img class="shutter-logo" src="{{ $logo.RelPermalink }}" alt="shutter logo" aria-hidden="true">
                         {{ end }}

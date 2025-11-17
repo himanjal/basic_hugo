@@ -3,7 +3,7 @@
     <div class="home-header-inner">
         <div class="hero-title-wrap">
             <div class="hero-logo-title">
-                {{ $logo := resources.Get "images/logo.png" }}
+                {{ $logo := resources.Get "logos/logo.png" }}
                 {{ with $logo }}
                 <a href='{{ "/" | relURL }}' class="hero-logo-link">
                     <img src='{{ .RelPermalink }}' alt="Himanjal Sharma logo" class="hero-logo" />

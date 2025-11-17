@@ -1,0 +1,418 @@
+/* ===========================
+   info.css — variables + layout
+   =========================== */
+
+/* ---- global tweakable vars ---- */
+:root{
+    /* card sizing */
+    --card-width: min(90%, 1400px);
+    --card-radius: 34px;
+    --card-height-clamp-min: 360px;
+    --card-height-clamp-max: 1160px;
+    --card-height-vh-offset: calc(80vh - var(--site-header-top-offset));
+
+    /* corners */
+    --corner-size: 56px;
+    --corner-offset: 18px;
+
+    /* shutter (top-right icon) */
+    --shutter-size: 46px;
+    --shutter-top: 24px;
+    --shutter-right: 30px;
+    --shutter-padding: 6px;
+    --shutter-icon-size: 30px;
+
+    /* hero-left dot + text */
+    --hero-left-left: 48px;
+    --hero-left-top: 100px;
+    --hero-left-gap: 18px;
+    --hero-dot-size: 14px;
+    --hero-dot-blur: 6px;
+
+    /* hero-headline sizing (clamp uses responsive viewport) */
+    --hero-font-min: 48px;
+    --hero-font-vw: 4vw;
+    --hero-font-max: 140px;
+
+    /* hero-right region (we place line1 by top and the bottom block by bottom) */
+    --hero-right-right: 64px;
+    --hero-right-top-percent: 36%;  /* controls where line-1 sits vertically */
+    --hero-right-width: min(420px, 36%);
+    --hero-right-gap: 1rem;
+    --hero-right-bottom: 54px; /* distance from card bottom for line2+logos */
+
+    /* logos */
+    --logo-size: 25px;
+    --logo-gap: 12px;
+
+    /* drop shadows and overlay */
+    --overlay-gradient-start: rgba(0,0,0,0.08);
+    --overlay-gradient-end: rgba(0,0,0,0.18);
+}
+
+/* --- Full-page center layout --- */
+.info-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    background: #f5f6f7;
+    padding-top: calc(var(--site-header-occupy) + 20px);
+}
+
+/* --- Centered card --- */
+.info-card {
+    width: var(--card-width);
+    height: clamp(var(--card-height-clamp-min), var(--card-height-vh-offset), var(--card-height-clamp-max));
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(16px);
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    position: relative;
+    display: block;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+}
+
+/* --- Big hero image --- */
+.info-image {
+    position: absolute;
+    inset: 0; /* fill */
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: 70% center;
+    border-radius: inherit;
+    z-index: 1;
+    margin: 0;
+    padding: 0;
+    transform: translateZ(0);
+}
+
+/* --- Overlay elements must be above image --- */
+.info-card .corner,
+.info-card .shutter-btn,
+.info-card .hero-left,
+.info-card .hero-right,
+.info-card .hero-right-bottom {
+    position: absolute;
+    z-index: 3;
+    pointer-events: auto;
+}
+
+/* --- Corner decorations (use variables) --- */
+.info-card .corner {
+    width: var(--corner-size);
+    height: var(--corner-size);
+    object-fit: contain;
+    opacity: 0.95;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25));
+}
+
+/* top-left */
+.info-card .corner-tl {
+    top: var(--corner-offset);
+    left: var(--corner-offset);
+    transform: rotate(0deg);
+}
+
+/* top-right */
+.info-card .corner-tr {
+    top: var(--corner-offset);
+    right: var(--corner-offset);
+    transform: rotate(90deg);
+}
+
+/* bottom-right */
+.info-card .corner-br {
+    bottom: var(--corner-offset);
+    right: var(--corner-offset);
+    transform: rotate(180deg);
+}
+
+/* bottom-left */
+.info-card .corner-bl {
+    bottom: var(--corner-offset);
+    left: var(--corner-offset);
+    transform: rotate(270deg);
+}
+
+/* --- Shutter top-right button (uses variables) --- */
+.info-card .shutter-btn {
+    top: var(--shutter-top);
+    right: var(--shutter-right);
+    width: var(--shutter-size);
+    height: var(--shutter-size);
+    background: transparent;
+    display: inline-grid;
+    place-items: center;
+    cursor: pointer;
+    outline: none;
+    border: none;
+    padding: var(--shutter-padding);
+    border-radius: 50%;
+    z-index: 6;
+}
+
+/* remove white/edge from img and size from vars */
+.info-card .shutter-btn img {
+    width: var(--shutter-icon-size);
+    height: var(--shutter-icon-size);
+    display: block;
+    object-fit: contain;
+    background: transparent;
+    border: none;
+}
+
+/* accessible focus style (keeps no hard border) */
+.info-card .shutter-btn:focus {
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.06);
+}
+
+/* --- Hero left: big headline + blinking dot (variables used) --- */
+.info-card .hero-left {
+    left: var(--hero-left-left);
+    top: var(--hero-left-top);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--hero-left-gap);
+    pointer-events: none;
+    z-index: 4;
+}
+
+/* column wrapper for hero text */
+.hero-left-txt {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* dot */
+.info-card .hero-dot {
+    width: var(--hero-dot-size);
+    height: var(--hero-dot-size);
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 0 0 var(--hero-dot-blur) rgba(255,255,255,0.06), 0 6px 18px rgba(0,0,0,0.18);
+    transform: translateY(-4px);
+    animation: blink 1.6s infinite ease-in-out;
+    opacity: 0.95;
+}
+
+/* blinking keyframes */
+@keyframes blink {
+    0%   { opacity: 0; transform: translateY(-4px) scale(0.85); }
+    10%  { opacity: 1; transform: translateY(-6px) scale(1); }
+    45%  { opacity: 1; transform: translateY(-6px) scale(1); }
+    60%  { opacity: 0.2; transform: translateY(-4px) scale(0.9); }
+    100% { opacity: 0; transform: translateY(-4px) scale(0.85); }
+}
+
+/* large headline */
+.info-card .hero-headline {
+    margin: 0;
+    font-family: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-weight: 800;
+    color: #ffffff;
+    -webkit-font-smoothing: antialiased;
+    font-size: clamp(var(--hero-font-min), var(--hero-font-vw), var(--hero-font-max));
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    pointer-events: none;
+}
+
+/* optional second headline */
+.sub-headline {
+    font-size: clamp(34px, 6vw, 90px);
+    opacity: 0.9;
+}
+
+/* --- Right side content (keep line-1 near top via top %) --- */
+.info-card .hero-right {
+    right: var(--hero-right-right);
+    top: var(--hero-right-top-percent);
+    width: var(--hero-right-width);
+    text-align: right;
+    z-index: 4;
+    pointer-events: auto;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--hero-right-gap);
+}
+
+/* keep line-1 style (unchanged position-wise) */
+.info-card .hero-right .line.line-1 {
+    font-size: clamp(14px, 1.6vw, 18px);
+    color: #ffffff;
+    text-shadow: 0 4px 14px rgba(0,0,0,0.35);
+    margin: 0;
+    opacity: 0.95;
+    max-width: 100%;
+}
+
+/* --- Bottom block for line-2 + logos (anchored bottom-right) --- */
+.info-card .hero-right-bottom {
+    right: var(--hero-right-right);
+    bottom: var(--hero-right-bottom);
+    width: var(--hero-right-width);
+    z-index: 4;
+    pointer-events: auto;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--hero-right-gap);
+}
+
+/* line-2 in bottom block */
+.info-card .hero-right-bottom .line.line-2 {
+    font-size: clamp(14px, 1.6vw, 18px);
+    opacity: 0.95;
+    max-width: 100%;
+    margin: 0;
+    color: #ffffff;
+    text-shadow: 0 4px 14px rgba(0,0,0,0.35);
+}
+
+/* logos row: aligned to bottom-right via bottom block */
+.info-card .hero-right-bottom .logos {
+    display: flex;
+    gap: var(--logo-gap);
+    justify-content: flex-end;
+    align-items: center;
+    margin: 0;
+}
+
+/* logo link - remove borders/backgrounds/shadows */
+.info-card .logo-link {
+    display: inline-grid;
+    width: var(--logo-size);
+    height: var(--logo-size);
+    place-items: center;
+    border-radius: 8px;
+    background: transparent !important;    /* force removal */
+    padding: 0 !important;                  /* remove padding */
+    transition: transform 160ms ease;
+    box-shadow: none !important;            /* remove shadow */
+    border: none !important;                /* remove border */
+}
+
+/* logo image fit cleanly */
+.info-card .logo-link img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    border: none;
+    background: transparent;
+    filter: none;
+}
+
+/* hover: gentle lift only */
+.info-card .logo-link:hover {
+    transform: translateY(-4px);
+}
+
+/* ensure overlay text is legible on varied backgrounds */
+.info-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(180deg, var(--overlay-gradient-start) 0%, var(--overlay-gradient-end) 100%);
+    pointer-events: none;
+}
+
+/* --- responsive overrides (medium screens) --- */
+@media (max-width: 980px) {
+    :root{
+        --card-radius: 20px;
+        --corner-size: 46px;
+        --corner-offset: 16px;
+        --hero-left-left: 36px;
+        --hero-left-top: 80px;
+        --hero-right-right: 28px;
+        --hero-right-bottom: 34px;
+        --hero-right-width: 46%;
+        --hero-font-min: 40px;
+        --hero-font-vw: 7vw;
+        --hero-font-max: 88px;
+        --logo-size: 24px;
+        --shutter-top: 20px;
+        --shutter-right: 25px;
+        --shutter-icon-size: 25px;
+        --hero-dot-size: 12px;
+    }
+
+    .info-card {
+        border-radius: var(--card-radius);
+        height: clamp(380px, 80vh, 1120px);
+    }
+
+    .info-card .hero-left { left: var(--hero-left-left); top: var(--hero-left-top); }
+    .info-card .hero-headline { font-size: clamp(var(--hero-font-min), var(--hero-font-vw), var(--hero-font-max)); line-height: 1; }
+    .info-card .hero-dot { width: var(--hero-dot-size); height: var(--hero-dot-size); }
+
+    /* keep right content visible but wider */
+    .info-card .hero-right {
+        right: var(--hero-right-right);
+        top: var(--hero-right-top-percent);
+        width: var(--hero-right-width);
+        text-align: right;
+    }
+
+    /* logo sizes for small phones */
+    .info-card .logo-link { width: var(--logo-size); height: var(--logo-size); }
+    .info-card .logo-link img { width: 100%; height: 100%; }
+}
+
+/* very small phones */
+@media (max-width: 640px) {
+    :root{
+        --card-radius: 20px;
+        --corner-size: 36px;
+        --corner-offset: 12px;
+        --hero-left-left: 20px;
+        --hero-left-top: 66px;
+        --hero-right-right: 30px;
+        --hero-right-bottom: 40px;
+        --hero-right-width: min(420px, 66%);
+        --hero-font-min: 32px;
+        --hero-font-vw: 8vw;
+        --hero-font-max: 56px;
+        --logo-size: 24px;
+        --shutter-top: 20px;
+        --shutter-right: 25px;
+        --shutter-icon-size: 25px;
+        --hero-dot-size: 12px;
+    }
+
+    .info-card {
+        border-radius: var(--card-radius);
+        height: clamp(380px, 80vh, 1120px);
+    }
+
+    .info-card .hero-left { left: var(--hero-left-left); top: var(--hero-left-top); }
+    .info-card .hero-headline { font-size: clamp(var(--hero-font-min), var(--hero-font-vw), var(--hero-font-max)); line-height: 1; }
+    .info-card .hero-dot { width: var(--hero-dot-size); height: var(--hero-dot-size); }
+
+    /* keep right content visible but wider */
+    .info-card .hero-right {
+        right: var(--hero-right-right);
+        top: var(--hero-right-top-percent);
+        width: var(--hero-right-width);
+        text-align: right;
+    }
+
+    /* logo sizes for small phones */
+    .info-card .logo-link { width: var(--logo-size); height: var(--logo-size); }
+    .info-card .logo-link img { width: 100%; height: 100%; }
+}
+
+/*!* --- helper: reset any images used inside card so they don't add unexpected boxes --- *!*/
+/*.info-card img { display: block; max-width: 100%; height: auto; border: none; background: transparent; }*/

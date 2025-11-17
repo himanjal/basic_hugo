@@ -1,0 +1,85 @@
+{{ define "main" }}
+
+<!-- Header -->
+{{ partial "header.html" . }}
+
+<!-- =======================
+     Load ALL assets from /assets/logos
+     ======================= -->
+
+{{ $bg := resources.Get "logos/info_background.jpg" }}
+{{ $bgBig := cond $bg ($bg.Resize "2400x") nil }}
+
+{{ $corner := resources.Get "logos/image_corner.png" }}
+{{ $shutter := resources.Get "logos/shutter_logo.svg" }}
+
+{{ $logo1 := resources.Get "logos/mail.png" }}
+{{ $logo2 := resources.Get "logos/linkedin.png" }}
+{{ $logo3 := resources.Get "logos/instagram.png" }}
+
+<main class="info-container">
+    <div class="info-card">
+
+        <!-- Background image -->
+        <img
+                src="{{ with $bgBig }}{{ .RelPermalink }}{{ else }}{{ $bg.RelPermalink }}{{ end }}"
+                alt="Info image"
+                class="info-image"
+        >
+
+        <!-- Corners (all from assets/logos/image_corner.png) -->
+        <img src="{{ $corner.RelPermalink }}" alt="" class="corner corner-tl">
+        <img src="{{ $corner.RelPermalink }}" alt="" class="corner corner-tr">
+        <img src="{{ $corner.RelPermalink }}" alt="" class="corner corner-br">
+        <img src="{{ $corner.RelPermalink }}" alt="" class="corner corner-bl">
+
+        <!-- Shutter icon (from assets/logos/shutter_logo.svg) -->
+        <button class="shutter-btn" aria-label="Shutter">
+            <img src="{{ $shutter.RelPermalink }}" alt="Shutter">
+        </button>
+
+        <!-- Left hero section -->
+        <div class="hero-left">
+            <div class="hero-dot"></div>
+
+            <div class="hero-left-txt">
+                <h1 class="hero-headline">Himanjal</h1>
+                <h1 class="hero-headline sub-headline">Sharma</h1>
+            </div>
+        </div>
+
+        <!-- Right mid (Line 1) -->
+        <div class="hero-right">
+            <div class="line line-1">
+                I transform your vision into captivating images using
+            </div>
+        </div>
+
+        <!-- Right bottom (Line 2 + Logos) -->
+        <div class="hero-right-bottom">
+            <div class="line line-2">
+                expert lighting and creative direction.
+            </div>
+
+            <div class="logos">
+                <a class="logo-link" aria-label="Logo 1">
+                    <img src="{{ $logo1.RelPermalink }}" alt="Logo 1">
+                </a>
+                <a class="logo-link" aria-label="Logo 2">
+                    <img src="{{ $logo2.RelPermalink }}" alt="Logo 2">
+                </a>
+                <a class="logo-link" aria-label="Logo 3">
+                    <img src="{{ $logo3.RelPermalink }}" alt="Logo 3">
+                </a>
+            </div>
+        </div>
+
+        <!-- Optional content block -->
+        <div class="info-content"></div>
+
+    </div>
+</main>
+
+<link rel="stylesheet" href="{{ "css/info.css" | relURL }}">
+
+{{ end }}

@@ -1,5 +1,5 @@
 ---
 title: "Himanjal Sharma"
 draft: false
-hero: "images/hero.jpg"
+background: "logos/homepage_background.jpg"
 ---
