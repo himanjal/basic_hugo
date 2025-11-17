@@ -4,39 +4,40 @@
 {{ partial "header.html" . }}
 
 <!-- =======================
-     Load ALL assets from /assets/logos
+     Load ALL assets from /assets/logos (safely)
      ======================= -->
 
-{{ $bg := resources.Get "logos/info_background.jpg" }}
-{{ $bgBig := cond $bg ($bg.Resize "2400x") nil }}
-
-{{ $corner := resources.Get "logos/image_corner.png" }}
-{{ $shutter := resources.Get "logos/shutter_logo.svg" }}
-
-{{ $logo1 := resources.Get "logos/mail.png" }}
-{{ $logo2 := resources.Get "logos/linkedin.png" }}
-{{ $logo3 := resources.Get "logos/instagram.png" }}
+{{/* Background: we will render it via `with` so Resize is only called if the resource exists */}}
 
 <main class="info-container">
     <div class="info-card">
 
-        <!-- Background image -->
-        <img
-                src="{{ with $bgBig }}{{ .RelPermalink }}{{ else }}{{ $bg.RelPermalink }}{{ end }}"
-                alt="Info image"
-                class="info-image"
-        >
+        <!-- Background image (safe resize) -->
+        {{ with resources.Get "logos/info_background.jpg" }}
+        {{ $bgBig := .Resize "2400x" }}
+        <img src="{{ $bgBig.RelPermalink }}" alt="Info image" class="info-image">
+        {{ else }}
+        {{/* fallback: no background found - render nothing or a placeholder */}}
+        {{ end }}
 
         <!-- Corners (all from assets/logos/image_corner.png) -->
-        <img src="{{ $corner.RelPermalink }}" alt="" class="corner corner-tl">
-        <img src="{{ $corner.RelPermalink }}" alt="" class="corner corner-tr">
-        <img src="{{ $corner.RelPermalink }}" alt="" class="corner corner-br">
-        <img src="{{ $corner.RelPermalink }}" alt="" class="corner corner-bl">
+        {{ with resources.Get "logos/image_corner.png" }}
+        <img src="{{ .RelPermalink }}" alt="" class="corner corner-tl">
+        <img src="{{ .RelPermalink }}" alt="" class="corner corner-tr">
+        <img src="{{ .RelPermalink }}" alt="" class="corner corner-br">
+        <img src="{{ .RelPermalink }}" alt="" class="corner corner-bl">
+        {{ end }}
 
         <!-- Shutter icon (from assets/logos/shutter_logo.svg) -->
+        {{ with resources.Get "logos/shutter_logo.svg" }}
         <button class="shutter-btn" aria-label="Shutter">
-            <img src="{{ $shutter.RelPermalink }}" alt="Shutter">
+            <img src="{{ .RelPermalink }}" alt="Shutter">
         </button>
+        {{ else }}
+        <button class="shutter-btn" aria-label="Shutter">
+            <!-- empty fallback -->
+        </button>
+        {{ end }}
 
         <!-- Left hero section -->
         <div class="hero-left">
@@ -62,15 +63,21 @@
             </div>
 
             <div class="logos">
-                <a class="logo-link" aria-label="Logo 1">
-                    <img src="{{ $logo1.RelPermalink }}" alt="Logo 1">
+                {{ with resources.Get "logos/mail.png" }}
+                <a class="logo-link" aria-label="Email">
+                    <img src="{{ .RelPermalink }}" alt="Email">
                 </a>
-                <a class="logo-link" aria-label="Logo 2">
-                    <img src="{{ $logo2.RelPermalink }}" alt="Logo 2">
+                {{ end }}
+                {{ with resources.Get "logos/linkedin.png" }}
+                <a class="logo-link" aria-label="LinkedIn">
+                    <img src="{{ .RelPermalink }}" alt="LinkedIn">
                 </a>
-                <a class="logo-link" aria-label="Logo 3">
-                    <img src="{{ $logo3.RelPermalink }}" alt="Logo 3">
+                {{ end }}
+                {{ with resources.Get "logos/instagram.png" }}
+                <a class="logo-link" aria-label="Instagram">
+                    <img src="{{ .RelPermalink }}" alt="Instagram">
                 </a>
+                {{ end }}
             </div>
         </div>
 
@@ -79,6 +86,91 @@
 
     </div>
 </main>
+
+<!-- ============================
+     ADDITIONAL CONTENT: Benefits UI
+     Placed below the info-container (uses assets/logos/icon1..3.png)
+     Safe `.Resize` usage via `with` blocks
+     ============================ -->
+<section class="benefits-section" aria-labelledby="benefits-heading">
+    <div class="site-width">
+
+        <div class="benefits-header">
+            <span class="small-pill">About me</span>
+
+            <h2 id="benefits-heading" class="benefits-title">
+                 <em>Who</em> am I?
+            </h2>
+
+            <p class="benefits-sub">
+                Great photography is an experience rooted in collaboration, trust, and creativity.
+            </p>
+        </div>
+
+        <div class="benefits-grid">
+
+            <!-- Card 1 -->
+            <article class="benefit-card">
+                <div class="benefit-icon">
+                    {{ with resources.Get "logos/profession.png" }}
+                    {{ $bicon1 := .Resize "64x" }}
+                    <img src="{{ $bicon1.RelPermalink }}" width="48" height="48" alt="Vision Icon">
+                    {{ else }}
+                    <!-- fallback icon markup if icon1 missing -->
+                    <div style="width:48px;height:48px;border-radius:50%;background:#eee;"></div>
+                    {{ end }}
+                </div>
+
+                <h3 class="benefit-title">Software Engineer</h3>
+                <p class="benefit-body">
+                    Developer by trade. Data Science and vibe coding websites.
+                </p>
+
+                <button class="benefit-badge" aria-hidden="true">View my Experience</button>
+            </article>
+
+            <!-- Card 2 -->
+            <article class="benefit-card">
+                <div class="benefit-icon">
+                    {{ with resources.Get "logos/camera.png" }}
+                    {{ $bicon2 := .Resize "64x" }}
+                    <img src="{{ $bicon2.RelPermalink }}" width="48" height="48" alt="Gear Icon">
+                    {{ else }}
+                    <div style="width:48px;height:48px;border-radius:50%;background:#eee;"></div>
+                    {{ end }}
+                </div>
+
+                <h3 class="benefit-title">Amateur Photographer</h3>
+                <p class="benefit-body">
+                    Utilizing top-tier equipment for exceptional photos.
+                </p>
+
+                <button class="benefit-badge" aria-hidden="true">Explore my Gallery</button>
+            </article>
+
+            <!-- Card 3 -->
+            <article class="benefit-card">
+                <div class="benefit-icon">
+                    {{ with resources.Get "logos/trekking.png" }}
+                    {{ $bicon3 := .Resize "64x" }}
+                    <img src="{{ $bicon3.RelPermalink }}" width="48" height="48" alt="Editing Icon">
+                    {{ else }}
+                    <div style="width:48px;height:48px;border-radius:50%;background:#eee;"></div>
+                    {{ end }}
+                </div>
+
+                <h3 class="benefit-title">Backpacker</h3>
+                <p class="benefit-body">
+                    Climbs mountains voluntarily. On a three-year backpacking journey.
+                </p>
+
+                <button class="benefit-badge" aria-hidden="true">Professional editing</button>
+            </article>
+
+        </div><!-- /.benefits-grid -->
+
+    </div><!-- /.site-width -->
+</section>
 
 <link rel="stylesheet" href="{{ "css/info.css" | relURL }}">
 
