@@ -7,8 +7,6 @@
      Load ALL assets from /assets/logos (safely)
      ======================= -->
 
-{{/* Background: we will render it via `with` so Resize is only called if the resource exists */}}
-
 <main class="info-container">
     <div class="info-card">
 
@@ -16,11 +14,9 @@
         {{ with resources.Get "logos/info_background.jpg" }}
         {{ $bgBig := .Resize "2400x" }}
         <img src="{{ $bgBig.RelPermalink }}" alt="Info image" class="info-image">
-        {{ else }}
-        {{/* fallback: no background found - render nothing or a placeholder */}}
         {{ end }}
 
-        <!-- Corners (all from assets/logos/image_corner.png) -->
+        <!-- Corners -->
         {{ with resources.Get "logos/image_corner.png" }}
         <img src="{{ .RelPermalink }}" alt="" class="corner corner-tl">
         <img src="{{ .RelPermalink }}" alt="" class="corner corner-tr">
@@ -28,14 +24,10 @@
         <img src="{{ .RelPermalink }}" alt="" class="corner corner-bl">
         {{ end }}
 
-        <!-- Shutter icon (from assets/logos/shutter_logo.svg) -->
+        <!-- Shutter icon -->
         {{ with resources.Get "logos/shutter_logo.svg" }}
         <button class="shutter-btn" aria-label="Shutter">
             <img src="{{ .RelPermalink }}" alt="Shutter">
-        </button>
-        {{ else }}
-        <button class="shutter-btn" aria-label="Shutter">
-            <!-- empty fallback -->
         </button>
         {{ end }}
 
@@ -49,35 +41,45 @@
             </div>
         </div>
 
-        <!-- Right mid (Line 1) -->
+        <!-- Right mid -->
         <div class="hero-right">
             <div class="line line-1">
                 I transform your vision into captivating images using
             </div>
         </div>
 
-        <!-- Right bottom (Line 2 + Logos) -->
+        <!-- Right bottom -->
         <div class="hero-right-bottom">
             <div class="line line-2">
                 expert lighting and creative direction.
             </div>
 
             <div class="logos">
+
+                <!-- Email -->
                 {{ with resources.Get "logos/mail.png" }}
-                <a class="logo-link" aria-label="Email">
+                <a class="logo-link" aria-label="Email"
+                   href="mailto:hello@himanjal.com">
                     <img src="{{ .RelPermalink }}" alt="Email">
                 </a>
                 {{ end }}
+
+                <!-- LinkedIn -->
                 {{ with resources.Get "logos/linkedin.png" }}
-                <a class="logo-link" aria-label="LinkedIn">
+                <a class="logo-link" aria-label="LinkedIn"
+                   href="https://www.linkedin.com/in/himanjal" target="_blank" rel="noopener">
                     <img src="{{ .RelPermalink }}" alt="LinkedIn">
                 </a>
                 {{ end }}
+
+                <!-- Instagram -->
                 {{ with resources.Get "logos/instagram.png" }}
-                <a class="logo-link" aria-label="Instagram">
+                <a class="logo-link" aria-label="Instagram"
+                   href="https://instagram.com/himanjalsharma" target="_blank" rel="noopener">
                     <img src="{{ .RelPermalink }}" alt="Instagram">
                 </a>
                 {{ end }}
+
             </div>
         </div>
 
@@ -88,9 +90,7 @@
 </main>
 
 <!-- ============================
-     ADDITIONAL CONTENT: Benefits UI
-     Placed below the info-container (uses assets/logos/icon1..3.png)
-     Safe `.Resize` usage via `with` blocks
+     Benefits UI Section
      ============================ -->
 <section class="benefits-section" aria-labelledby="benefits-heading">
     <div class="site-width">
@@ -99,7 +99,7 @@
             <span class="small-pill">About me</span>
 
             <h2 id="benefits-heading" class="benefits-title">
-                 <em>Who</em> am I?
+                <em>Who</em> am I?
             </h2>
 
             <p class="benefits-sub">
@@ -114,10 +114,7 @@
                 <div class="benefit-icon">
                     {{ with resources.Get "logos/profession.png" }}
                     {{ $bicon1 := .Resize "64x" }}
-                    <img src="{{ $bicon1.RelPermalink }}" width="48" height="48" alt="Vision Icon">
-                    {{ else }}
-                    <!-- fallback icon markup if icon1 missing -->
-                    <div style="width:48px;height:48px;border-radius:50%;background:#eee;"></div>
+                    <img src="{{ $bicon1.RelPermalink }}" alt="Profession Icon">
                     {{ end }}
                 </div>
 
@@ -126,7 +123,7 @@
                     Developer by trade. Data Science and vibe coding websites.
                 </p>
 
-                <button class="benefit-badge" aria-hidden="true">View my Experience</button>
+                <a href="/experience" class="benefit-badge">View my Experience</a>
             </article>
 
             <!-- Card 2 -->
@@ -134,9 +131,7 @@
                 <div class="benefit-icon">
                     {{ with resources.Get "logos/camera.png" }}
                     {{ $bicon2 := .Resize "64x" }}
-                    <img src="{{ $bicon2.RelPermalink }}" width="48" height="48" alt="Gear Icon">
-                    {{ else }}
-                    <div style="width:48px;height:48px;border-radius:50%;background:#eee;"></div>
+                    <img src="{{ $bicon2.RelPermalink }}" alt="Camera Icon">
                     {{ end }}
                 </div>
 
@@ -145,7 +140,7 @@
                     Utilizing top-tier equipment for exceptional photos.
                 </p>
 
-                <button class="benefit-badge" aria-hidden="true">Explore my Gallery</button>
+                <a href="/gallery" class="benefit-badge">Explore my Gallery</a>
             </article>
 
             <!-- Card 3 -->
@@ -153,9 +148,7 @@
                 <div class="benefit-icon">
                     {{ with resources.Get "logos/trekking.png" }}
                     {{ $bicon3 := .Resize "64x" }}
-                    <img src="{{ $bicon3.RelPermalink }}" width="48" height="48" alt="Editing Icon">
-                    {{ else }}
-                    <div style="width:48px;height:48px;border-radius:50%;background:#eee;"></div>
+                    <img src="{{ $bicon3.RelPermalink }}" alt="Trekking Icon">
                     {{ end }}
                 </div>
 
@@ -164,12 +157,11 @@
                     Climbs mountains voluntarily. On a three-year backpacking journey.
                 </p>
 
-                <button class="benefit-badge" aria-hidden="true">Professional editing</button>
+                <a href="/travel-heatmap" class="benefit-badge">Mountain ranges I've explored</a>
             </article>
 
-        </div><!-- /.benefits-grid -->
-
-    </div><!-- /.site-width -->
+        </div> <!-- /.benefits-grid -->
+    </div>
 </section>
 
 <link rel="stylesheet" href="{{ "css/info.css" | relURL }}">

@@ -1,0 +1,165 @@
+<!-- gmba-heatmap.html — Stable Leaflet version (recommended) -->
+
+<div id="gmba-heatmap" style="position:relative;width:100%;height:100vh;">
+    <div id="gmba-map" style="width:100%;height:100%;"></div>
+
+    <div id="gmba-legend"
+         style="position:absolute;left:12px;bottom:12px;padding:10px;border-radius:10px;
+              background:rgba(255,255,255,0.95);box-shadow:0 6px 20px rgba(20,20,40,0.06);
+              z-index:1000;display:none;">
+        <div style="font-weight:700;margin-bottom:6px">Legend</div>
+        <div style="height:12px;width:220px;border-radius:8px;overflow:hidden;
+                background:linear-gradient(90deg,#ffffcc,#ffeda0,#feb24c,#f03b20)"></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:6px">
+            <span id="gmba-min">min</span>
+            <span id="gmba-mid">mid</span>
+            <span id="gmba-max">max</span>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet + d3 -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<script>
+    (async function(){
+
+        const CHUNK_PREFIX = "gmba_300_chunk_";
+        const CSV_FILE = "heatmap_input_data.csv";
+        const BASES = ["/heatmap/", "/static/heatmap/", "/assets/heatmap/"];
+        const MAX_CHUNKS = 20;
+
+        // ---- fetch helpers ----
+        async function tryJson(url){
+            try { const r = await fetch(url,{cache:"no-cache"}); if(!r.ok) return null; return r.json(); }
+            catch(e){ return null; }
+        }
+        async function tryText(url){
+            try { const r = await fetch(url,{cache:"no-cache"}); if(!r.ok) return null; return r.text(); }
+            catch(e){ return null; }
+        }
+
+        // ---- load chunks ----
+        let combined = { type:"FeatureCollection", features:[] };
+
+        for (const b of BASES){
+            const base = b.endsWith("/") ? b : b + "/";
+            let found = false;
+            for (let i=1;i<=MAX_CHUNKS;i++){
+                const url = base + CHUNK_PREFIX + i + ".geojson";
+                const data = await tryJson(url);
+                if (data && data.features){
+                    combined.features.push(...data.features);
+                    found = true;
+                }
+            }
+            if (combined.features.length > 0){ break; }
+        }
+
+        // fallback entire file
+        if (combined.features.length == 0){
+            for (const b of BASES){
+                const j = await tryJson((b.endsWith("/")?b:b+"/")+"gmba_300.geojson");
+                if (j && j.features){ combined.features = j.features; break; }
+            }
+        }
+
+        // ---- load CSV ----
+        let csvText = null;
+        for (const b of BASES){
+            const t = await tryText((b.endsWith("/")?b:b+"/")+CSV_FILE);
+            if (t){ csvText = t; break; }
+        }
+        if (!csvText) csvText = await tryText("/heatmap/" + CSV_FILE);
+
+        let csvVals = {};
+        if (csvText){
+            csvText.split("\n").map(s=>s.trim()).filter(Boolean).forEach(line=>{
+                const parts = line.split(",");
+                if (parts.length < 2) return;
+                const name = parts[0].trim();
+                const val = parseFloat(parts[1]);
+                if (!isNaN(val)) csvVals[name] = val;
+            });
+        }
+
+        // ---- normalize helper ----
+        function normalize(s){
+            return s.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
+                .replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim();
+        }
+        function getName(p){
+            return p.Name_EN || p.AsciiName || p.MapName || p.Path ||
+                p.Name || p.Level_01 || null;
+        }
+
+        // ---- map canonical names ----
+        let canonicalMap = {};
+        combined.features.forEach(f=>{
+            const nm = getName(f.properties);
+            if (nm) canonicalMap[normalize(nm)] = nm;
+        });
+
+        let valuesByCanonical = {};
+        Object.keys(csvVals).forEach(k=>{
+            const kn = normalize(k);
+            if (canonicalMap[kn]) valuesByCanonical[canonicalMap[kn]] = csvVals[k];
+            else valuesByCanonical[k] = csvVals[k]; // fallback
+        });
+
+        // ---- compute color scale ----
+        const numeric = Object.values(valuesByCanonical).filter(v=>typeof v==="number");
+        let min = 0, max = 1;
+        if (numeric.length > 0){
+            min = Math.min(...numeric);
+            max = Math.max(...numeric);
+            if (min === max){ min -= 1; max += 1; }
+        }
+        const colorScale = d3.scaleSequential().domain([min,max]).interpolator(d3.interpolateYlOrRd);
+
+        // ---- init Leaflet ----
+        const map = L.map("gmba-map").setView([20,0], 2);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{ maxZoom: 18 }).addTo(map);
+
+        const legend = document.getElementById("gmba-legend");
+        const minEl = document.getElementById("gmba-min");
+        const midEl = document.getElementById("gmba-mid");
+        const maxEl = document.getElementById("gmba-max");
+
+        if (numeric.length > 0){
+            legend.style.display = "block";
+            minEl.textContent = min.toFixed(2);
+            midEl.textContent = ((min+max)/2).toFixed(2);
+            maxEl.textContent = max.toFixed(2);
+        }
+
+        // ---- render polygons ----
+        L.geoJSON(combined,{
+            style: f=>{
+                const nm = getName(f.properties) || "";
+                const val = valuesByCanonical[nm];
+                return {
+                    weight: 0.7,
+                    color: "rgba(0,0,0,0.25)",
+                    fillOpacity: val==null ? 0.2 : 0.9,
+                    fillColor: val==null ? "#ddd" : colorScale(val)
+                };
+            },
+            onEachFeature: (feature, layer)=>{
+                const nm = getName(feature.properties) || "Unknown";
+                const val = valuesByCanonical[nm];
+                layer.on("mouseover", e=>{
+                    layer.setStyle({weight:2,color:"#333"});
+                    layer.bindPopup(`<b>${nm}</b><br>${val==null?"no data":val}`).openPopup();
+                });
+                layer.on("mouseout", e=>{
+                    layer.setStyle({weight:0.7,color:"rgba(0,0,0,0.25)"});
+                    layer.closePopup();
+                });
+            }
+        }).addTo(map);
+
+    })();
+</script>
