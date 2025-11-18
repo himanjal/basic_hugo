@@ -479,25 +479,53 @@
     .services-sub { font-size: calc(var(--section-sub-font-size, 16px) * 0.98); }
 }
 
+/* -------------------
+   Mobile tweaks — updated
+   ------------------- */
 @media (max-width: 640px) {
-    .services-grid{
-        width: 100%;
+    :root {
+        /* Card title */
+        --card-title-font-size: calc(20px * 0.85);   /* -15% */
+
+        /* Card body */
+        --card-body-font-size: calc(19px * 0.85);    /* -15% */
+
+        /* Pills */
+        --pill-font-size: calc(16px * 0.85);         /* -15% */
+
+        --section-title-font-size: calc(40px * 0.85);
     }
-    .service-hero { min-height: 300px; padding: 8px; }
-    .service-hero-inner { border-radius: 12px; }
-    .service-hero-card { left:12px; right:12px; bottom:12px; padding:10px; border-radius:10px; }
 
-    .service-card { padding:12px; gap:12px; border-radius:14px; }
-    .service-card .service-card-media { width:56px; height:56px; flex:0 0 56px; }
-    .service-card--right-top .service-card-media { width:96px; height:96px; flex:0 0 96px; }
-    .media-right .service-card-media { width:72px; height:72px; flex:0 0 72px; }
+    .services-grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto; }
+    .service-left-hero { grid-column: 1 / -1; grid-row: 1 / 2; min-height: 340px; }
+    .service-card--right-top { grid-column: 1 / -1; grid-row: 2 / 3; }
+    .service-card--right-bottom { grid-column: 1 / -1; grid-row: 3 / 4; }
 
-    .card-logo { width: 22px; height:22px; padding:3px; }
+    /* reduce sizes */
+    .service-hero { min-height: 360px; padding: 10px; }
+    .service-hero-inner { border-radius: 14px; }
+    .service-hero-card { left:14px; right:14px; bottom:14px; padding:12px; border-radius:12px; }
 
-    /* scale down typography for phones */
-    .services-title { font-size: calc(var(--section-title-font-size, 44px) * 0.7); }
-    .services-sub { font-size: calc(var(--section-sub-font-size, 16px) * 0.95); }
+    .mini-logo {
+        filter: contrast(2);
+        transform: scale(1);   /* smaller */
+        padding: 0 !important;
+        background: transparent !important;
+    }
+
+    /*.service-card .service-card-media { width: 72px; height:72px; flex:0 0 72px; }*/
+    /*.service-card--right-top .service-card-media { width:120px; height:120px; flex:0 0 120px; }*/
+    /*.media-right .service-card-media { width:96px; height:96px; flex:0 0 96px; }*/
+
+    /*.card-logo { width: 28px; height:28px; padding:4px; }*/
+
+    /*!* adjust section title on smaller screens (scale using shared vars) *!*/
+    /*.services-title { font-size: calc(var(--section-title-font-size, 44px) * 0.86); }*/
+    /*.services-sub { font-size: calc(var(--section-sub-font-size, 16px) * 0.98); }*/
+
+
 }
+
 
 /* small helper: when you need pills to be vertical in other contexts */
 .tags-vertical { display:flex; flex-direction:column; gap:8px; align-items:flex-end; }
