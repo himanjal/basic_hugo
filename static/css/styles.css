@@ -1,15 +1,36 @@
 /* global css to be applied to every page */
+
+/* -------------------------
+   Font stack + variables
+   -------------------------
+   - Put your preferred local fonts first.
+   - Then a web / UI font (Inter).
+   - Then system fallbacks and a generic family at the end.
+   - Do NOT wrap the whole fallbacks list in quotes.
+*/
+:root {
+    --font-main: 'Wolf2', system-ui;
+}
+
+
+/* -------------------------
+   Page base / smoothing
+   ------------------------- */
 html, body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-text-size-adjust: 100%;
+    background: #f5f6f7;
+    font-family: var(--font-main), sans-serif; /* var() now contains safe fallbacks */
 }
 
 
 /* ===========================================
-   Local font faces: wolf & wolf2
-   =========================================== */
-
+   Local font faces: Wolf & Wolf2 & Wolf3
+   ===========================================
+   NOTE: the font-family name in @font-face must
+   match the names used in --font-main above.
+*/
 @font-face {
     font-family: 'Wolf';
     src: url('/fonts/font1.woff') format('woff');
@@ -35,15 +56,18 @@ html, body {
 }
 
 
-
 /* === GLOBAL RESET: Remove underlines from all text === */
 
-/* Remove text-decoration from all elements */
+/* Remove text-decoration from all elements
+   WARNING: this is aggressive. It will remove underlines
+   from links, abbreviations, and other accessible cues.
+   Consider scoping this if you rely on underlines for
+   link affordance or accessibility. */
 * {
     text-decoration: none !important;
 }
 
-/* But re-enable underline for elements that must remain accessible (optional) */
+/* Re-enable underline for elements that must remain accessible */
 abbr[title],
 ins,
 mark {
@@ -59,7 +83,7 @@ a:visited {
 /* Provide visual feedback on hover/focus */
 a:hover,
 a:focus-visible {
-    text-decoration: none; /* or underline if you prefer feedback */
+    text-decoration: none; /* or change to 'underline' if you want hover feedback */
     outline: none;
 }
 

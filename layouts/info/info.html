@@ -1,0 +1,306 @@
+{{ define "main" }}
+
+<!-- Header -->
+{{ partial "header.html" . }}
+
+
+
+<main class="info-container">
+    <div class="info-card">
+
+        <!-- Background image (safe resize) -->
+        {{ with resources.Get "logos/info_background.jpg" }}
+        {{ $bgBig := .Resize "2400x" }}
+        <img src="{{ $bgBig.RelPermalink }}" alt="Info image" class="info-image">
+        {{ end }}
+
+        <!-- Corners -->
+        {{ with resources.Get "logos/image_corner.png" }}
+        <img src="{{ .RelPermalink }}" alt="" class="corner corner-tl">
+        <img src="{{ .RelPermalink }}" alt="" class="corner corner-tr">
+        <img src="{{ .RelPermalink }}" alt="" class="corner corner-br">
+        <img src="{{ .RelPermalink }}" alt="" class="corner corner-bl">
+        {{ end }}
+
+        <!-- Shutter icon -->
+        {{ with resources.Get "logos/shutter_logo.svg" }}
+        <button class="shutter-btn" aria-label="Shutter">
+            <img src="{{ .RelPermalink }}" alt="Shutter">
+        </button>
+        {{ end }}
+
+        <!-- Left hero section -->
+        <div class="hero-left">
+            <div class="hero-dot"></div>
+
+            <div class="hero-left-txt">
+                <h1 class="hero-headline">Himanjal</h1>
+                <h1 class="hero-headline sub-headline">Sharma</h1>
+            </div>
+        </div>
+
+        <!-- Right mid -->
+        <div class="hero-right">
+            <div class="line line-1">
+                I transform your vision into captivating images using
+            </div>
+        </div>
+
+        <!-- Right bottom -->
+        <div class="hero-right-bottom">
+            <div class="line line-2">
+                expert lighting and creative direction.
+            </div>
+
+            <div class="logos">
+
+                <!-- Email -->
+                {{ with resources.Get "logos/mail.png" }}
+                <a class="logo-link" aria-label="Email"
+                   href="mailto:hello@himanjal.com">
+                    <img src="{{ .RelPermalink }}" alt="Email">
+                </a>
+                {{ end }}
+
+                <!-- LinkedIn -->
+                {{ with resources.Get "logos/linkedin.png" }}
+                <a class="logo-link" aria-label="LinkedIn"
+                   href="https://www.linkedin.com/in/himanjal" target="_blank" rel="noopener">
+                    <img src="{{ .RelPermalink }}" alt="LinkedIn">
+                </a>
+                {{ end }}
+
+                <!-- Instagram -->
+                {{ with resources.Get "logos/instagram.png" }}
+                <a class="logo-link" aria-label="Instagram"
+                   href="https://instagram.com/himanjalsharma" target="_blank" rel="noopener">
+                    <img src="{{ .RelPermalink }}" alt="Instagram">
+                </a>
+                {{ end }}
+
+            </div>
+        </div>
+
+        <!-- Optional content block -->
+        <div class="info-content"></div>
+
+    </div>
+</main>
+
+<!-- ============================
+     Benefits UI Section
+     ============================ -->
+<section class="benefits-section" aria-labelledby="benefits-heading">
+    <div class="site-width">
+
+        <div class="benefits-header">
+            <span class="small-pill">About me</span>
+
+            <h2 id="benefits-heading" class="benefits-title">
+                <em>Who</em> am I?
+            </h2>
+
+            <p class="benefits-sub">
+                A wanderer shaped by landscapes, souls, and the echoes of experience.
+            </p>
+        </div>
+
+        <div class="benefits-grid">
+
+            <!-- Card 1 -->
+            <article class="benefit-card">
+                <div class="benefit-icon">
+                    {{ with resources.Get "logos/profession.png" }}
+                    {{ $bicon1 := .Resize "64x" }}
+                    <img src="{{ $bicon1.RelPermalink }}" alt="Profession Icon">
+                    {{ end }}
+                </div>
+
+                <h3 class="benefit-title">Software Engineer</h3>
+                <p class="benefit-body">
+                    Developer by trade. Data Science and vibe coding websites.
+                </p>
+
+                <a href="#past-experience" class="benefit-badge">View my Experience</a>
+            </article>
+
+            <!-- Card 2 -->
+            <article class="benefit-card">
+                <div class="benefit-icon">
+                    {{ with resources.Get "logos/camera.png" }}
+                    {{ $bicon2 := .Resize "64x" }}
+                    <img src="{{ $bicon2.RelPermalink }}" alt="Camera Icon">
+                    {{ end }}
+                </div>
+
+                <h3 class="benefit-title">Amateur Photographer</h3>
+                <p class="benefit-body">
+                    Capturing the world through my lens.
+                </p>
+
+                <a href="/gallery" class="benefit-badge">Explore my Gallery</a>
+            </article>
+
+            <!-- Card 3 -->
+            <article class="benefit-card">
+                <div class="benefit-icon">
+                    {{ with resources.Get "logos/trekking.png" }}
+                    {{ $bicon3 := .Resize "64x" }}
+                    <img src="{{ $bicon3.RelPermalink }}" alt="Trekking Icon">
+                    {{ end }}
+                </div>
+
+                <h3 class="benefit-title">Backpacker</h3>
+                <p class="benefit-body">
+                    Climbs mountains voluntarily. On a three-year backpacking journey.
+                </p>
+
+                <a href="/travel-heatmap" class="benefit-badge">Mountain ranges I've explored</a>
+            </article>
+
+        </div> <!-- /.benefits-grid -->
+    </div>
+</section>
+
+<!-- ============================
+     Services Section (new)
+     ============================ -->
+<!-- ============================
+     Services Section — left single row, right two rows
+     ============================ -->
+<!-- ============================
+     Services Section — edited per request
+     ============================ -->
+<!-- ============================
+     Services Section — edited per request
+     ============================ -->
+<section id="past-experience" class="services-section" aria-labelledby="services-heading">
+    <div class="site-width">
+
+        <div class="services-header">
+            <span class="small-pill">Past Experience</span>
+            <h2 id="services-heading" class="services-title">
+                <em>Institutions</em> I have been to
+            </h2>
+            <p class="services-sub">
+                Places I have spent a good amount of my 9-5 time in recent years.
+            </p>
+        </div>
+
+        <div class="services-grid">
+
+            <!-- LEFT: single tall hero spanning both rows -->
+            <div class="service-left-hero">
+                <div class="service-hero">
+                    <div class="service-hero-inner">
+                        {{ with resources.Get "logos/tesla.png" }}
+                        {{ $hero := .Resize "1600x" }}
+                        <img src="{{ $hero.RelPermalink }}" alt="Hero" class="service-hero-image">
+                        {{ end }}
+                    </div>
+
+                    <div class="service-hero-card">
+                        <div class="service-hero-left">
+                        <div class="service-label">
+                            {{ with resources.Get "logos/software_engineer.png" }}
+                            {{ $mini := .Resize "56x" }}
+                            <img class="mini-logo" alt="software engineer icon" src="{{ $mini.RelPermalink }}">
+                            {{ end }}
+                            <div class="service-hero-title">Senior Software Engineer</div>
+                        </div>
+
+                        <p class="service-hero-desc">
+                            A ten-month internship and six years of full-time. Microcontrollers and Data Science.
+                        </p>
+                        </div>
+                        <div class="service-hero-right">
+                        <div class="service-tags">
+                            <span class="tag">Tesla</span>
+                            <span class="tag">California</span>
+                            <span class="tag">2017 - 2024</span>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT TOP: portrait card (with icon above title) -->
+            <article class="service-card service-card--right-top">
+                <div class="service-card-media">
+                    {{ with resources.Get "logos/solidworks.jpeg" }}
+                    {{ $i := .Resize "420x" }}
+                    <img src="{{ $i.RelPermalink }}" alt="portrait gear" />
+                    {{ end }}
+                </div>
+
+                <div class="service-card-body">
+                    <!-- small circular icon/logo above the title -->
+                    <div class="card-logo-wrap">
+                        {{ with resources.Get "logos/internship.png" }}
+                        {{ $c := .Resize "40x" }}
+                        <img src="{{ $c.RelPermalink }}" alt="internship icon" class="card-logo">
+                        {{ else }}
+                        {{ with resources.Get "logos/logo.png" }}
+                        {{ $fallback := .Resize "40x" }}
+                        <img src="{{ $fallback.RelPermalink }}" alt="logo" class="card-logo">
+                        {{ end }}
+                        {{ end }}
+                    </div>
+
+                    <div class="service-card-title">Software Development Intern</div>
+                    <p class="service-card-desc">A summer internship building Windows applications.</p>
+
+                    <div class="service-tags">
+                        <span class="tag">Solidworks</span>
+                        <span class="tag">Massachusetts</span>
+                        <span class="tag">Summer 2016</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- RIGHT BOTTOM: WPI card with image on the RIGHT -->
+            <article class="service-card media-right service-card--right-bottom">
+                <div class="service-card-media">
+                    {{ with resources.Get "logos/wpi.jpg" }}
+                    {{ $i3 := .Resize "220x" }}
+                    <img src="{{ $i3.RelPermalink }}" alt="WPI logo" />
+                    {{ end }}
+                </div>
+
+                <div class="service-card-body">
+                    <div class="card-logo-wrap">
+                        {{ with resources.Get "logos/college.png" }}
+                        {{ $g := .Resize "40x" }}
+                        <img src="{{ $g.RelPermalink }}" alt="college icon" class="card-logo">
+                        {{ else }}
+                        {{ with resources.Get "logos/logo.png" }}
+                        {{ $fallback2 := .Resize "40x" }}
+                        <img src="{{ $fallback2.RelPermalink }}" alt="logo" class="card-logo">
+                        {{ end }}
+                        {{ end }}
+                    </div>
+
+                    <div class="service-card-title">Worcester Polytechnic Institute</div>
+                    <p class="service-card-desc">Bachelor's of Computer Science.</p>
+
+                    <div class="service-tags">
+                        <span class="tag">WPI</span>
+                        <span class="tag">Massachusetts</span>
+                        <span class="tag">2014 - 2018</span>
+                    </div>
+                </div>
+            </article>
+
+        </div> <!-- /.services-grid -->
+
+    </div> <!-- /.site-width -->
+</section>
+
+
+
+
+<link rel="stylesheet" href="{{ "css/info.css" | relURL }}">
+<link rel="stylesheet" href="{{ "css/experience.css" | relURL }}">
+
+
+{{ end }}

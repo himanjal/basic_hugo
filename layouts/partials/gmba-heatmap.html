@@ -1,0 +1,630 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>Visited Mountain Ranges — Colored Highlights</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+    <style>
+        :root{
+            --legend-width: 320px;
+            --legend-height: 44vh;
+            --minimized-height: 44px;
+            --legend-bg: rgba(255,255,255,0.96);
+            --legend-radius: 999px;
+            --swatch-size: 12px;
+            --swatch-gap: 8px;
+            --legend-font-size: 13px;
+            --minimized-font-size: 13px;
+            --pill-padding-x: 12px;
+        }
+
+        html,body { height:100%; margin:0; padding:0; background:#f7faf9; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+        body > * { box-sizing: border-box; }
+
+        /* Map covers full viewport */
+        #map {
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 0;
+            background: #e8eff3;
+        }
+
+        /* Legend common */
+        .legend {
+            position: absolute;
+            left: 16px;
+            bottom: 16px;
+            z-index: 1002;
+            display: flex;
+            gap: 8px;
+            transition: all 220ms ease;
+            pointer-events: auto;
+            font-size: var(--legend-font-size);
+        }
+
+        /* Minimized pill (wide pill style) */
+        .legend.minimized {
+            height: var(--minimized-height);
+            border-radius: var(--legend-radius);
+            background: var(--legend-bg);
+            box-shadow: 0 8px 28px rgba(15,23,42,0.12);
+            padding: 6px;
+            align-items: center;
+            cursor: pointer;
+            min-width: 88px;
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+        .mini-pill {
+            display:flex;
+            align-items:center;
+            gap:8px;
+            background: transparent;
+            border-radius: 999px;
+            padding: 6px var(--pill-padding-x);
+            height: calc(var(--minimized-height) - 12px);
+            box-sizing: border-box;
+        }
+
+        .mini-label {
+            font-weight: 600;
+            font-size: var(--minimized-font-size);
+            color: #071233;
+            white-space: nowrap;
+            margin-right: 6px;
+        }
+
+        .mini-count {
+            min-width: 28px;
+            height: 28px;
+            line-height: 28px;
+            border-radius: 999px;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(2,6,23,0.12);
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding: 0 8px;
+            font-weight: 700;
+            color: #071233;
+            font-size: 12px;
+        }
+
+        /* Hide the mini-pill when expanded (count only visible minimized) */
+        .legend.expanded .mini-pill { display: none; }
+
+        /* Expanded legend */
+        .legend.expanded {
+            left: 12px;
+            right: 12px;
+            width: var(--legend-width);
+            max-width: calc(100% - 24px);
+            height: var(--legend-height);
+            min-height: 96px;
+            border-radius: 12px;
+            background: var(--legend-bg);
+            padding: 10px;
+            flex-direction: column;
+            box-shadow: 0 8px 28px rgba(15,23,42,0.12);
+            align-items: stretch;
+            overflow: hidden;
+        }
+
+        .title-row {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:8px;
+            padding-bottom:6px;
+        }
+
+        .title-left {
+            display:flex;
+            align-items:center;
+            gap:8px;
+        }
+
+        .legend h4 { margin:0; font-weight:600; font-size:14px; color:#071233; }
+
+        .close-btn {
+            background:transparent; border:0; font-size:18px; color:#0f172a; cursor:pointer; padding:6px 8px; border-radius:8px;
+        }
+
+        .legend-list {
+            overflow:auto; -webkit-overflow-scrolling:touch;
+            display:flex; flex-direction:column; gap:6px;
+            padding-right:6px;
+        }
+
+        .legend-item {
+            display:flex; align-items:center; gap:var(--swatch-gap);
+            padding:6px 8px; border-radius:8px;
+        }
+
+        .legend-item .swatch {
+            width: var(--swatch-size); height: var(--swatch-size); border-radius:3px;
+            border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 2px 6px rgba(2,6,23,0.08);
+        }
+        .legend-item .name { font-size: var(--legend-font-size); color:#071233; line-height:1.1; }
+        .legend-item .meta { font-size: 11px; color:#334155; margin-left:auto; opacity:0.8; }
+
+        /* Hide expanded parts when minimized */
+        .legend.minimized .title-row,
+        .legend.minimized .legend-list {
+            display: none;
+        }
+
+        /* Loading badge */
+        .loading {
+            position: absolute;
+            right: 12px;
+            bottom: 16px;
+            background: var(--legend-bg);
+            padding: 8px 10px;
+            border-radius: 12px;
+            box-shadow: 0 8px 28px rgba(15,23,42,0.08);
+            font-size: 13px;
+            z-index: 1002;
+        }
+
+        .leaflet-popup-content { font-size:14px; }
+
+        @media (max-width:640px){
+            :root {
+                --legend-width: 92vw;
+                --legend-height: 46vh;
+                --minimized-height: 44px;
+                --legend-font-size: 13px;
+            }
+            .mini-pill { padding: 6px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="map" aria-hidden="false"></div>
+
+<!-- Legend -->
+<div id="legend" class="legend minimized" role="region" aria-label="Visited ranges legend" title="Tap to expand legend">
+    <div class="mini-pill" id="miniPill">
+        <div class="mini-label" id="miniLabel">Legend</div>
+        <div class="mini-count" id="miniCount">0</div>
+    </div>
+
+    <!-- Expanded content appended via JS (title row + list) -->
+</div>
+
+<div id="loading" class="loading">Loading…</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    (async function(){
+        // --------------------
+        // Tweakable variables
+        // --------------------
+        // Amount to move the center UP by (fraction of viewport height). 0.10 => 10%
+        const CENTER_VERTICAL_OFFSET = -0.03;
+
+        // Paths
+        const GEOJSON_PATH = '/heatmap/ranges_small.geojson';
+        const CSV_PATH     = '/heatmap/heatmap_input_data.csv';
+
+        // Styles
+        const DEFAULT_STYLE = { weight:1, color: 'rgba(0,0,0,0.18)', fillOpacity:0.6, fillColor:'#909090' };
+        const HIGHLIGHT_BASE = { weight:1.5, color:'#184e18', fillOpacity:0.8 };
+
+        const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+
+        const loadingEl = document.getElementById('loading');
+        const legendEl = document.getElementById('legend');
+        const miniCountEl = document.getElementById('miniCount');
+
+        function setLoading(msg){ loadingEl.textContent = msg; }
+
+        // --------------------
+        // Map init - disable attribution control to hide bottom-right "Leaflet"
+        // --------------------
+        const map = L.map('map', {
+            preferCanvas: true,
+            tap: true,
+            doubleClickZoom: false,
+            zoomControl: false,
+            attributionControl: false
+        }).setView([20,0], 2);
+
+        // tiles (no attribution string)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:18, attribution:'' }).addTo(map);
+
+        // --------------------
+        // Fetch helpers & CSV parse
+        // --------------------
+        async function fetchText(url){ const r = await fetch(url, {cache:'no-cache'}); if(!r.ok) throw new Error('Fetch ' + url + ' failed ' + r.status); return await r.text(); }
+        async function fetchJSON(url){ const r = await fetch(url, {cache:'no-cache'}); if(!r.ok) throw new Error('Fetch ' + url + ' failed ' + r.status); return await r.json(); }
+
+        function parseCSV(text){
+            const rows = [];
+            const lines = text.split(/\r?\n/).filter(Boolean);
+            for(const line of lines){
+                const cells = [];
+                let cur = '', inQuotes = false;
+                for(let i=0;i<line.length;i++){
+                    const ch = line[i];
+                    if(ch === '"'){
+                        if(inQuotes && line[i+1] === '"'){ cur += '"'; i++; continue; }
+                        inQuotes = !inQuotes;
+                        continue;
+                    }
+                    if(ch === ',' && !inQuotes){ cells.push(cur.trim()); cur = ''; continue; }
+                    cur += ch;
+                }
+                cells.push(cur.trim());
+                rows.push(cells);
+            }
+            return rows;
+        }
+
+        function findNameCol(header){
+            if(!header || header.length === 0) return 0;
+            const names = header.map(h => (h||'').toLowerCase());
+            const candidates = ['name','range','range_name','mountain','mountain_range','range name','name_en'];
+            for(const c of candidates){
+                const idx = names.indexOf(c);
+                if(idx >= 0) return idx;
+            }
+            for(let i=0;i<names.length;i++) if(names[i]) return i;
+            return 0;
+        }
+
+        function findColorCol(header){
+            if(!header) return -1;
+            const names = header.map(h => (h||'').toLowerCase());
+            const candidates = ['color','colour','hex','colour_hex','fill','fill_color','colour_hex'];
+            for(const c of candidates){
+                const idx = names.indexOf(c);
+                if(idx >= 0) return idx;
+            }
+            return -1;
+        }
+
+        function norm(s){ return String(s||'').trim().toLowerCase(); }
+        function colorForIndex(i, total){ const hue = Math.round((i * 137.50776405003785) % 360); return `hsl(${hue} 60% 46%)`; }
+
+        setLoading('Loading CSV and GeoJSON...');
+
+        let csvText = null, geojson = null;
+        try {
+            [csvText, geojson] = await Promise.all([
+                fetchText(CSV_PATH).catch(e => { console.warn('CSV fetch failed', e); return null; }),
+                fetchJSON(GEOJSON_PATH).catch(e => { console.warn('GeoJSON fetch failed', e); return null; })
+            ]);
+        } catch(e){ console.error('Fetch error', e); }
+
+        const nameToColor = new Map();
+        const originalNames = new Map();
+        if(csvText){
+            const rows = parseCSV(csvText);
+            if(rows.length > 0){
+                let header = rows[0], start = 1;
+                const headerLooksLikeHeader = header.some(c => isNaN(Number(c)) && c.trim() !== '');
+                if(!headerLooksLikeHeader){ header = null; start = 0; }
+                const nameCol = header ? findNameCol(header) : 0;
+                const colorCol = header ? findColorCol(header) : -1;
+                const uniq = [];
+                for(let i=start;i<rows.length;i++){
+                    const row = rows[i];
+                    if(!row || row.length === 0) continue;
+                    const raw = row[nameCol] || '';
+                    if(!raw || !raw.trim()) continue;
+                    const parts = raw.split(/;|\||\/|,/).map(p => p.trim()).filter(Boolean);
+                    const colVal = (colorCol >=0 && row[colorCol]) ? row[colorCol].trim() : null;
+                    for(const p of parts){
+                        const n = norm(p);
+                        if(!nameToColor.has(n)){
+                            nameToColor.set(n, colVal || null);
+                            originalNames.set(n, p);
+                            uniq.push(n);
+                        }
+                    }
+                }
+                let assigned = 0;
+                for(const n of uniq){
+                    if(!nameToColor.get(n)){
+                        nameToColor.set(n, colorForIndex(assigned++, uniq.length));
+                    }
+                }
+            }
+        } else {
+            console.warn('No CSV loaded; no highlights will be applied.');
+        }
+
+        setLoading('Styling features...');
+
+        function isFeatureHighlighted(feature){
+            if(!feature || !feature.properties) return null;
+            const candidates = ['name','Name','Name_EN','NAME','range','Range','range_name'];
+            for(const k of candidates){
+                if(feature.properties[k]){
+                    const n = norm(feature.properties[k]);
+                    if(nameToColor.has(n)) return { key: n, color: nameToColor.get(n), label: feature.properties[k] };
+                }
+            }
+            for(const k in feature.properties){
+                if(!feature.properties.hasOwnProperty(k)) continue;
+                const n = norm(feature.properties[k]);
+                if(nameToColor.has(n)) return { key: n, color: nameToColor.get(n), label: feature.properties[k] };
+            }
+            return null;
+        }
+
+        function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+        function darken(cssColor, amt){
+            if(typeof cssColor !== 'string') return 'rgba(0,0,0,0.18)';
+            if(cssColor.startsWith('hsl')){
+                try{
+                    const m = cssColor.match(/hsl\(\s*([\d.]+)[^\d]+([\d.]+)%[^\d]+([\d.]+)%\s*\)/);
+                    if(m){
+                        let h = m[1], s = m[2], l = Math.max(0, Number(m[3]) - (amt*60));
+                        return `hsl(${h} ${s}% ${l}%)`;
+                    }
+                }catch(e){}
+            }
+            return 'rgba(0,0,0,0.18)';
+        }
+
+        let geoLayer = null;
+        const legendListContainer = document.createElement('div');
+        legendListContainer.className = 'legend-list';
+
+        if(geojson && geojson.features && geojson.features.length){
+            // ensure map knows its container size before fitBounds (fixes mobile zoom issues)
+            map.invalidateSize(true);
+
+            geoLayer = L.geoJSON(geojson, {
+                style: function(feature){
+                    const hit = isFeatureHighlighted(feature);
+                    if(hit){
+                        return Object.assign({}, HIGHLIGHT_BASE, { fillColor: hit.color, color: darken(hit.color, 0.18) });
+                    }
+                    return DEFAULT_STYLE;
+                },
+                onEachFeature: function(feature, layer){
+                    const hit = isFeatureHighlighted(feature);
+                    const name = (feature.properties && (feature.properties.name || feature.properties.Name || feature.properties.Name_EN)) || 'Range';
+                    const desc = hit ? `<div style="margin-top:6px;color:${hit.color}">Highlighted</div>` : '';
+                    layer.bindPopup(`<strong>${escapeHtml(String(name))}</strong>${desc}`, { closeButton: true, maxWidth: 280 });
+
+                    if(!isTouch){
+                        layer.on('mouseover', () => layer.setStyle({ weight: 2 }));
+                        layer.on('mouseout', () => {
+                            const outStyle = hit
+                                ? Object.assign({}, HIGHLIGHT_BASE, { fillColor: hit.color, color: darken(hit.color, 0.18) })
+                                : DEFAULT_STYLE;
+                            layer.setStyle(outStyle);
+                        });
+                    }
+
+                    layer.on('click', () => layer.openPopup());
+                }
+            }).addTo(map);
+
+            // collect present names
+            const presentNames = [];
+            for(const [key, color] of nameToColor){
+                const present = geojson.features.some(f => {
+                    const h = isFeatureHighlighted(f);
+                    return h && h.key === key;
+                });
+                if(!present) continue;
+                presentNames.push({ key, color, label: originalNames.get(key) || key });
+            }
+
+            // update minimized pill count (only shown in minimized state)
+            const tot = presentNames.length || 0;
+            miniCountEl.textContent = String(tot);
+
+            // populate legend list
+            presentNames.forEach(item => {
+                const r = document.createElement('div');
+                r.className = 'legend-item';
+                r.innerHTML = `<div class="swatch" style="background:${item.color}"></div>
+               <div class="name">${escapeHtml(item.label)}</div>
+               <div class="meta"></div>`;
+                r.addEventListener('click', () => {
+                    if(!geoLayer) return;
+                    const matches = [];
+                    geoLayer.eachLayer(l => {
+                        const h = isFeatureHighlighted(l.feature);
+                        if(h && h.key === item.key) matches.push(l);
+                    });
+                    if(matches.length === 0) return;
+                    const group = L.featureGroup(matches);
+
+                    // ensure container size is correct before fitting
+                    map.invalidateSize(true);
+                    map.fitBounds(group.getBounds(), { padding:[12,12] });
+
+                    matches.forEach(l => {
+                        l.setStyle({ weight: 3 });
+                        setTimeout(() => l.setStyle({ weight: 1.5 }), 900);
+                    });
+                }, { passive: true });
+                legendListContainer.appendChild(r);
+            });
+
+            // build expanded header (NO count shown)
+            const expandedHeader = document.createElement('div');
+            expandedHeader.className = 'title-row';
+            expandedHeader.innerHTML = `<div class="title-left">
+                                      <h4>Visited mountain ranges</h4>
+                                    </div>
+                                    <button class="close-btn" id="legendCloseBtn" aria-label="Minimize legend">✕</button>`;
+            legendEl.appendChild(expandedHeader);
+            legendEl.appendChild(legendListContainer);
+
+            // --------------------------
+            // NEW: iterative zoom-fill approach
+            // --------------------------
+            // --------------------------
+// REPLACEMENT: fractional-zoom iterative fill
+// --------------------------
+            // --------------------------
+// FORCE-VERTICAL-FILL: compute zoom from bounds pixel HEIGHT (ignore width)
+// --------------------------
+            try {
+                const bounds = geoLayer.getBounds();
+                if (bounds.isValid()) {
+                    // ensure map container sizing is correct
+                    map.invalidateSize(true);
+
+                    // header detection + decide whether map must fill behind header
+                    const headerEl = document.querySelector('header, .site-header, .home-header, .home-header-wrap');
+                    const headerHeight = headerEl ? Math.round(headerEl.getBoundingClientRect().height) : 0;
+                    const includeHeader = true; // true -> fill full viewport (map visible behind header). Set false to avoid header.
+
+                    // padding and desired height
+                    const TOP_PAD = 6;
+                    const BOTTOM_PAD = 12;
+                    const desiredHeight = includeHeader
+                        ? Math.max(0, window.innerHeight - TOP_PAD - BOTTOM_PAD)
+                        : Math.max(0, window.innerHeight - headerHeight - TOP_PAD - BOTTOM_PAD);
+
+                    // zoom search bounds
+                    const maxZoom = Math.min(map.getMaxZoom ? map.getMaxZoom() : (map.options.maxZoom || 18), 22);
+                    const minZoom = Math.max(map.getMinZoom ? map.getMinZoom() : (map.options.minZoom || 0), 0);
+
+                    // helper: projected pixel-height of the bounds at arbitrary (possibly fractional) zoom
+                    function projectedPixelHeightAtZoom(z) {
+                        const ne = map.project(bounds.getNorthEast(), z);
+                        const sw = map.project(bounds.getSouthWest(), z);
+                        return Math.abs(ne.y - sw.y);
+                    }
+
+                    // debug -> open console to see progress
+                    console.info('[vertical-fill] desiredHeight:', desiredHeight, 'headerHeight:', headerHeight);
+
+                    // search smallest zoom such that projected pixel height >= desiredHeight (start from min upwards)
+                    const STEP = 0.1;          // smaller -> more exact, slower. Try 0.25 if you want faster.
+                    const TOL = 2;             // pixel tolerance
+                    let chosenZoom = null;
+                    for (let z = minZoom; z <= maxZoom + 0.0001; z = Math.round((z + STEP) * 100) / 100) {
+                        try {
+                            const ph = projectedPixelHeightAtZoom(z);
+                            // log a few samples for debugging (will be noisy if STEP very small)
+                            if (Math.abs(z - Math.round(z)) < 0.001 || z === minZoom) {
+                                console.debug('[vertical-fill] sample zoom', z, 'projHeight', Math.round(ph));
+                            }
+                            if (ph >= (desiredHeight - TOL)) {
+                                chosenZoom = z;
+                                console.info('[vertical-fill] chosenZoom', chosenZoom, 'projHeight', Math.round(ph));
+                                break;
+                            }
+                        } catch (e) {
+                            // projection sometimes throws for extreme zoom in some builds; ignore
+                        }
+                    }
+
+                    // if never satisfied, choose maxZoom (we tried up to maxZoom)
+                    if (chosenZoom === null) {
+                        chosenZoom = maxZoom;
+                        console.info('[vertical-fill] none matched; falling back to maxZoom', maxZoom, 'projHeight',
+                            Math.round(projectedPixelHeightAtZoom(maxZoom)));
+                    }
+
+                    // clamp chosenZoom
+                    chosenZoom = Math.max(minZoom, Math.min(maxZoom, chosenZoom));
+
+                    // set the map to the chosen zoom and center on bounds center
+                    const boundsCenter = bounds.getCenter();
+                    map.setView(boundsCenter, chosenZoom, { animate: false });
+
+                    // optional vertical offset (same API you had)
+                    const offsetPixels = Math.round(window.innerHeight * (typeof CENTER_VERTICAL_OFFSET === 'number' ? CENTER_VERTICAL_OFFSET : -0.03));
+                    if (offsetPixels !== 0) {
+                        const centerPoint = map.latLngToContainerPoint(boundsCenter);
+                        const shiftedPoint = L.point(centerPoint.x, centerPoint.y - offsetPixels);
+                        const shiftedLatLng = map.containerPointToLatLng(shiftedPoint);
+                        map.setView(shiftedLatLng, chosenZoom, { animate: true });
+                    }
+
+                    // safety: prevent zooming out past our computed value
+                    try { map.setMinZoom(chosenZoom); } catch (e) { /* ignore */ }
+
+                    // final refresh
+                    setTimeout(() => map.invalidateSize(true), 80);
+                }
+            } catch (err) {
+                console.warn('force-vertical-fill error', err);
+            }
+
+
+        } else {
+            console.warn('No geojson features found or failed to load.');
+        }
+
+        setLoading('');
+        loadingEl.style.display = 'none';
+
+        // Legend open/close behavior
+        function expandLegend(){
+            legendEl.classList.remove('minimized');
+            legendEl.classList.add('expanded');
+            legendEl.setAttribute('title', 'Click outside or ✕ to minimize');
+        }
+        function minimizeLegend(){
+            legendEl.classList.remove('expanded');
+            legendEl.classList.add('minimized');
+            legendEl.setAttribute('title', 'Tap to expand legend');
+        }
+
+        // start minimized
+        minimizeLegend();
+
+        // clicking mini pill expands
+        legendEl.addEventListener('click', (evt) => {
+            if(legendEl.classList.contains('minimized')){
+                expandLegend();
+                evt.stopPropagation();
+            }
+        }, { passive: true });
+
+        // close button minimize
+        function attachCloseButton(){
+            const closeBtn = document.getElementById('legendCloseBtn');
+            if(closeBtn){
+                closeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    minimizeLegend();
+                }, { passive: true });
+            }
+        }
+        attachCloseButton();
+
+        // click outside to minimize
+        document.addEventListener('click', function closeHandler(e) {
+            if(legendEl.classList.contains('expanded')){
+                const inside = legendEl.contains(e.target);
+                if(!inside){
+                    minimizeLegend();
+                }
+            }
+        }, { passive: true });
+
+        // ensure leaflet resizes on viewport changes
+        window.addEventListener('resize', () => {
+            setTimeout(() => { map.invalidateSize(true); }, 80);
+        }, { passive:true });
+
+    })();
+</script>
+</body>
+</html>

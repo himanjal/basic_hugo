@@ -1,0 +1,694 @@
+/* ===========================
+   info.css — canonical shared variables + page styles
+   (exposes font family, size, color, AND font-weight for section, card, pill)
+   UPDATED:  - wider benefit cards
+             - allow body text lines to be longer
+             - utility classes to lock benefits grid to 1x3 (row) or 3x1 (column)
+   =========================== */
+
+/* ---- global tweakable vars ---- */
+:root{
+    /* card sizing */
+    --site-width: min(90%, 1400px);
+    --card-radius: 34px;
+    --card-height-clamp-min: 360px;
+    --card-height-clamp-max: 1160px;
+    --card-height-vh-offset: calc(80vh - var(--site-header-top-offset, 0px));
+
+    /* corners */
+    --corner-size: 56px;
+    --corner-offset: 18px;
+
+    /* shutter (top-right icon) */
+    --shutter-size: 46px;
+    --shutter-top: 27px;
+    --shutter-right: 30px;
+    --shutter-padding: 6px;
+    --shutter-icon-size: 30px;
+
+    /* hero-left dot + text */
+    --hero-left-left: 48px;
+    --hero-left-top: 100px;
+    --hero-left-gap: 18px;
+    --hero-dot-size: 14px;
+    --hero-dot-blur: 6px;
+
+    /* hero-headline sizing (clamp uses responsive viewport) */
+    --hero-font-min: 48px;
+    --hero-font-vw: 4vw;
+    --hero-font-max: 70px;
+
+    /* hero-right region (we place line1 by top and the bottom block by bottom) */
+    --hero-right-right: 64px;
+    --hero-right-top-percent: 36%;
+    --hero-right-width: min(420px, 36%);
+    --hero-right-gap: 1rem;
+    --hero-right-bottom: 54px;
+
+    /* logos */
+    --logo-size: 25px;
+    --logo-gap: 12px;
+
+    /* drop shadows and overlay */
+    --overlay-gradient-start: rgba(0,0,0,0.08);
+    --overlay-gradient-end: rgba(0,0,0,0.18);
+
+    --benefit-icon-bubble: 36px;
+    --benefit-icon-scale: 1;
+
+    /* -----------------------
+       Shared typography / pill variables (central source-of-truth)
+       - font-family
+       - font-size
+       - color
+       - font-weight (NEW)
+       ----------------------- */
+
+    /* Section (header) */
+    --section-title-font-family: 'Wolf2', system-ui, "Inter", Roboto, Helvetica, Arial, sans-serif;
+    --section-title-font-size: 40px;
+    --section-title-color: #000000;
+    --section-title-font-weight: 500;
+
+    --section-sub-font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    --section-sub-font-size: 18px;
+    --section-sub-color: #44444a;
+    --section-sub-font-weight: 400;
+
+    /* Card */
+    --card-title-font-family: 'Wolf2', system-ui, "Inter", Roboto, Helvetica, Arial, sans-serif;
+    --card-title-font-size: 20px;
+    --card-title-color: #000000;
+    --card-title-font-weight: 500;
+
+    --card-body-font-family: 'Wolf2', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    --card-body-font-size: 19px;
+    --card-body-color: #161617;
+    --card-body-font-weight: 400;
+
+    /* Pill / tag */
+    --pill-font-family: 'Wolf2', system-ui, "Inter", Roboto, Helvetica, Arial, sans-serif;
+    --pill-font-size: 16px;
+    --pill-font-color: #090909;
+    --pill-bg: rgba(17,22,26,0.06);
+    --pill-padding-vertical: 8px;
+    --pill-padding-horizontal: 15px;
+    --pill-border-radius: 999px;
+    --pill-font-weight: 400;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+
+/* --- Full-page center layout --- */
+.info-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    background: #f5f6f7;
+    padding-top: calc(var(--site-header-occupy, 0px) + 20px);
+}
+
+/* --- Centered card --- */
+.info-card {
+    width: var(--site-width);
+    height: clamp(var(--card-height-clamp-min), var(--card-height-vh-offset), var(--card-height-clamp-max));
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(16px);
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    position: relative;
+    display: block;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+}
+
+/* --- Big hero image --- */
+.info-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: 70% center;
+    border-radius: inherit;
+    z-index: 1;
+    margin: 0;
+    padding: 0;
+    transform: translateZ(0);
+}
+
+/* --- Overlay elements must be above image --- */
+.info-card .corner,
+.info-card .shutter-btn,
+.info-card .hero-left,
+.info-card .hero-right,
+.info-card .hero-right-bottom {
+    position: absolute;
+    z-index: 3;
+    pointer-events: auto;
+}
+
+/* --- Corner decorations (use variables) --- */
+.info-card .corner {
+    width: var(--corner-size);
+    height: var(--corner-size);
+    object-fit: contain;
+    opacity: 0.95;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25));
+}
+
+/* top-left */
+.info-card .corner-tl {
+    top: var(--corner-offset);
+    left: var(--corner-offset);
+    transform: rotate(0deg);
+}
+
+/* top-right */
+.info-card .corner-tr {
+    top: var(--corner-offset);
+    right: var(--corner-offset);
+    transform: rotate(90deg);
+}
+
+/* bottom-right */
+.info-card .corner-br {
+    bottom: var(--corner-offset);
+    right: var(--corner-offset);
+    transform: rotate(180deg);
+}
+
+/* bottom-left */
+.info-card .corner-bl {
+    bottom: var(--corner-offset);
+    left: var(--corner-offset);
+    transform: rotate(270deg);
+}
+
+/* --- Shutter top-right button (uses variables) --- */
+.info-card .shutter-btn {
+    top: var(--shutter-top);
+    right: var(--shutter-right);
+    width: var(--shutter-size);
+    height: var(--shutter-size);
+    background: transparent;
+    display: inline-grid;
+    place-items: center;
+    cursor: pointer;
+    outline: none;
+    border: none;
+    padding: var(--shutter-padding);
+    border-radius: 50%;
+    z-index: 6;
+}
+
+/* remove white/edge from img and size from vars */
+.info-card .shutter-btn img {
+    width: var(--shutter-icon-size);
+    height: var(--shutter-icon-size);
+    display: block;
+    object-fit: contain;
+    background: transparent;
+    border: none;
+}
+
+/* accessible focus style (keeps no hard border) */
+.info-card .shutter-btn:focus {
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.06);
+}
+
+/* --- Hero left: big headline + blinking dot (variables used) --- */
+.info-card .hero-left {
+    left: var(--hero-left-left);
+    top: var(--hero-left-top);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--hero-left-gap);
+    pointer-events: none;
+    z-index: 4;
+}
+
+/* column wrapper for hero text */
+.hero-left-txt {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* dot */
+.info-card .hero-dot {
+    width: var(--hero-dot-size);
+    height: var(--hero-dot-size);
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 0 0 var(--hero-dot-blur) rgba(255,255,255,0.06), 0 6px 18px rgba(0,0,0,0.18);
+    transform: translateY(-4px);
+    animation: blink 1.6s infinite ease-in-out;
+    opacity: 0.95;
+}
+
+/* blinking keyframes */
+@keyframes blink {
+    0% {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.88);
+    }
+    18% {
+        opacity: 1;
+        transform: translateY(-6px) scale(1);
+    }
+    45% {
+        opacity: 0.9;
+        transform: translateY(-5px) scale(0.97);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.88);
+    }
+}
+
+/* large headline */
+.info-card .hero-headline {
+    margin: 0;
+    font-family: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-weight: 800;
+    color: #ffffff;
+    -webkit-font-smoothing: antialiased;
+    font-size: clamp(var(--hero-font-min), var(--hero-font-vw), var(--hero-font-max));
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    pointer-events: none;
+}
+
+/* optional second headline */
+.sub-headline {
+    font-size: clamp(34px, 6vw, 90px);
+    opacity: 0.9;
+}
+
+/* --- Right side content (keep line-1 near top via top %) --- */
+.info-card .hero-right {
+    right: var(--hero-right-right);
+    top: var(--hero-right-top-percent);
+    width: var(--hero-right-width);
+    text-align: right;
+    z-index: 4;
+    pointer-events: auto;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--hero-right-gap);
+}
+
+/* keep line-1 style (unchanged position-wise) */
+.info-card .hero-right .line.line-1 {
+    font-size: clamp(14px, 1.6vw, 18px);
+    color: #ffffff;
+    text-shadow: 0 4px 14px rgba(0,0,0,0.35);
+    margin: 0;
+    opacity: 0.95;
+    max-width: 100%;
+}
+
+/* --- Bottom block for line-2 + logos (anchored bottom-right) --- */
+.info-card .hero-right-bottom {
+    right: var(--hero-right-right);
+    bottom: var(--hero-right-bottom);
+    width: var(--hero-right-width);
+    z-index: 4;
+    pointer-events: auto;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--hero-right-gap);
+}
+
+/* line-2 in bottom block */
+.info-card .hero-right-bottom .line.line-2 {
+    font-size: clamp(14px, 1.6vw, 18px);
+    opacity: 0.95;
+    max-width: 100%;
+    margin: 0;
+    color: #ffffff;
+    text-shadow: 0 4px 14px rgba(0,0,0,0.35);
+}
+
+/* logos row: aligned to bottom-right via bottom block */
+.info-card .hero-right-bottom .logos {
+    display: flex;
+    gap: var(--logo-gap);
+    justify-content: flex-end;
+    align-items: center;
+    margin: 0;
+}
+
+/* logo link - remove borders/backgrounds/shadows */
+.info-card .logo-link {
+    display: inline-grid;
+    width: var(--logo-size);
+    height: var(--logo-size);
+    place-items: center;
+    border-radius: 8px;
+    background: transparent !important;
+    padding: 0 !important;
+    transition: transform 160ms ease;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+/* logo image fit cleanly */
+.info-card .logo-link img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    border: none;
+    background: transparent;
+    filter: none;
+}
+
+/* hover: gentle lift only */
+.info-card .logo-link:hover {
+    transform: translateY(-4px);
+}
+
+/* ensure overlay text is legible on varied backgrounds */
+.info-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(180deg, var(--overlay-gradient-start) 0%, var(--overlay-gradient-end) 100%);
+    pointer-events: none;
+}
+
+/* --- responsive overrides (medium screens) --- */
+@media (max-width: 980px) {
+    :root{
+        --card-radius: 20px;
+        --corner-size: 46px;
+        --corner-offset: 16px;
+        --hero-left-left: 36px;
+        --hero-left-top: 80px;
+        --hero-right-right: 28px;
+        --hero-right-bottom: 34px;
+        --hero-right-width: 46%;
+        --hero-font-min: 40px;
+        --hero-font-vw: 7vw;
+        --hero-font-max: 88px;
+        --logo-size: 24px;
+        --shutter-top: 20px;
+        --shutter-right: 25px;
+        --shutter-icon-size: 25px;
+        --hero-dot-size: 12px;
+    }
+
+    .info-card {
+        border-radius: var(--card-radius);
+        height: clamp(380px, 80vh, 1120px);
+    }
+
+    .info-card .hero-left { left: var(--hero-left-left); top: var(--hero-left-top); }
+    .info-card .hero-headline { font-size: clamp(var(--hero-font-min), var(--hero-font-vw), var(--hero-font-max)); line-height: 1; }
+    .info-card .hero-dot { width: var(--hero-dot-size); height: var(--hero-dot-size); }
+
+    .info-card .hero-right {
+        right: var(--hero-right-right);
+        top: var(--hero-right-top-percent);
+        width: var(--hero-right-width);
+        text-align: right;
+    }
+
+    .info-card .logo-link { width: var(--logo-size); height: var(--logo-size); }
+    .info-card .logo-link img { width: 100%; height: 100%; }
+}
+
+/* very small phones */
+@media (max-width: 640px) {
+    :root{
+        --card-radius: 20px;
+        --corner-size: 36px;
+        --corner-offset: 12px;
+        --hero-left-left: 20px;
+        --hero-left-top: 66px;
+        --hero-right-right: 30px;
+        --hero-right-bottom: 40px;
+        --hero-right-width: min(420px, 66%);
+        --hero-font-min: 32px;
+        --hero-font-vw: 8vw;
+        --hero-font-max: 56px;
+        --logo-size: 24px;
+        --shutter-top: 15px;
+        --shutter-right: 20px;
+        --shutter-icon-size: 25px;
+        --hero-dot-size: 12px;
+    }
+
+    .info-card {
+        border-radius: var(--card-radius);
+        height: clamp(380px, 80vh, 1120px);
+    }
+
+    .info-card .hero-left { left: var(--hero-left-left); top: var(--hero-left-top); }
+    .info-card .hero-headline { font-size: clamp(var(--hero-font-min), var(--hero-font-vw), var(--hero-font-max)); line-height: 1; }
+    .info-card .hero-dot { width: var(--hero-dot-size); height: var(--hero-dot-size); }
+
+    .info-card .hero-right {
+        right: var(--hero-right-right);
+        top: var(--hero-right-top-percent);
+        width: var(--hero-right-width);
+        text-align: right;
+    }
+
+    .info-card .logo-link { width: var(--logo-size); height: var(--logo-size); }
+    .info-card .logo-link img { width: 100%; height: 100%; }
+}
+
+/* -------------------------
+   Benefits UI (info page)
+   ------------------------- */
+.site-width{
+    max-width: var(--site-width);
+    margin: 0 auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+/* section spacing */
+.benefits-section{
+    padding: 56px 0 84px;
+    background: transparent;
+    color: var(--text-color, #0b0b0b);
+    text-align: center;
+}
+
+/* header */
+.benefits-header{
+    margin: 0 auto 36px;
+    max-width: 780px;
+}
+/* Use shared section vars for title and sub */
+.small-pill{
+    display: inline-block;
+    background: #fff;
+    padding: var(--pill-padding-vertical) var(--pill-padding-horizontal);
+    border-radius: var(--pill-border-radius);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+    font-size: var(--pill-font-size);
+    color: var(--pill-font-color);
+    margin-bottom: 12px;
+    font-family: var(--pill-font-family);
+    font-weight: var(--pill-font-weight);
+}
+.benefits-title{
+    margin: 6px 0 8px;
+    font-size: var(--section-title-font-size);
+    line-height: 1.03;
+    font-family: var(--section-title-font-family);
+    font-weight: var(--section-title-font-weight);
+    color: var(--section-title-color);
+}
+.benefits-title em{
+    font-style: italic;
+    font-family: 'Wolf3', cursive;
+    font-weight: 500;
+}
+.benefits-sub{
+    margin: 0 auto;
+    max-width: 340px;
+    color: var(--section-sub-color);
+    font-size: var(--section-sub-font-size);
+    line-height: 1.6;
+    font-family: var(--section-sub-font-family);
+    font-weight: var(--section-sub-font-weight);
+}
+
+/* =========================
+   IMPORTANT:
+   - default: 3 columns (1 row x 3 cols) on wide screens
+   - mobile: falls back to 1 column (3 rows x 1 col)
+   - utility classes below allow forcing either layout:
+       .benefits-grid--row    -> 1x3 forced (single row, 3 items)
+       .benefits-grid--column -> 3x1 forced (single column, 3 items)
+   Use these classes on the container to lock orientation.
+   ========================= */
+
+/* grid */
+.benefits-grid{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* default 1x3 */
+    gap: 26px;
+    align-items: stretch;
+    margin-top: 22px;
+}
+
+/* Force a single row with 3 columns (use class .benefits-grid--row)
+   Useful when you need a strict 1x3 layout even in responsive contexts */
+.benefits-grid--row {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    grid-template-rows: none;
+    gap: 26px;
+}
+
+/* Force a single column with 3 rows (use class .benefits-grid--column) */
+.benefits-grid--column {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    gap: 18px;
+}
+
+/* card */
+.benefit-card{
+    /* made cards wider via increased padding and looser constraints */
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 30px 34px;         /* increased padding for visual weight */
+    box-shadow: 0 6px 18px rgba(18, 22, 26, 0.06);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-height: 220px;
+    transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s;
+    box-sizing: border-box;
+    max-width: 100%;           /* ensure responsive fill */
+}
+
+/* badge hover */
+.benefit-badge:hover{
+    transform: translateY(-1px);
+    box-shadow: 0 18px 40px rgba(18,22,26,0.09);
+}
+
+/* icon */
+.benefit-icon{
+    width: var(--benefit-icon-bubble);
+    height: var(--benefit-icon-bubble);
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 14px;
+    background: none;
+    color: #111;
+    flex: 0 0 auto;
+}
+
+/* force the image to scale *inside* the bubble */
+.benefit-icon img{
+    width: calc(var(--benefit-icon-bubble) * var(--benefit-icon-scale));
+    height: calc(var(--benefit-icon-bubble) * var(--benefit-icon-scale));
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display:block;
+    margin: 0;
+    padding: 0;
+}
+
+/* title / body — use shared card vars */
+.benefit-title{
+    margin: 6px 0 8px;
+    font-size: var(--card-title-font-size);
+    font-weight: var(--card-title-font-weight);
+    color: var(--card-title-color);
+    font-family: var(--card-title-font-family);
+}
+
+/* NOTE: body max-width increased to allow longer lines.
+   Use width:100% so body text can expand inside the card. */
+.benefit-body{
+    margin: 0 0 18px;
+    color: var(--card-body-color);
+    font-size: var(--card-body-font-size);
+    font-weight: var(--card-body-font-weight);
+    line-height: 1.6;
+    max-width: 380px;           /* increased from 260px */
+    width: 100%;
+    font-family: var(--card-body-font-family);
+    box-sizing: border-box;
+}
+
+/* badge */
+.benefit-badge{
+    margin-top: auto;
+    background: var(--pill-bg);
+    border: none;
+    padding: var(--pill-padding-vertical) var(--pill-padding-horizontal);
+    border-radius: var(--pill-border-radius);
+    font-size: var(--pill-font-size);
+    color: var(--pill-font-color);
+    cursor: default;
+    box-shadow: none;
+    font-family: var(--pill-font-family);
+    font-weight: var(--pill-font-weight);
+}
+
+/* responsive overrides */
+@media (max-width: 980px){
+    .benefits-grid{
+        grid-template-columns: repeat(2, 1fr); /* medium screens -> 2 columns */
+        gap: 18px;
+    }
+    .benefits-title{
+        font-size: calc(var(--section-title-font-size) * 0.85);
+    }
+
+    /* ensure utility classes keep their lock on medium screens if present */
+    .benefits-grid--row { grid-auto-columns: 1fr; grid-auto-flow: column; }
+    .benefits-grid--column { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px){
+    /* default mobile collapses to 1 column (3x1). If you used .benefits-grid--row and need strict row,
+       you can override with explicit media rules where needed. */
+    .benefits-grid{
+        grid-template-columns: 1fr;
+    }
+    .benefit-card{
+        padding: 26px;
+    }
+    .benefits-section{
+        padding-top: 36px;
+        padding-bottom: 48px;
+    }
+    .benefits-title{
+        font-size: calc(var(--section-title-font-size) * 0.7);
+    }
+}
+
+/* ==============================
+   SERVICES — base block (info.css provides shared variables)
+   ============================== */
+
+/* You may place additional global styles here that other files will inherit. */

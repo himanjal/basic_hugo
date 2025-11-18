@@ -1,0 +1,533 @@
+/* =========================
+   experience.css — EXTENDS info.css (imports canonical variables)
+   Ensure the import path points to your info.css location.
+   ========================= */
+
+/* Import canonical variables and base rules from info.css */
+@import "info.css"; /* <-- adjust path if needed, e.g. @import "../css/info.css"; */
+
+/* -----------------------
+   experience.css: layout and component rules
+   - Uses shared variables declared in info.css (font family/size/color/weight)
+   - Contains fallbacks to keep layout stable if import is missing
+   ----------------------- */
+
+/* Base section */
+.services-section {
+    padding: 56px 0 84px;
+    color: var(--text-color, #0b0b0b);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+}
+
+.services-header {
+    text-align: center;
+    margin-bottom: 34px;
+    max-width: 920px;
+    margin-left: auto;
+    margin-right: auto;
+}
+/* use variables for section title & sub */
+.services-title {
+    font-family: var(--section-title-font-family, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
+    font-size: var(--section-title-font-size, 44px);
+    line-height: 1.02;
+    margin: 8px 0;
+    font-weight: var(--section-title-font-weight, 700);
+    color: var(--section-title-color, #111);
+}
+
+.services-title em{
+    font-style: italic;
+    font-family: 'Wolf3', cursive;
+    font-weight: 500;
+}
+.services-sub {
+    margin: 0 auto 12px;
+    max-width: 640px;
+    color: var(--section-sub-color, #6f6f77);
+    font-size: var(--section-sub-font-size, 16px);
+    font-family: var(--section-sub-font-family, "Inter", system-ui, Roboto, Helvetica, Arial, sans-serif);
+    font-weight: var(--section-sub-font-weight, 400);
+}
+
+/* GRID: left column spans both rows, right column has two rows */
+.services-grid {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1.12fr 0.88fr;
+    grid-template-rows: auto auto;
+    gap: 28px;
+    align-items: start;
+}
+
+/* placement */
+.service-left-hero       { grid-column: 1 / 2; grid-row: 1 / 3; } /* spans rows 1-2 */
+.service-card--right-top { grid-column: 2 / 3; grid-row: 1 / 2; }
+.service-card--right-bottom { grid-column: 2 / 3; grid-row: 2 / 3; }
+
+/* -------------------
+   LEFT HERO — big framed tile
+   ------------------- */
+.service-hero {
+    position: relative;
+    border-radius: 24px;
+    overflow: visible;
+    min-height: 520px;
+    padding: 12px;
+    background: linear-gradient(180deg,#fbfcfd 0%, #f7f8f9 100%);
+    box-shadow: 0 22px 50px rgba(12,18,20,0.06);
+}
+
+.service-hero-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: inset 0 0 0 6px rgba(255,255,255,1);
+    position: relative;
+}
+
+/* CENTER HORIZONTAL, ALIGN TOP VERTICAL */
+.service-hero-image {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: fill;
+    object-position: 50% -120px;   /* center horizontally, top align vertically */
+    transform: translateZ(0);
+    min-height: 480px;
+    filter: grayscale(60%);
+}
+
+/* overlay card inside hero
+   - changed to two-column overlay: left = text, right = stacked pills */
+.service-hero-card {
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    bottom: 22px;
+    background: #fff;
+    border-radius: 36px;
+    padding: 35px 30px;
+    /*box-shadow:*/
+    /*        0 12px 28px rgba(0,0,0,0.08),*/
+    /*        0 4px 12px rgba(0,0,0,0.04);*/
+    box-shadow:
+            0 20px 40px rgba(0,0,0,0.10),
+            0 4px 8px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: row;      /* row: left content + right pill column */
+    align-items: stretch;
+    gap: 16px;
+    z-index: 8;
+}
+
+/* left column inside overlay — keep vertical stacking for logo/title/desc */
+.service-hero-card .service-hero-left {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1 1 auto;
+    min-width: 0; /* allow truncation when needed */
+}
+
+/* right column for pills: vertical stack, anchored right */
+.service-hero-card .service-hero-right {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+    justify-content: center;
+    flex: 0 0 auto;
+}
+
+/* For compatibility with existing markup: ensure textual pieces remain in left area visually */
+.service-label,
+.service-hero-title,
+.service-hero-desc {
+    order: 1;
+}
+
+/* make the tags appear stacked on the right inside the overlay */
+.service-hero-card .service-tags {
+    order: 2;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+    margin-top: 0;
+    margin-left: 8px;
+}
+
+/* Small screens: revert overlay to stacked column for space */
+@media (max-width: 640px) {
+    .service-hero-card {
+        flex-direction: column;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        padding: 10px;
+    }
+    .service-hero-card .service-tags { flex-direction: row; flex-wrap: wrap; align-self: flex-end; }
+}
+
+/* overlay label */
+.service-label {
+    display: flex;
+    flex-direction: column; /* logo on top, title below */
+    align-items: flex-start;
+    gap: 8px;
+}
+.service-label .mini-logo {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    display: block;
+    border-radius: 6px;
+    padding: 4px;
+    margin-bottom: 15px;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(12,18,20,0.06);
+}
+
+/* overlay heading & description — use card title/body vars where appropriate */
+.service-hero-title {
+    font-family: var(--card-title-font-family, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
+    font-weight: var(--card-title-font-weight, 600);
+    font-size: var(--card-title-font-size, 16px);
+    color: var(--card-title-color, #111);
+    margin:0;
+}
+.service-hero-desc {
+    margin:0;
+    color: var(--card-body-color, #4b4b52);
+    font-family: var(--card-body-font-family, "Inter", system-ui, Roboto, Helvetica, Arial, sans-serif);
+    font-size: var(--card-body-font-size, 14px);
+    font-weight: var(--card-body-font-weight, 400);
+    line-height:1.6;
+}
+
+/* -------------------
+   Tag / pill defaults (compact, don't stretch)
+   ------------------- */
+.service-tags {
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    align-items:center;
+    margin-top: 6px;
+    align-self: flex-end;
+}
+.service-tags .tag,
+.service-card .service-tags .tag {
+    display: inline-block;
+    width: auto !important;
+    min-width: 0;
+    white-space: nowrap;
+    box-sizing: border-box;
+    padding: var(--pill-padding-vertical, 6px) var(--pill-padding-horizontal, 10px);
+    font-size: var(--pill-font-size, 13px);
+    font-family: var(--pill-font-family, "Inter", system-ui, Roboto, Helvetica, Arial, sans-serif);
+    font-weight: var(--pill-font-weight, 600);
+    line-height: 1;
+    border-radius: var(--pill-border-radius, 999px);
+    background: var(--pill-bg, rgba(17,22,26,0.06));
+    color: var(--pill-font-color, #222);
+}
+
+/* specific non-stretch fix helper (apply class "shrink-fix" to Summer 2016 pill) */
+.service-card .service-tags .tag.shrink-fix,
+.service-tags .tag.shrink-fix {
+    white-space: nowrap;
+    max-width: none;
+    flex: 0 0 auto;
+}
+
+/* ensure tags in cards don't flex-grow */
+.service-card .service-tags .tag { flex: 0 0 auto; }
+
+/* -------------------
+   RIGHT COLUMN — generic card base
+   ------------------- */
+.service-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 27px 27px 27px 27px;
+    box-shadow: 0 18px 44px rgba(12,18,20,0.05);
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    min-height: 140px;
+}
+
+/* card media */
+.service-card .service-card-media {
+    width: 96px;
+    height: 96px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 96px;
+}
+.service-card .service-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display:block;
+    /*transform: translateY(-36px);*/
+}
+
+/* small media variant */
+.service-card .service-card-media.small { width:64px; height:64px; flex:0 0 64px; }
+
+/* body layout */
+.service-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* small circular logo above title (card icon) */
+.card-logo-wrap { display:flex; align-items:center; gap:20px; }
+.card-logo {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    border-radius: 999px;
+    padding: 6px;
+    margin-bottom: 8px;
+    background: transparent;
+    box-shadow: 0 6px 18px rgba(12,18,20,0.06);
+}
+
+/* title & description — use variables */
+.service-card-title {
+    font-family: var(--card-title-font-family, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
+    font-size: var(--card-title-font-size, 17px);
+    font-weight: var(--card-title-font-weight, 600);
+    color: var(--card-title-color, #111);
+}
+.service-card-desc {
+    margin:0;
+    color: var(--card-body-color, #5a5a61);
+    font-family: var(--card-body-font-family, "Inter", system-ui, Roboto, Helvetica, Arial, sans-serif);
+    font-size: var(--card-body-font-size, 14px);
+    font-weight: var(--card-body-font-weight, 400);
+    line-height:1.5;
+}
+
+/* tags / pills for cards */
+.service-card .service-tags { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;
+    align-content: center;}
+.service-card .service-tags .tag {
+    background: var(--pill-bg, rgba(17,22,26,0.06));
+    padding: calc(var(--pill-padding-vertical, 6px) - 1px) calc(var(--pill-padding-horizontal, 10px) + 1px);
+    border-radius:var(--pill-border-radius, 999px);
+    font-size:var(--pill-font-size, 13px);
+    font-weight: var(--pill-font-weight, 600);
+}
+
+/* -------------------
+   Logo visual tweaks — remove backgrounds and make logos read bolder
+   ------------------- */
+.mini-logo,
+.card-logo,
+.service-card .service-card-media img,
+.service-hero-image,
+.service-hero .mini-logo img,
+.card-logo img {
+    background: transparent !important;
+    box-shadow: none !important;
+    display: block;
+    -webkit-font-smoothing:antialiased;
+    /*filter: contrast(1.25) saturate(1.05) drop-shadow(0 1px 0 rgba(0,0,0,0.03));*/
+    transform-origin: center;
+}
+
+/* scale images slightly to read bolder */
+.mini-logo img,
+.card-logo img,
+.service-card .service-card-media img {
+    transform: scale(1.06);
+}
+
+/* remove padded white chips */
+.mini-logo,
+.card-logo {
+    filter: contrast(2);
+    transform: scale(1.32);
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+/* -------------------
+   Card-specific tweaks
+   ------------------- */
+
+/* RIGHT TOP card:
+   - Make the IMAGE a little larger (increased slightly)
+   - Keep the icon/logo above the title smaller
+   - Align pills next to the image (not pushed to far right)
+*/
+.service-card--right-top .service-card-media {
+    width: 160px;
+    height: 160px;
+    flex: 0 0 160px;
+}
+.service-card--right-top .service-card-media img{
+    object-fit: contain;
+    transform: translateY(-40px) scale(1);   /* reduce visual size without shrinking box */
+    filter: grayscale(50%);
+
+}
+
+.service-card--right-top .card-logo { width: 26px; height:26px; padding:4px; }
+
+.service-card--right-top {
+    align-items: center;
+}
+.service-card--right-top .service-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.service-card--right-top .service-tags {
+    margin-top: 6px;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+/* remove forcing third pill to full width — allow natural wrap */
+.service-card--right-top .service-tags .tag:nth-child(3) {
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-basis: auto;
+    margin-top: 0;
+}
+
+/* RIGHT BOTTOM card (WPI): move image to the RIGHT by reversing order */
+.service-card--right-bottom {
+    flex-direction: row-reverse;
+    align-items: center;
+}
+.service-card--right-bottom .service-card-media {
+    width: 76px;
+    height: 76px;
+    flex: 0 0 76px;
+}
+
+.service-card--right-bottom .service-card-media img{
+    object-fit: contain;
+    transform: scale(0.85) translateY(-20px);   /* reduce visual size without shrinking box */
+    filter: grayscale(50%);
+
+}
+
+.service-card--right-bottom .card-logo { width: 26px; height: 26px; padding:4px; }
+.service-card--right-bottom .service-card-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+}
+
+.service-card--right-bottom .service-tags {
+    display: flex;
+    justify-content: flex-start;   /* LEFT align pills */
+    align-items: flex-start;
+    width: 100%;
+}
+
+/*.service-left-hero .service-hero,*/
+/*.service-card--right-top,*/
+/*.service-card.media-right.service-card--right-bottom {*/
+/*    box-shadow:*/
+/*            0 20px 40px rgba(0, 0, 0, 0.10),*/
+/*            0 4px 8px rgba(0, 0, 0, 0.04);*/
+/*}*/
+
+/* optionally, when using .media-right (image on right) keep media a bit larger but not overpowering */
+.service-card.media-right .service-card-media { width:120px; height:120px; flex:0 0 120px; }
+
+
+/* -------------------
+   Fine-tuning & responsiveness
+   ------------------- */
+@media (max-width: 980px) {
+    .services-grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto; }
+    .service-left-hero { grid-column: 1 / -1; grid-row: 1 / 2; min-height: 340px; }
+    .service-card--right-top { grid-column: 1 / -1; grid-row: 2 / 3; }
+    .service-card--right-bottom { grid-column: 1 / -1; grid-row: 3 / 4; }
+
+    /* reduce sizes */
+    .service-hero { min-height: 360px; padding: 10px; }
+    .service-hero-inner { border-radius: 14px; }
+    .service-hero-card { left:14px; right:14px; bottom:14px; padding:12px; border-radius:12px; }
+
+    .service-card .service-card-media { width: 72px; height:72px; flex:0 0 72px; }
+    .service-card--right-top .service-card-media { width:120px; height:120px; flex:0 0 120px; }
+    .media-right .service-card-media { width:96px; height:96px; flex:0 0 96px; }
+
+    .card-logo { width: 28px; height:28px; padding:4px; }
+
+    /* adjust section title on smaller screens (scale using shared vars) */
+    .services-title { font-size: calc(var(--section-title-font-size, 44px) * 0.86); }
+    .services-sub { font-size: calc(var(--section-sub-font-size, 16px) * 0.98); }
+}
+
+/* -------------------
+   Mobile tweaks — updated
+   ------------------- */
+@media (max-width: 640px) {
+    :root {
+        /* Card title */
+        --card-title-font-size: calc(20px * 0.85);   /* -15% */
+
+        /* Card body */
+        --card-body-font-size: calc(19px * 0.85);    /* -15% */
+
+        /* Pills */
+        --pill-font-size: calc(16px * 0.85);         /* -15% */
+
+        --section-title-font-size: calc(40px * 0.85);
+    }
+
+    .services-grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto; }
+    .service-left-hero { grid-column: 1 / -1; grid-row: 1 / 2; min-height: 340px; }
+    .service-card--right-top { grid-column: 1 / -1; grid-row: 2 / 3; }
+    .service-card--right-bottom { grid-column: 1 / -1; grid-row: 3 / 4; }
+
+    /* reduce sizes */
+    .service-hero { min-height: 360px; padding: 10px; }
+    .service-hero-inner { border-radius: 14px; }
+    .service-hero-card { left:14px; right:14px; bottom:14px; padding:12px; border-radius:12px; }
+
+    .mini-logo {
+        filter: contrast(2);
+        transform: scale(1);   /* smaller */
+        padding: 0 !important;
+        background: transparent !important;
+    }
+
+    /*.service-card .service-card-media { width: 72px; height:72px; flex:0 0 72px; }*/
+    /*.service-card--right-top .service-card-media { width:120px; height:120px; flex:0 0 120px; }*/
+    /*.media-right .service-card-media { width:96px; height:96px; flex:0 0 96px; }*/
+
+    /*.card-logo { width: 28px; height:28px; padding:4px; }*/
+
+    /*!* adjust section title on smaller screens (scale using shared vars) *!*/
+    /*.services-title { font-size: calc(var(--section-title-font-size, 44px) * 0.86); }*/
+    /*.services-sub { font-size: calc(var(--section-sub-font-size, 16px) * 0.98); }*/
+
+
+}
+
+
+/* small helper: when you need pills to be vertical in other contexts */
+.tags-vertical { display:flex; flex-direction:column; gap:8px; align-items:flex-end; }
+
+/* end of experience.css */

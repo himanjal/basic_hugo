@@ -1,0 +1,120 @@
+:root{
+    --page-bg: #fbfcfd;;
+    --hg-max-stack: 30;
+    --hg-drag-threshold: 40; /* pointer minimum drag to show new image */
+    --hg-spawn-threshold: 48; /* pixels */
+    --hg-landscape-scale : 1.5; /* scaling factor for landscape images */
+    --hg-last-three-hold: 1000; /*hold value for last images after movement stops*/
+    --hg-mouse-stop-delay: 120ms; /* how long a mouse needs to stop to kickoff last 3 fade */
+    --hg-img-size: clamp(120px, 20vmin, 420px);
+    --hg-fade-duration: 1200ms;
+    --hg-min-opacity: 0.28; /* min opacity for last permanent images */
+    --hg-visible-count: 10;
+    --hg-permanent-count: 5;
+}
+
+
+html,body{
+    background:var(--page-bg);
+    height:100%;
+}
+
+body, main.hg-wrap {
+    background: #ffffff !important;
+    color: #000;  /* optional: switch text color */
+}
+
+.hg-wrap{min-height:100vh;}
+
+
+.hg-canvas{
+    position:relative;
+    width:100vw;
+    height:100vh;
+    overflow:hidden;
+    pointer-events: auto;
+    background: var(--page-bg);      /* white by default from :root */
+    background-color: var(--page-bg);
+}
+
+.hg-hint{
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+    z-index: 2;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    font-size: 0.95rem;
+    color: #111; /* dark text on white */
+    background: rgba(255,255,255,0.88);
+    padding: 0.4rem 0.6rem;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    backdrop-filter: blur(6px);
+}
+/* base image */
+.hg-img{
+    position:absolute;
+    left:0; top:0;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: auto;
+    user-select: none;
+    will-change: transform, opacity;
+    width: var(--hg-img-size);
+    height: auto;
+    max-width: 420px;
+    max-height: 280px;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    transition: opacity 280ms ease, transform 220ms ease;
+    opacity: 1;
+}
+
+/* spawn quick pop-in styling (visible immediately) */
+.hg-img.spawn{
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.04);
+    transition: transform 220ms cubic-bezier(.2,.9,.2,1), opacity 220ms ease-out;
+}
+
+/* full decay: fade to zero and scale slightly up, then removed by JS */
+@keyframes hg_decay_full {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.18); }
+}
+.hg-img.decay-full {
+    animation: hg_decay_full var(--hg-fade-duration) forwards;
+}
+
+.hg-img.hg-landscape {
+    /* nothing required — scaling applied inline — but you can tweak visual treatment here */
+    box-shadow: 0 8px 22px rgba(0,0,0,0.35);
+    border-radius: 6px;
+}
+
+/* partial decay: fade to a minimum opacity and keep in DOM */
+@keyframes hg_decay_partial {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: var(--hg-min-opacity); transform: translate(-50%, -50%) scale(1.02); }
+}
+.hg-img.decay-partial {
+    animation: hg_decay_partial var(--hg-fade-duration) forwards;
+}
+
+.hg-img.hovered {
+    opacity: 1 !important;
+    /* reset any dimming filter */
+    filter: none !important;
+    /*filter: saturate(1.05) brightness(1.02) !important;*/
+    /* make hover image visually pop slightly */
+    transform: translate(-50%, -50%) scale(1.04) !important;
+    transition: transform 160ms cubic-bezier(.2,.9,.2,1), opacity 160ms ease-out !important;
+    /* ensure it sits above other tiles while hovered */
+    z-index: 999999 !important;
+}
+
+
+/* ensure later images visually stack on top */
+/*.hg-img[data-z] { z-index: var(--z); }*/
+
+/* debug helper (optional): quickly make images more visible during dev */
+/* .hg-img { outline: 1px dashed rgba(255,255,255,0.06); } */

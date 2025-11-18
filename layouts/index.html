@@ -1,23 +1,15 @@
 {{ define "main" }}
-{{ $hero := .Param "hero" }}
-{{ $img := cond (resources.GetMatch $hero) (resources.GetMatch $hero) nil }}
+{{ $background := .Param "background" }}
+{{ $img := cond (resources.GetMatch $background) (resources.GetMatch $background) nil }}
 {{ $bg := cond $img ($img.Resize "2400x") nil }}
 
-<section class="hero" style="background-image: url('{{ with $bg }}{{ .RelPermalink }}{{ else }}/{{ $hero }}{{ end }}');">
+<section class="hero" style="background-image: url('{{ with $bg }}{{ .RelPermalink }}{{ else }}/{{ $background }}{{ end }}');">
 
-<!--    <div class="hero-content">-->
-<!--        <p>{{ .Site.Params.description }}</p>-->
-<!--        <button id="scroll-down" class="scroll-btn" aria-label="Learn more">-->
-<!--            Learn more-->
-<!--        </button>-->
-<!--    </div>-->
 
-    <!-- 🧱 Modular homepage grid -->
-    <div class="hero-grid-wrap">
-        {{ partial "homepage-grid.html" . }}
-    </div>
+        <!-- 🧱 Modular homepage grid -->
+        <div class="hero-grid-wrap">
+            {{ partial "homepage-grid.html" . }}
+        </div>
 </section>
-
-
 
 {{ end }}
