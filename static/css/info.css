@@ -1,15 +1,19 @@
 /* ===========================
-   info.css — variables + layout
+   info.css — canonical shared variables + page styles
+   (exposes font family, size, color, AND font-weight for section, card, pill)
+   UPDATED:  - wider benefit cards
+             - allow body text lines to be longer
+             - utility classes to lock benefits grid to 1x3 (row) or 3x1 (column)
    =========================== */
 
 /* ---- global tweakable vars ---- */
 :root{
     /* card sizing */
-    --card-width: min(90%, 1400px);
+    --site-width: min(90%, 1400px);
     --card-radius: 34px;
     --card-height-clamp-min: 360px;
     --card-height-clamp-max: 1160px;
-    --card-height-vh-offset: calc(80vh - var(--site-header-top-offset));
+    --card-height-vh-offset: calc(80vh - var(--site-header-top-offset, 0px));
 
     /* corners */
     --corner-size: 56px;
@@ -36,10 +40,10 @@
 
     /* hero-right region (we place line1 by top and the bottom block by bottom) */
     --hero-right-right: 64px;
-    --hero-right-top-percent: 36%;  /* controls where line-1 sits vertically */
+    --hero-right-top-percent: 36%;
     --hero-right-width: min(420px, 36%);
     --hero-right-gap: 1rem;
-    --hero-right-bottom: 54px; /* distance from card bottom for line2+logos */
+    --hero-right-bottom: 54px;
 
     /* logos */
     --logo-size: 25px;
@@ -49,9 +53,48 @@
     --overlay-gradient-start: rgba(0,0,0,0.08);
     --overlay-gradient-end: rgba(0,0,0,0.18);
 
-    --benefit-icon-bubble: 36px;   /* bubble size (outer circle) */
-    --benefit-icon-scale: 1;    /* fraction of bubble used by the image (0.0 - 1.0) */
+    --benefit-icon-bubble: 36px;
+    --benefit-icon-scale: 1;
 
+    /* -----------------------
+       Shared typography / pill variables (central source-of-truth)
+       - font-family
+       - font-size
+       - color
+       - font-weight (NEW)
+       ----------------------- */
+
+    /* Section (header) */
+    --section-title-font-family: 'Wolf2', system-ui, "Inter", Roboto, Helvetica, Arial, sans-serif;
+    --section-title-font-size: 40px;
+    --section-title-color: #000000;
+    --section-title-font-weight: 500;
+
+    --section-sub-font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    --section-sub-font-size: 18px;
+    --section-sub-color: #44444a;
+    --section-sub-font-weight: 400;
+
+    /* Card */
+    --card-title-font-family: 'Wolf2', system-ui, "Inter", Roboto, Helvetica, Arial, sans-serif;
+    --card-title-font-size: 20px;
+    --card-title-color: #000000;
+    --card-title-font-weight: 500;
+
+    --card-body-font-family: 'Wolf2', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    --card-body-font-size: 19px;
+    --card-body-color: #161617;
+    --card-body-font-weight: 400;
+
+    /* Pill / tag */
+    --pill-font-family: 'Wolf2', system-ui, "Inter", Roboto, Helvetica, Arial, sans-serif;
+    --pill-font-size: 16px;
+    --pill-font-color: #090909;
+    --pill-bg: rgba(17,22,26,0.06);
+    --pill-padding-vertical: 8px;
+    --pill-padding-horizontal: 15px;
+    --pill-border-radius: 999px;
+    --pill-font-weight: 400;
 }
 
 /* --- Full-page center layout --- */
@@ -62,12 +105,12 @@
     align-items: center;
     justify-content: flex-start;
     background: #f5f6f7;
-    padding-top: calc(var(--site-header-occupy) + 20px);
+    padding-top: calc(var(--site-header-occupy, 0px) + 20px);
 }
 
 /* --- Centered card --- */
 .info-card {
-    width: var(--card-width);
+    width: var(--site-width);
     height: clamp(var(--card-height-clamp-min), var(--card-height-vh-offset), var(--card-height-clamp-max));
     background: rgba(255, 255, 255, 0.18);
     backdrop-filter: blur(16px);
@@ -81,7 +124,7 @@
 /* --- Big hero image --- */
 .info-image {
     position: absolute;
-    inset: 0; /* fill */
+    inset: 0;
     width: 100%;
     height: 100%;
     display: block;
@@ -310,11 +353,11 @@
     height: var(--logo-size);
     place-items: center;
     border-radius: 8px;
-    background: transparent !important;    /* force removal */
-    padding: 0 !important;                  /* remove padding */
+    background: transparent !important;
+    padding: 0 !important;
     transition: transform 160ms ease;
-    box-shadow: none !important;            /* remove shadow */
-    border: none !important;                /* remove border */
+    box-shadow: none !important;
+    border: none !important;
 }
 
 /* logo image fit cleanly */
@@ -373,7 +416,6 @@
     .info-card .hero-headline { font-size: clamp(var(--hero-font-min), var(--hero-font-vw), var(--hero-font-max)); line-height: 1; }
     .info-card .hero-dot { width: var(--hero-dot-size); height: var(--hero-dot-size); }
 
-    /* keep right content visible but wider */
     .info-card .hero-right {
         right: var(--hero-right-right);
         top: var(--hero-right-top-percent);
@@ -381,7 +423,6 @@
         text-align: right;
     }
 
-    /* logo sizes for small phones */
     .info-card .logo-link { width: var(--logo-size); height: var(--logo-size); }
     .info-card .logo-link img { width: 100%; height: 100%; }
 }
@@ -416,7 +457,6 @@
     .info-card .hero-headline { font-size: clamp(var(--hero-font-min), var(--hero-font-vw), var(--hero-font-max)); line-height: 1; }
     .info-card .hero-dot { width: var(--hero-dot-size); height: var(--hero-dot-size); }
 
-    /* keep right content visible but wider */
     .info-card .hero-right {
         right: var(--hero-right-right);
         top: var(--hero-right-top-percent);
@@ -424,7 +464,6 @@
         text-align: right;
     }
 
-    /* logo sizes for small phones */
     .info-card .logo-link { width: var(--logo-size); height: var(--logo-size); }
     .info-card .logo-link img { width: 100%; height: 100%; }
 }
@@ -433,7 +472,7 @@
    Benefits UI (info page)
    ------------------------- */
 .site-width{
-    max-width: 1200px;
+    max-width: var(--site-width);
     margin: 0 auto;
     padding: 0 20px;
     box-sizing: border-box;
@@ -452,22 +491,26 @@
     margin: 0 auto 36px;
     max-width: 780px;
 }
+/* Use shared section vars for title and sub */
 .small-pill{
     display: inline-block;
     background: #fff;
-    padding: 6px 12px;
-    border-radius: 999px;
+    padding: var(--pill-padding-vertical) var(--pill-padding-horizontal);
+    border-radius: var(--pill-border-radius);
     box-shadow: 0 1px 0 rgba(0,0,0,0.02);
-    font-size: 13px;
-    color: #3a3a3a;
+    font-size: var(--pill-font-size);
+    color: var(--pill-font-color);
     margin-bottom: 12px;
+    font-family: var(--pill-font-family);
+    font-weight: var(--pill-font-weight);
 }
 .benefits-title{
     margin: 6px 0 8px;
-    font-size: 40px;
+    font-size: var(--section-title-font-size);
     line-height: 1.03;
-    font-family: 'Wolf2', system-ui;
-    font-weight: 400;
+    font-family: var(--section-title-font-family);
+    font-weight: var(--section-title-font-weight);
+    color: var(--section-title-color);
 }
 .benefits-title em{
     font-style: italic;
@@ -476,26 +519,57 @@
 }
 .benefits-sub{
     margin: 0 auto;
-    max-width: 640px;
-    color: #6f6f77;
-    font-size: 16px;
+    max-width: 340px;
+    color: var(--section-sub-color);
+    font-size: var(--section-sub-font-size);
     line-height: 1.6;
+    font-family: var(--section-sub-font-family);
+    font-weight: var(--section-sub-font-weight);
 }
+
+/* =========================
+   IMPORTANT:
+   - default: 3 columns (1 row x 3 cols) on wide screens
+   - mobile: falls back to 1 column (3 rows x 1 col)
+   - utility classes below allow forcing either layout:
+       .benefits-grid--row    -> 1x3 forced (single row, 3 items)
+       .benefits-grid--column -> 3x1 forced (single column, 3 items)
+   Use these classes on the container to lock orientation.
+   ========================= */
 
 /* grid */
 .benefits-grid{
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, 1fr); /* default 1x3 */
     gap: 26px;
     align-items: stretch;
     margin-top: 22px;
 }
 
+/* Force a single row with 3 columns (use class .benefits-grid--row)
+   Useful when you need a strict 1x3 layout even in responsive contexts */
+.benefits-grid--row {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    grid-template-rows: none;
+    gap: 26px;
+}
+
+/* Force a single column with 3 rows (use class .benefits-grid--column) */
+.benefits-grid--column {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    gap: 18px;
+}
+
 /* card */
 .benefit-card{
+    /* made cards wider via increased padding and looser constraints */
     background: #ffffff;
     border-radius: 28px;
-    padding: 26px 28px;
+    padding: 30px 34px;         /* increased padding for visual weight */
     box-shadow: 0 6px 18px rgba(18, 22, 26, 0.06);
     display: flex;
     flex-direction: column;
@@ -504,9 +578,12 @@
     min-height: 220px;
     transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s;
     box-sizing: border-box;
+    max-width: 100%;           /* ensure responsive fill */
 }
-.benefit-card:hover{
-    transform: translateY(-6px);
+
+/* badge hover */
+.benefit-badge:hover{
+    transform: translateY(-1px);
     box-shadow: 0 18px 40px rgba(18,22,26,0.09);
 }
 
@@ -517,10 +594,10 @@
     border-radius: 999px;
     display: grid;
     place-items: center;
-    margin-bottom: 14px;      /* tighten spacing if needed */
+    margin-bottom: 14px;
     background: none;
     color: #111;
-    flex: 0 0 auto;           /* prevent flex children from growing/shrinking unexpectedly */
+    flex: 0 0 auto;
 }
 
 /* force the image to scale *inside* the bubble */
@@ -535,45 +612,61 @@
     padding: 0;
 }
 
-/* title / body */
+/* title / body — use shared card vars */
 .benefit-title{
     margin: 6px 0 8px;
-    font-size: 18px;
-    font-weight: 500;
-    color: #111;
+    font-size: var(--card-title-font-size);
+    font-weight: var(--card-title-font-weight);
+    color: var(--card-title-color);
+    font-family: var(--card-title-font-family);
 }
+
+/* NOTE: body max-width increased to allow longer lines.
+   Use width:100% so body text can expand inside the card. */
 .benefit-body{
     margin: 0 0 18px;
-    color: #6b6b73;
-    font-size: 15px;
+    color: var(--card-body-color);
+    font-size: var(--card-body-font-size);
+    font-weight: var(--card-body-font-weight);
     line-height: 1.6;
-    max-width: 260px; /* keep similar visual width like screenshot */
+    max-width: 380px;           /* increased from 260px */
+    width: 100%;
+    font-family: var(--card-body-font-family);
+    box-sizing: border-box;
 }
 
 /* badge */
 .benefit-badge{
     margin-top: auto;
-    background: rgba(17, 22, 26, 0.06);
+    background: var(--pill-bg);
     border: none;
-    padding: 8px 14px;
-    border-radius: 18px;
-    font-size: 13px;
-    color: #222;
+    padding: var(--pill-padding-vertical) var(--pill-padding-horizontal);
+    border-radius: var(--pill-border-radius);
+    font-size: var(--pill-font-size);
+    color: var(--pill-font-color);
     cursor: default;
     box-shadow: none;
+    font-family: var(--pill-font-family);
+    font-weight: var(--pill-font-weight);
 }
 
-/* responsive */
+/* responsive overrides */
 @media (max-width: 980px){
     .benefits-grid{
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, 1fr); /* medium screens -> 2 columns */
         gap: 18px;
     }
     .benefits-title{
-        font-size: 34px;
+        font-size: calc(var(--section-title-font-size) * 0.85);
     }
+
+    /* ensure utility classes keep their lock on medium screens if present */
+    .benefits-grid--row { grid-auto-columns: 1fr; grid-auto-flow: column; }
+    .benefits-grid--column { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px){
+    /* default mobile collapses to 1 column (3x1). If you used .benefits-grid--row and need strict row,
+       you can override with explicit media rules where needed. */
     .benefits-grid{
         grid-template-columns: 1fr;
     }
@@ -585,6 +678,12 @@
         padding-bottom: 48px;
     }
     .benefits-title{
-        font-size: 28px;
+        font-size: calc(var(--section-title-font-size) * 0.7);
     }
 }
+
+/* ==============================
+   SERVICES — base block (info.css provides shared variables)
+   ============================== */
+
+/* You may place additional global styles here that other files will inherit. */

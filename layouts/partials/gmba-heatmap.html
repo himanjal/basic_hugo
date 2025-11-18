@@ -9,93 +9,108 @@
 
     <style>
         :root{
-            /* Legend sizing variables you can tweak */
-            --legend-width: 280px;
-            --legend-height: 40vh;
-            --minimized-size: 44px;      /* pill / circle diameter when minimized */
-            --legend-bg: rgba(255,255,255,0.95);
-            --legend-radius: 12px;
+            --legend-width: 320px;
+            --legend-height: 44vh;
+            --minimized-height: 44px;
+            --legend-bg: rgba(255,255,255,0.96);
+            --legend-radius: 999px;
             --swatch-size: 12px;
             --swatch-gap: 8px;
-            --legend-font-size: 12px;    /* reduced font size for compact legend */
-            --minimized-font-size: 11px;
-        }
-
-        /* mobile tweaks */
-        @media (max-width:640px){
-            :root {
-                --legend-width: 88vw;
-                --legend-height: 46vh;
-                --minimized-size: 40px;
-                --swatch-size: 14px;
-                --legend-font-size: 13px;
-            }
+            --legend-font-size: 13px;
+            --minimized-font-size: 13px;
+            --pill-padding-x: 12px;
         }
 
         html,body { height:100%; margin:0; padding:0; background:#f7faf9; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
         body > * { box-sizing: border-box; }
 
-        /* Full-screen map (map sits under header if present) */
+        /* Map covers full viewport */
         #map {
             position: fixed;
-            inset: 0;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
             width: 100%;
-            height: 100%;
+            height: 100vh;
             z-index: 0;
             background: #e8eff3;
         }
 
-        /* LEGEND — default: minimized (small pill). When .expanded present, show full legend box */
+        /* Legend common */
         .legend {
             position: absolute;
             left: 16px;
             bottom: 16px;
             z-index: 1002;
             display: flex;
-            align-items: center;
             gap: 8px;
             transition: all 220ms ease;
             pointer-events: auto;
             font-size: var(--legend-font-size);
         }
 
-        /* Minimized pill */
+        /* Minimized pill (wide pill style) */
         .legend.minimized {
-            width: var(--minimized-size);
-            height: var(--minimized-size);
-            border-radius: calc(var(--minimized-size) / 2);
+            height: var(--minimized-height);
+            border-radius: var(--legend-radius);
             background: var(--legend-bg);
             box-shadow: 0 8px 28px rgba(15,23,42,0.12);
             padding: 6px;
-            justify-content: center;
             align-items: center;
             cursor: pointer;
+            min-width: 88px;
+            padding-left: 8px;
+            padding-right: 8px;
         }
 
-        .legend.minimized .pill-inner {
-            display:flex; align-items:center; justify-content:center; gap:6px;
-            width:100%; height:100%;
+        .mini-pill {
+            display:flex;
+            align-items:center;
+            gap:8px;
+            background: transparent;
+            border-radius: 999px;
+            padding: 6px var(--pill-padding-x);
+            height: calc(var(--minimized-height) - 12px);
+            box-sizing: border-box;
         }
 
-        .legend.minimized .pill-dot {
-            width: 10px; height: 10px; border-radius:50%; background:#2f9d3a; box-shadow: 0 2px 6px rgba(2,6,23,0.12);
-        }
-
-        .legend.minimized .pill-count {
+        .mini-label {
+            font-weight: 600;
             font-size: var(--minimized-font-size);
-            margin-left: 6px;
-            color:#0f172a;
+            color: #071233;
+            white-space: nowrap;
+            margin-right: 6px;
         }
 
-        /* Expanded legend (bottom sheet style) */
+        .mini-count {
+            min-width: 28px;
+            height: 28px;
+            line-height: 28px;
+            border-radius: 999px;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(2,6,23,0.12);
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding: 0 8px;
+            font-weight: 700;
+            color: #071233;
+            font-size: 12px;
+        }
+
+        /* Hide the mini-pill when expanded (count only visible minimized) */
+        .legend.expanded .mini-pill { display: none; }
+
+        /* Expanded legend */
         .legend.expanded {
             left: 12px;
             right: 12px;
             width: var(--legend-width);
             max-width: calc(100% - 24px);
             height: var(--legend-height);
-            min-height: 80px;
-            border-radius: var(--legend-radius);
+            min-height: 96px;
+            border-radius: 12px;
             background: var(--legend-bg);
             padding: 10px;
             flex-direction: column;
@@ -104,23 +119,37 @@
             overflow: hidden;
         }
 
-        .legend .title-row {
-            display:flex; align-items:center; justify-content:space-between; gap:8px; padding-bottom:6px;
+        .title-row {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:8px;
+            padding-bottom:6px;
         }
-        .legend.expanded h4 { margin:0; font-weight:600; font-size:13px; }
-        .legend .close-btn {
-            background:transparent; border:0; font-size:13px; color:#0f172a; cursor:pointer; padding:6px 8px; border-radius:8px;
+
+        .title-left {
+            display:flex;
+            align-items:center;
+            gap:8px;
+        }
+
+        .legend h4 { margin:0; font-weight:600; font-size:14px; color:#071233; }
+
+        .close-btn {
+            background:transparent; border:0; font-size:18px; color:#0f172a; cursor:pointer; padding:6px 8px; border-radius:8px;
         }
 
         .legend-list {
-            overflow:auto; -webkit-overflow-scrolling:touch; padding-right:6px; display:block;
+            overflow:auto; -webkit-overflow-scrolling:touch;
             display:flex; flex-direction:column; gap:6px;
+            padding-right:6px;
         }
 
         .legend-item {
             display:flex; align-items:center; gap:var(--swatch-gap);
             padding:6px 8px; border-radius:8px;
         }
+
         .legend-item .swatch {
             width: var(--swatch-size); height: var(--swatch-size); border-radius:3px;
             border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 2px 6px rgba(2,6,23,0.08);
@@ -128,10 +157,13 @@
         .legend-item .name { font-size: var(--legend-font-size); color:#071233; line-height:1.1; }
         .legend-item .meta { font-size: 11px; color:#334155; margin-left:auto; opacity:0.8; }
 
-        /* Smaller visual for the minimized pill when few items */
-        .legend.minimized.small { width: calc(var(--minimized-size) - 6px); height: calc(var(--minimized-size) - 6px); }
+        /* Hide expanded parts when minimized */
+        .legend.minimized .title-row,
+        .legend.minimized .legend-list {
+            display: none;
+        }
 
-        /* Loading badge (keeps bottom-right but above minimized legend if present) */
+        /* Loading badge */
         .loading {
             position: absolute;
             right: 12px;
@@ -144,23 +176,31 @@
             z-index: 1002;
         }
 
-        /* popup tweaks */
         .leaflet-popup-content { font-size:14px; }
 
-        /* Make non-highlighted grey darker as requested */
-        /* This is the value used in JS DEFAULT_STYLE: '#909090' (kept in CSS for fallback visuals) */
+        @media (max-width:640px){
+            :root {
+                --legend-width: 92vw;
+                --legend-height: 46vh;
+                --minimized-height: 44px;
+                --legend-font-size: 13px;
+            }
+            .mini-pill { padding: 6px 10px; }
+        }
     </style>
 </head>
 <body>
+
 <div id="map" aria-hidden="false"></div>
 
-<!-- Legend: starts minimized -->
+<!-- Legend -->
 <div id="legend" class="legend minimized" role="region" aria-label="Visited ranges legend" title="Tap to expand legend">
-    <div class="pill-inner" id="pillInner" aria-hidden="false">
-        <div class="pill-dot" id="pillDot" aria-hidden="true"></div>
-        <div class="pill-count" id="pillCount" aria-hidden="true"></div>
+    <div class="mini-pill" id="miniPill">
+        <div class="mini-label" id="miniLabel">Legend</div>
+        <div class="mini-count" id="miniCount">0</div>
     </div>
-    <!-- expanded content injected by JS when open -->
+
+    <!-- Expanded content appended via JS (title row + list) -->
 </div>
 
 <div id="loading" class="loading">Loading…</div>
@@ -169,21 +209,47 @@
 <script>
     (async function(){
         // --------------------
-        // CONFIG + state
+        // Tweakable variables
         // --------------------
+        // Amount to move the center UP by (fraction of viewport height). 0.10 => 10%
+        const CENTER_VERTICAL_OFFSET = -0.03;
+
+        // Paths
         const GEOJSON_PATH = '/heatmap/ranges_small.geojson';
         const CSV_PATH     = '/heatmap/heatmap_input_data.csv';
-        // darker grey requested
+
+        // Styles
         const DEFAULT_STYLE = { weight:1, color: 'rgba(0,0,0,0.18)', fillOpacity:0.6, fillColor:'#909090' };
         const HIGHLIGHT_BASE = { weight:1.5, color:'#184e18', fillOpacity:0.8 };
 
         const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
 
-        // fetch helpers
+        const loadingEl = document.getElementById('loading');
+        const legendEl = document.getElementById('legend');
+        const miniCountEl = document.getElementById('miniCount');
+
+        function setLoading(msg){ loadingEl.textContent = msg; }
+
+        // --------------------
+        // Map init - disable attribution control to hide bottom-right "Leaflet"
+        // --------------------
+        const map = L.map('map', {
+            preferCanvas: true,
+            tap: true,
+            doubleClickZoom: false,
+            zoomControl: false,
+            attributionControl: false
+        }).setView([20,0], 2);
+
+        // tiles (no attribution string)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:18, attribution:'' }).addTo(map);
+
+        // --------------------
+        // Fetch helpers & CSV parse
+        // --------------------
         async function fetchText(url){ const r = await fetch(url, {cache:'no-cache'}); if(!r.ok) throw new Error('Fetch ' + url + ' failed ' + r.status); return await r.text(); }
         async function fetchJSON(url){ const r = await fetch(url, {cache:'no-cache'}); if(!r.ok) throw new Error('Fetch ' + url + ' failed ' + r.status); return await r.json(); }
 
-        // minimal CSV parser
         function parseCSV(text){
             const rows = [];
             const lines = text.split(/\r?\n/).filter(Boolean);
@@ -232,32 +298,8 @@
         function norm(s){ return String(s||'').trim().toLowerCase(); }
         function colorForIndex(i, total){ const hue = Math.round((i * 137.50776405003785) % 360); return `hsl(${hue} 60% 46%)`; }
 
-        // --------------------
-        // Map init
-        // --------------------
-        const map = L.map('map', {
-            preferCanvas: true,
-            tap: true,
-            // keep built-in behaviors: pinchZoom true, doubleClickZoom default true
-            doubleClickZoom: false, // we handle dblclick explicitly to zoom in with animation
-            zoomControl: false      // remove default zoom control UI
-        }).setView([20,0], 2);
-
-        // Add tile layer (lightweight)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:18, attribution:'' }).addTo(map);
-
-        // small UI elements
-        const loadingEl = document.getElementById('loading');
-        const legendEl = document.getElementById('legend');
-        const pillCountEl = document.getElementById('pillCount');
-        const pillDotEl = document.getElementById('pillDot');
-        const pillInner = document.getElementById('pillInner');
-
-        function setLoading(msg){ loadingEl.textContent = msg; }
-
         setLoading('Loading CSV and GeoJSON...');
 
-        // fetch CSV & geojson
         let csvText = null, geojson = null;
         try {
             [csvText, geojson] = await Promise.all([
@@ -266,14 +308,12 @@
             ]);
         } catch(e){ console.error('Fetch error', e); }
 
-        // build name->color map
         const nameToColor = new Map();
         const originalNames = new Map();
         if(csvText){
             const rows = parseCSV(csvText);
             if(rows.length > 0){
-                let header = rows[0];
-                let start = 1;
+                let header = rows[0], start = 1;
                 const headerLooksLikeHeader = header.some(c => isNaN(Number(c)) && c.trim() !== '');
                 if(!headerLooksLikeHeader){ header = null; start = 0; }
                 const nameCol = header ? findNameCol(header) : 0;
@@ -308,12 +348,6 @@
 
         setLoading('Styling features...');
 
-        // --------------------
-        // Render geojson
-        // --------------------
-        const legendListContainer = document.createElement('div'); // will hold expanded legend content
-        legendListContainer.className = 'legend-list';
-
         function isFeatureHighlighted(feature){
             if(!feature || !feature.properties) return null;
             const candidates = ['name','Name','Name_EN','NAME','range','Range','range_name'];
@@ -333,7 +367,6 @@
 
         function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-        // darken util (for stroke)
         function darken(cssColor, amt){
             if(typeof cssColor !== 'string') return 'rgba(0,0,0,0.18)';
             if(cssColor.startsWith('hsl')){
@@ -349,7 +382,13 @@
         }
 
         let geoLayer = null;
+        const legendListContainer = document.createElement('div');
+        legendListContainer.className = 'legend-list';
+
         if(geojson && geojson.features && geojson.features.length){
+            // ensure map knows its container size before fitBounds (fixes mobile zoom issues)
+            map.invalidateSize(true);
+
             geoLayer = L.geoJSON(geojson, {
                 style: function(feature){
                     const hit = isFeatureHighlighted(feature);
@@ -364,7 +403,6 @@
                     const desc = hit ? `<div style="margin-top:6px;color:${hit.color}">Highlighted</div>` : '';
                     layer.bindPopup(`<strong>${escapeHtml(String(name))}</strong>${desc}`, { closeButton: true, maxWidth: 280 });
 
-                    // desktop hover behavior - no hover dependence on mobile
                     if(!isTouch){
                         layer.on('mouseover', () => layer.setStyle({ weight: 2 }));
                         layer.on('mouseout', () => {
@@ -375,12 +413,11 @@
                         });
                     }
 
-                    // open popup on click/tap
                     layer.on('click', () => layer.openPopup());
                 }
             }).addTo(map);
 
-            // Build minimized pill count and expanded legend entries
+            // collect present names
             const presentNames = [];
             for(const [key, color] of nameToColor){
                 const present = geojson.features.some(f => {
@@ -391,26 +428,18 @@
                 presentNames.push({ key, color, label: originalNames.get(key) || key });
             }
 
-            // Update minimized pill visuals
-            if(presentNames.length > 0){
-                pillCountEl.textContent = presentNames.length;
-                pillCountEl.style.display = 'inline-block';
-                pillDotEl.style.background = presentNames[0].color || '#2f9d3a';
-            } else {
-                pillCountEl.textContent = '';
-                pillCountEl.style.display = 'none';
-                pillDotEl.style.background = '#9e9e9e';
-            }
+            // update minimized pill count (only shown in minimized state)
+            const tot = presentNames.length || 0;
+            miniCountEl.textContent = String(tot);
 
-            // populate expanded legendListContainer
+            // populate legend list
             presentNames.forEach(item => {
                 const r = document.createElement('div');
                 r.className = 'legend-item';
                 r.innerHTML = `<div class="swatch" style="background:${item.color}"></div>
-                     <div class="name">${escapeHtml(item.label)}</div>
-                     <div class="meta"></div>`;
+               <div class="name">${escapeHtml(item.label)}</div>
+               <div class="meta"></div>`;
                 r.addEventListener('click', () => {
-                    // zoom to matching features
                     if(!geoLayer) return;
                     const matches = [];
                     geoLayer.eachLayer(l => {
@@ -419,7 +448,11 @@
                     });
                     if(matches.length === 0) return;
                     const group = L.featureGroup(matches);
+
+                    // ensure container size is correct before fitting
+                    map.invalidateSize(true);
                     map.fitBounds(group.getBounds(), { padding:[12,12] });
+
                     matches.forEach(l => {
                         l.setStyle({ weight: 3 });
                         setTimeout(() => l.setStyle({ weight: 1.5 }), 900);
@@ -428,35 +461,112 @@
                 legendListContainer.appendChild(r);
             });
 
-            // attach expanded content to legend (but hidden until expanded)
-            // build header row for expanded legend
+            // build expanded header (NO count shown)
             const expandedHeader = document.createElement('div');
             expandedHeader.className = 'title-row';
-            expandedHeader.innerHTML = `<h4>Visited mountain ranges</h4><button class="close-btn" id="legendCloseBtn">Close</button>`;
+            expandedHeader.innerHTML = `<div class="title-left">
+                                      <h4>Visited mountain ranges</h4>
+                                    </div>
+                                    <button class="close-btn" id="legendCloseBtn" aria-label="Minimize legend">✕</button>`;
             legendEl.appendChild(expandedHeader);
             legendEl.appendChild(legendListContainer);
 
-            // Fit bounds and zoom in more on small screens
+            // --------------------------
+            // NEW: iterative zoom-fill approach
+            // --------------------------
+            // --------------------------
+// REPLACEMENT: fractional-zoom iterative fill
+// --------------------------
+            // --------------------------
+// FORCE-VERTICAL-FILL: compute zoom from bounds pixel HEIGHT (ignore width)
+// --------------------------
             try {
                 const bounds = geoLayer.getBounds();
                 if (bounds.isValid()) {
-                    map.fitBounds(bounds, { padding:[18,18] });
+                    // ensure map container sizing is correct
+                    map.invalidateSize(true);
 
-                    // mobile-specific: zoom further so map takes over vertical height
-                    setTimeout(() => {
+                    // header detection + decide whether map must fill behind header
+                    const headerEl = document.querySelector('header, .site-header, .home-header, .home-header-wrap');
+                    const headerHeight = headerEl ? Math.round(headerEl.getBoundingClientRect().height) : 0;
+                    const includeHeader = true; // true -> fill full viewport (map visible behind header). Set false to avoid header.
+
+                    // padding and desired height
+                    const TOP_PAD = 6;
+                    const BOTTOM_PAD = 12;
+                    const desiredHeight = includeHeader
+                        ? Math.max(0, window.innerHeight - TOP_PAD - BOTTOM_PAD)
+                        : Math.max(0, window.innerHeight - headerHeight - TOP_PAD - BOTTOM_PAD);
+
+                    // zoom search bounds
+                    const maxZoom = Math.min(map.getMaxZoom ? map.getMaxZoom() : (map.options.maxZoom || 18), 22);
+                    const minZoom = Math.max(map.getMinZoom ? map.getMinZoom() : (map.options.minZoom || 0), 0);
+
+                    // helper: projected pixel-height of the bounds at arbitrary (possibly fractional) zoom
+                    function projectedPixelHeightAtZoom(z) {
+                        const ne = map.project(bounds.getNorthEast(), z);
+                        const sw = map.project(bounds.getSouthWest(), z);
+                        return Math.abs(ne.y - sw.y);
+                    }
+
+                    // debug -> open console to see progress
+                    console.info('[vertical-fill] desiredHeight:', desiredHeight, 'headerHeight:', headerHeight);
+
+                    // search smallest zoom such that projected pixel height >= desiredHeight (start from min upwards)
+                    const STEP = 0.1;          // smaller -> more exact, slower. Try 0.25 if you want faster.
+                    const TOL = 2;             // pixel tolerance
+                    let chosenZoom = null;
+                    for (let z = minZoom; z <= maxZoom + 0.0001; z = Math.round((z + STEP) * 100) / 100) {
                         try {
-                            const current = map.getZoom();
-                            if (isTouch && window.innerWidth <= 640) {
-                                // zoom further in for mobile; +2 zoom or clamp to 8
-                                map.setZoom(Math.min(8, current + 2));
-                            } else {
-                                // desktop: small nudge
-                                map.setZoom(Math.min(6, current + 1));
+                            const ph = projectedPixelHeightAtZoom(z);
+                            // log a few samples for debugging (will be noisy if STEP very small)
+                            if (Math.abs(z - Math.round(z)) < 0.001 || z === minZoom) {
+                                console.debug('[vertical-fill] sample zoom', z, 'projHeight', Math.round(ph));
                             }
-                        } catch(e) { /* ignore */ }
-                    }, 300);
+                            if (ph >= (desiredHeight - TOL)) {
+                                chosenZoom = z;
+                                console.info('[vertical-fill] chosenZoom', chosenZoom, 'projHeight', Math.round(ph));
+                                break;
+                            }
+                        } catch (e) {
+                            // projection sometimes throws for extreme zoom in some builds; ignore
+                        }
+                    }
+
+                    // if never satisfied, choose maxZoom (we tried up to maxZoom)
+                    if (chosenZoom === null) {
+                        chosenZoom = maxZoom;
+                        console.info('[vertical-fill] none matched; falling back to maxZoom', maxZoom, 'projHeight',
+                            Math.round(projectedPixelHeightAtZoom(maxZoom)));
+                    }
+
+                    // clamp chosenZoom
+                    chosenZoom = Math.max(minZoom, Math.min(maxZoom, chosenZoom));
+
+                    // set the map to the chosen zoom and center on bounds center
+                    const boundsCenter = bounds.getCenter();
+                    map.setView(boundsCenter, chosenZoom, { animate: false });
+
+                    // optional vertical offset (same API you had)
+                    const offsetPixels = Math.round(window.innerHeight * (typeof CENTER_VERTICAL_OFFSET === 'number' ? CENTER_VERTICAL_OFFSET : -0.03));
+                    if (offsetPixels !== 0) {
+                        const centerPoint = map.latLngToContainerPoint(boundsCenter);
+                        const shiftedPoint = L.point(centerPoint.x, centerPoint.y - offsetPixels);
+                        const shiftedLatLng = map.containerPointToLatLng(shiftedPoint);
+                        map.setView(shiftedLatLng, chosenZoom, { animate: true });
+                    }
+
+                    // safety: prevent zooming out past our computed value
+                    try { map.setMinZoom(chosenZoom); } catch (e) { /* ignore */ }
+
+                    // final refresh
+                    setTimeout(() => map.invalidateSize(true), 80);
                 }
-            } catch(e){ /* ignore */ }
+            } catch (err) {
+                console.warn('force-vertical-fill error', err);
+            }
+
+
         } else {
             console.warn('No geojson features found or failed to load.');
         }
@@ -464,38 +574,43 @@
         setLoading('');
         loadingEl.style.display = 'none';
 
-        // --------------------
         // Legend open/close behavior
-        // --------------------
         function expandLegend(){
             legendEl.classList.remove('minimized');
             legendEl.classList.add('expanded');
-            legendEl.setAttribute('title', 'Tap to minimize');
-            // ensure expanded content is visible and accessible
+            legendEl.setAttribute('title', 'Click outside or ✕ to minimize');
         }
         function minimizeLegend(){
-            // remove expanded DOM children except minimized pill visuals
             legendEl.classList.remove('expanded');
             legendEl.classList.add('minimized');
             legendEl.setAttribute('title', 'Tap to expand legend');
         }
 
-        // start minimized by default
+        // start minimized
         minimizeLegend();
 
-        // clicking the minimized legend expands it
+        // clicking mini pill expands
         legendEl.addEventListener('click', (evt) => {
-            // If already expanded and user clicked inside expanded area close-button handles it
-            if(legendEl.classList.contains('minimized')) {
+            if(legendEl.classList.contains('minimized')){
                 expandLegend();
-                // stop click propagation so it doesn't trigger map click underneath
                 evt.stopPropagation();
             }
         }, { passive: true });
 
-        // close button
+        // close button minimize
+        function attachCloseButton(){
+            const closeBtn = document.getElementById('legendCloseBtn');
+            if(closeBtn){
+                closeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    minimizeLegend();
+                }, { passive: true });
+            }
+        }
+        attachCloseButton();
+
+        // click outside to minimize
         document.addEventListener('click', function closeHandler(e) {
-            // if expanded and click outside the legend, minimize
             if(legendEl.classList.contains('expanded')){
                 const inside = legendEl.contains(e.target);
                 if(!inside){
@@ -504,49 +619,10 @@
             }
         }, { passive: true });
 
-        // Close button in expanded header
-        const closeBtn = document.getElementById('legendCloseBtn');
-        if(closeBtn){
-            closeBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                minimizeLegend();
-            }, { passive: true });
-        }
-
-        // --------------------
-        // Zoom interactions
-        // --------------------
-        // Double-click (desktop) to zoom in
-        map.on('dblclick', () => {
-            map.zoomIn({ animate: true });
-        });
-
-        // Double-tap detection for touch devices (two quick taps within 300ms)
-        (function enableDoubleTapZoom(){
-            if(!isTouch) return;
-            let lastTap = 0;
-            const threshold = 300; // ms
-            // attach on the map container
-            const mc = map.getContainer();
-            mc.addEventListener('touchend', (ev) => {
-                const now = Date.now();
-                const delta = now - lastTap;
-                if(delta > 0 && delta <= threshold){
-                    // double-tap detected
-                    map.zoomIn({ animate:true });
-                    lastTap = 0;
-                } else {
-                    lastTap = now;
-                }
-            }, { passive: true });
-        })();
-
-        // Allow pinch to zoom and standard gestures — Leaflet handles pinchZoom by default.
-
-        // Ensure map resizes properly if device rotates or viewport changes
+        // ensure leaflet resizes on viewport changes
         window.addEventListener('resize', () => {
-            setTimeout(() => map.invalidateSize(), 250);
-        });
+            setTimeout(() => { map.invalidateSize(true); }, 80);
+        }, { passive:true });
 
     })();
 </script>

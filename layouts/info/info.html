@@ -3,9 +3,7 @@
 <!-- Header -->
 {{ partial "header.html" . }}
 
-<!-- =======================
-     Load ALL assets from /assets/logos (safely)
-     ======================= -->
+
 
 <main class="info-container">
     <div class="info-card">
@@ -103,7 +101,7 @@
             </h2>
 
             <p class="benefits-sub">
-                Great photography is an experience rooted in collaboration, trust, and creativity.
+                A wanderer shaped by landscapes, souls, and the echoes of experience.
             </p>
         </div>
 
@@ -137,7 +135,7 @@
 
                 <h3 class="benefit-title">Amateur Photographer</h3>
                 <p class="benefit-body">
-                    Utilizing top-tier equipment for exceptional photos.
+                    Capturing the world through my lens.
                 </p>
 
                 <a href="/gallery" class="benefit-badge">Explore my Gallery</a>
@@ -164,6 +162,145 @@
     </div>
 </section>
 
+<!-- ============================
+     Services Section (new)
+     ============================ -->
+<!-- ============================
+     Services Section — left single row, right two rows
+     ============================ -->
+<!-- ============================
+     Services Section — edited per request
+     ============================ -->
+<!-- ============================
+     Services Section — edited per request
+     ============================ -->
+<section class="services-section" aria-labelledby="services-heading">
+    <div class="site-width">
+
+        <div class="services-header">
+            <span class="small-pill">Past Experience</span>
+            <h2 id="services-heading" class="services-title">
+                <em>Institutions</em> I have been to
+            </h2>
+            <p class="services-sub">
+                Places I have spent a good amount of my 9-5 time in recent years.
+            </p>
+        </div>
+
+        <div class="services-grid">
+
+            <!-- LEFT: single tall hero spanning both rows -->
+            <div class="service-left-hero">
+                <div class="service-hero">
+                    <div class="service-hero-inner">
+                        {{ with resources.Get "logos/tesla.png" }}
+                        {{ $hero := .Resize "1600x" }}
+                        <img src="{{ $hero.RelPermalink }}" alt="Hero" class="service-hero-image">
+                        {{ end }}
+                    </div>
+
+                    <div class="service-hero-card">
+                        <div class="service-hero-left">
+                        <div class="service-label">
+                            {{ with resources.Get "logos/software_engineer.png" }}
+                            {{ $mini := .Resize "56x" }}
+                            <img class="mini-logo" alt="software engineer icon" src="{{ $mini.RelPermalink }}">
+                            {{ end }}
+                            <div class="service-hero-title">Senior Software Engineer</div>
+                        </div>
+
+                        <p class="service-hero-desc">
+                            A ten-month internship and six years of full-time. Microcontrollers and Data Science.
+                        </p>
+                        </div>
+                        <div class="service-hero-right">
+                        <div class="service-tags">
+                            <span class="tag">Tesla</span>
+                            <span class="tag">California</span>
+                            <span class="tag">2017 - 2024</span>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT TOP: portrait card (with icon above title) -->
+            <article class="service-card service-card--right-top">
+                <div class="service-card-media">
+                    {{ with resources.Get "logos/solidworks.jpeg" }}
+                    {{ $i := .Resize "420x" }}
+                    <img src="{{ $i.RelPermalink }}" alt="portrait gear" />
+                    {{ end }}
+                </div>
+
+                <div class="service-card-body">
+                    <!-- small circular icon/logo above the title -->
+                    <div class="card-logo-wrap">
+                        {{ with resources.Get "logos/internship.png" }}
+                        {{ $c := .Resize "40x" }}
+                        <img src="{{ $c.RelPermalink }}" alt="internship icon" class="card-logo">
+                        {{ else }}
+                        {{ with resources.Get "logos/logo.png" }}
+                        {{ $fallback := .Resize "40x" }}
+                        <img src="{{ $fallback.RelPermalink }}" alt="logo" class="card-logo">
+                        {{ end }}
+                        {{ end }}
+                    </div>
+
+                    <div class="service-card-title">Software Development Intern</div>
+                    <p class="service-card-desc">A summer internship building Windows applications.</p>
+
+                    <div class="service-tags">
+                        <span class="tag">Solidworks</span>
+                        <span class="tag">Massachusetts</span>
+                        <span class="tag">Summer 2016</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- RIGHT BOTTOM: WPI card with image on the RIGHT -->
+            <article class="service-card media-right service-card--right-bottom">
+                <div class="service-card-media">
+                    {{ with resources.Get "logos/wpi.jpg" }}
+                    {{ $i3 := .Resize "220x" }}
+                    <img src="{{ $i3.RelPermalink }}" alt="WPI logo" />
+                    {{ end }}
+                </div>
+
+                <div class="service-card-body">
+                    <div class="card-logo-wrap">
+                        {{ with resources.Get "logos/college.png" }}
+                        {{ $g := .Resize "40x" }}
+                        <img src="{{ $g.RelPermalink }}" alt="college icon" class="card-logo">
+                        {{ else }}
+                        {{ with resources.Get "logos/logo.png" }}
+                        {{ $fallback2 := .Resize "40x" }}
+                        <img src="{{ $fallback2.RelPermalink }}" alt="logo" class="card-logo">
+                        {{ end }}
+                        {{ end }}
+                    </div>
+
+                    <div class="service-card-title">Worcester Polytechnic Institute</div>
+                    <p class="service-card-desc">Bachelor's of Computer Science.</p>
+
+                    <div class="service-tags">
+                        <span class="tag">WPI</span>
+                        <span class="tag">Massachusetts</span>
+                        <span class="tag">2014 - 2018</span>
+                    </div>
+                </div>
+            </article>
+
+        </div> <!-- /.services-grid -->
+
+    </div> <!-- /.site-width -->
+</section>
+
+
+
+
 <link rel="stylesheet" href="{{ "css/info.css" | relURL }}">
+<link rel="stylesheet" href="{{ "css/experience.css" | relURL }}">
+
 
 {{ end }}
