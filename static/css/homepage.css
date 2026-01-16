@@ -1,13 +1,14 @@
 /* ================================
-   ROOT (CSS VAR SCOPE)
+   ROOT
    ================================ */
 
 .hero-root {
     position: relative;
+    --total-duration: 0.9s;
 }
 
 /* ================================
-   HERO BACKGROUND (single source)
+   BACKGROUND
    ================================ */
 
 .hero-bg {
@@ -20,7 +21,7 @@
 }
 
 /* ================================
-   SLICE MASK LAYER
+   SLICE LAYER
    ================================ */
 
 .hero-slices {
@@ -28,45 +29,62 @@
     inset: 0;
 
     display: grid;
-
-    /* FORCE VERTICAL SLICES */
     grid-auto-flow: column;
     grid-template-columns: repeat(var(--slice-count), 1fr);
     grid-template-rows: 1fr;
 
     height: 100vh;
-
     z-index: 1;
     pointer-events: none;
 }
 
 /* ================================
-   SLICE BEHAVIOR
+   SLICE BASE
    ================================ */
 
 .hero-slice {
     height: 100%;
-    background: #ffffff; /* match page bg */
+    background: #ffffff;
 
     transform: translateY(0);
     opacity: 1;
 
-    animation-name: sliceUpFade;
-    animation-duration: 1s;
-    animation-timing-function: cubic-bezier(.4,0,.2,1);
+    animation-name: sliceReveal;
     animation-fill-mode: forwards;
 
-    /* LEFT → RIGHT STAGGER */
+    /* speed control */
+    animation-duration: calc(0.8s * var(--speed));
+
+    /* stagger */
     animation-delay: calc(
-            (var(--i) - 1) * (0.9s / var(--slice-count))
+            (var(--order) - 1) * (var(--total-duration) / var(--slice-count))
     );
+
+    animation-timing-function: cubic-bezier(.4,0,.2,1);
+    /*animation-timing-function: linear;*/
 }
 
 /* ================================
-   SLICE ANIMATION
+   EASING VARIANTS
    ================================ */
 
-@keyframes sliceUpFade {
+/*.hero-slice[style*="--curve: 0"] {*/
+/*    animation-timing-function: cubic-bezier(.4,0,.2,1);*/
+/*}*/
+
+/*.hero-slice[style*="--curve: 1"] {*/
+/*    animation-timing-function: cubic-bezier(.2,.8,.2,1);*/
+/*}*/
+
+/*.hero-slice[style*="--curve: 2"] {*/
+/*    animation-timing-function: cubic-bezier(.6,0,.1,1);*/
+/*}*/
+
+/* ================================
+   DIRECTIONAL REVEAL
+   ================================ */
+
+@keyframes sliceReveal {
     0% {
         transform: translateY(0);
         opacity: 1;
@@ -77,13 +95,13 @@
     }
 
     100% {
-        transform: translateY(-100%);
+        transform: translateY(calc(-100% * var(--vdir)));
         opacity: 0;
     }
 }
 
 /* ================================
-   FOREGROUND CONTENT
+   FOREGROUND
    ================================ */
 
 .hero {

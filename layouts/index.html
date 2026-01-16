@@ -7,27 +7,59 @@
 {{ end }}
 
 {{/* =========================
-SLICE CONFIG (ONE PLACE)
+BEHAVIOR CONTROLS
 ========================= */}}
-{{ $slices := 18 }}
 
-<!-- ROOT WRAPPER (shares CSS vars) -->
-<div class="hero-root" style="--slice-count: {{ $slices }};">
+{{ $slices := 15 }}
 
-    <!-- REAL BACKGROUND -->
-    <div
-            class="hero-bg"
-            style="background-image: url('{{ $bg }}');">
-    </div>
+{{ $randomOrder := false }}      {{/* left/right order */}}
+{{ $randomVertical := false }}   {{/* up/down */}}
+{{ $randomSpeed := false }}     {{/* speed variance */}}
+
+{{/* =========================
+DERIVED DATA
+========================= */}}
+
+{{ $order := cond $randomOrder (shuffle (seq 1 $slices)) (seq 1 $slices) }}
+
+<div class="hero-root"
+     style="
+       --slice-count: {{ $slices }};
+       --random-speed: {{ if $randomSpeed }}1{{ else }}0{{ end }};
+     ">
+
+    <!-- BACKGROUND -->
+    <div class="hero-bg" style="background-image: url('{{ $bg }}');"></div>
 
     <!-- MASK SLICES -->
     <div class="hero-slices" aria-hidden="true">
-        {{ range seq 1 $slices }}
-        <div class="hero-slice" style="--i: {{ . }}"></div>
+        {{ range $i, $idx := seq 0 (sub $slices 1) }}
+
+        {{/* reveal order */}}
+        {{ $orderIndex := index $order $idx }}
+
+        {{/* easing curve */}}
+        {{ $curve := mod $idx 3 }}
+
+        {{/* vertical direction */}}
+        {{ $vdir := cond $randomVertical (cond (eq (mod $idx 2) 0) 1 -1) 1 }}
+
+        {{/* speed variation */}}
+        {{ $speed := cond $randomSpeed (add 0.8 (mul (mod $idx 3) 0.15)) 1 }}
+
+        <div
+                class="hero-slice"
+                style="
+          --order: {{ $orderIndex }};
+          --curve: {{ $curve }};
+          --vdir: {{ $vdir }};
+          --speed: {{ $speed }};
+        ">
+        </div>
+
         {{ end }}
     </div>
 
-    <!-- FOREGROUND -->
     <section class="hero">
         {{ partial "header.html" . }}
     </section>
