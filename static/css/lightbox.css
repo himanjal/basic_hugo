@@ -1,15 +1,13 @@
-/* static/css/lightbox.css - stable/fault-tolerant lightbox styles */
+/* static/css/lightbox.css */
 
-/* overlay */
 .lightbox {
-    --bg: rgba(6,6,6,0.90);
+    --bg: rgba(6,6,6,0.92);
     position: fixed;
     inset: 0;
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 9999;
-    -webkit-tap-highlight-color: transparent;
 }
 
 .lightbox[aria-hidden="false"] {
@@ -23,60 +21,63 @@
     background: var(--bg);
     backdrop-filter: blur(6px);
     cursor: zoom-out;
+    pointer-events: auto;
+    z-index: 0;
 }
 
-/* main figure / viewport */
+/* figure */
 .lb-figure {
     position: relative;
     z-index: 1;
     width: min(1400px, 94vw);
-    max-width: 94vw;
     height: min(90vh, 90vh);
+    max-width: 94vw;
     max-height: 94vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0;
-    pointer-events: auto; /* allow pointer events */
 }
 
-/* viewport clips overflow and receives pointer gestures */
+/* viewport */
 .lb-viewport {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    touch-action: none;   /* we handle pinch/pan */
     display: flex;
     align-items: center;
     justify-content: center;
-    background: transparent;
+    touch-action: none;
+    pointer-events: auto;
 }
 
-/* image: allow DOM to be at natural size (CSS won't force smaller) */
-/* Use center-origin so transforms and clamping are simpler */
+/* image */
 .lb-img {
     display: block;
     width: auto;
     height: auto;
-    max-width: none;   /* important: let JS set visual fit via transform */
+    max-width: none;
     max-height: none;
     user-select: none;
     -webkit-user-drag: none;
     will-change: transform;
     transform-origin: center center;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.65);
-    border-radius: 6px;
+    image-rendering: auto;
     background: #0a0a0a;
+    border-radius: 6px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.65);
     pointer-events: auto;
 }
 
 /* controls */
-.lb-close, .lb-prev, .lb-next, .lb-download {
+.lb-close,
+.lb-prev,
+.lb-next,
+.lb-download {
     position: absolute;
     z-index: 11;
     background: rgba(0,0,0,0.36);
-    border: none;
     color: #fff;
+    border: none;
     font-size: 1.4rem;
     padding: .45rem .6rem;
     border-radius: 6px;
@@ -84,18 +85,38 @@
     backdrop-filter: blur(4px);
 }
 
-.lb-close { top: 0.9rem; right: 0.9rem; }
-.lb-prev { left: 0.9rem; top: 50%; transform: translateY(-50%); }
-.lb-next { right: 0.9rem; top: 50%; transform: translateY(-50%); }
-.lb-download { bottom: 0.9rem; right: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
-
-.lb-close:focus, .lb-prev:focus, .lb-next:focus, .lb-download:focus {
-    outline: 2px solid rgba(255,255,255,0.12);
-    outline-offset: 2px;
+.lb-close {
+    top: 0.9rem;
+    right: 0.9rem;
 }
 
-/* responsive: hide prev/next on small screens */
+.lb-prev {
+    left: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.lb-next {
+    right: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.lb-download {
+    bottom: 0.9rem;
+    right: 0.9rem;
+    text-decoration: none;
+}
+
+/* mobile */
 @media (max-width: 640px) {
-    .lb-prev, .lb-next { display: none; }
-    .lb-download { right: 0.6rem; bottom: 0.8rem; }
+    .lb-prev,
+    .lb-next {
+        display: none;
+    }
+
+    .lb-download {
+        bottom: 0.8rem;
+        right: 0.8rem;
+    }
 }

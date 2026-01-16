@@ -1,0 +1,101 @@
+/* static/css/lightbox.css - stable/fault-tolerant lightbox styles */
+
+/* overlay */
+.lightbox {
+    --bg: rgba(6,6,6,0.90);
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.lightbox[aria-hidden="false"] {
+    display: flex;
+}
+
+/* backdrop */
+.lightbox-backdrop {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    backdrop-filter: blur(6px);
+    cursor: zoom-out;
+}
+
+/* main figure / viewport */
+.lb-figure {
+    position: relative;
+    z-index: 1;
+    width: min(1400px, 94vw);
+    max-width: 94vw;
+    height: min(90vh, 90vh);
+    max-height: 94vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    pointer-events: auto; /* allow pointer events */
+}
+
+/* viewport clips overflow and receives pointer gestures */
+.lb-viewport {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    touch-action: none;   /* we handle pinch/pan */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+}
+
+/* image: allow DOM to be at natural size (CSS won't force smaller) */
+/* Use center-origin so transforms and clamping are simpler */
+.lb-img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: none;   /* important: let JS set visual fit via transform */
+    max-height: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    will-change: transform;
+    transform-origin: center center;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.65);
+    border-radius: 6px;
+    background: #0a0a0a;
+    pointer-events: auto;
+}
+
+/* controls */
+.lb-close, .lb-prev, .lb-next, .lb-download {
+    position: absolute;
+    z-index: 11;
+    background: rgba(0,0,0,0.36);
+    border: none;
+    color: #fff;
+    font-size: 1.4rem;
+    padding: .45rem .6rem;
+    border-radius: 6px;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+}
+
+.lb-close { top: 0.9rem; right: 0.9rem; }
+.lb-prev { left: 0.9rem; top: 50%; transform: translateY(-50%); }
+.lb-next { right: 0.9rem; top: 50%; transform: translateY(-50%); }
+.lb-download { bottom: 0.9rem; right: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+
+.lb-close:focus, .lb-prev:focus, .lb-next:focus, .lb-download:focus {
+    outline: 2px solid rgba(255,255,255,0.12);
+    outline-offset: 2px;
+}
+
+/* responsive: hide prev/next on small screens */
+@media (max-width: 640px) {
+    .lb-prev, .lb-next { display: none; }
+    .lb-download { right: 0.6rem; bottom: 0.8rem; }
+}
