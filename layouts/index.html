@@ -1,15 +1,37 @@
 {{ define "main" }}
+
 {{ $background := .Param "background" }}
-{{ $img := cond (resources.GetMatch $background) (resources.GetMatch $background) nil }}
-{{ $bg := cond $img ($img.Resize "2400x") nil }}
+{{ $bg := $background }}
+{{ with resources.GetMatch $background }}
+{{ $bg = (.Resize "2400x").RelPermalink }}
+{{ end }}
 
-<section class="hero" style="background-image: url('{{ with $bg }}{{ .RelPermalink }}{{ else }}/{{ $background }}{{ end }}');">
+{{/* =========================
+SLICE CONFIG (ONE PLACE)
+========================= */}}
+{{ $slices := 18 }}
 
+<!-- ROOT WRAPPER (shares CSS vars) -->
+<div class="hero-root" style="--slice-count: {{ $slices }};">
 
-        <!-- 🧱 Modular homepage grid -->
-        <div class="hero-grid-wrap">
-            {{ partial "homepage-grid.html" . }}
-        </div>
-</section>
+    <!-- REAL BACKGROUND -->
+    <div
+            class="hero-bg"
+            style="background-image: url('{{ $bg }}');">
+    </div>
+
+    <!-- MASK SLICES -->
+    <div class="hero-slices" aria-hidden="true">
+        {{ range seq 1 $slices }}
+        <div class="hero-slice" style="--i: {{ . }}"></div>
+        {{ end }}
+    </div>
+
+    <!-- FOREGROUND -->
+    <section class="hero">
+        {{ partial "header.html" . }}
+    </section>
+
+</div>
 
 {{ end }}

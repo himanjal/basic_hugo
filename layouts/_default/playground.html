@@ -12,7 +12,7 @@
     {{ if and (ne $res.MediaType.SubType "png") (ne $res.MediaType.SubType "svg") }}
 
     {{/* Only accept jpeg / jpg / webp */}}
-    {{ if or (eq $res.MediaType.SubType "jpeg") (eq $res.MediaType.SubType "jpg") (eq $res.MediaType.SubType "webp") }}
+    {{ if or (eq $res.MediaType.SubType "jpeg") (eq $res.MediaType.SubType "JPG") (eq $res.MediaType.SubType "jpg") (eq $res.MediaType.SubType "webp") }}
 
     {{/* Create a small thumbnail (prefer webp) */}}
     {{ $thumb := "" }}

@@ -21,7 +21,7 @@
     {{ $imgs := slice }}
     {{ range $resources }}
     {{ $ext := lower (replaceRE "^.*\\.([^.]+)$" "$1" .Name) }}
-    {{ if in (slice "jpg" "jpeg" "png" "webp" "gif") $ext }}
+    {{ if in (slice "jpg" "jpeg" "png" "webp" "gif" "JPG") $ext }}
     {{ $imgs = $imgs | append . }}
     {{ end }}
     {{ end }}
