@@ -2,310 +2,109 @@
 
 {{ define "head" }}
 <link rel="stylesheet" href="{{ "css/album-viewer.css" | relURL }}">
+<link rel="stylesheet" href="https://unpkg.com/photoswipe@5/dist/photoswipe.css">
 {{ end }}
+
 
 {{ define "main" }}
 <main class="album-wrap">
     <header class="album-header">
         <p class="album-meta">Album</p>
         <h1>{{ .Title }}</h1>
-        {{ with .Params.description }}<p class="album-meta">{{ . }}</p>{{ end }}
+        {{ with .Params.description }}
+        <p class="album-meta">{{ . }}</p>
+        {{ end }}
     </header>
 
     {{ $album := .Params.album }}
     {{ if not $album }}
     <div class="av-note"><strong>Error:</strong> no <code>album</code> param found.</div>
     {{ else }}
+
     {{ $pattern := printf "images/gallery/%s/*" $album }}
     {{ $resources := resources.Match $pattern | sort }}
-    {{ $imgs := slice }}
-    {{ range $resources }}
-    {{ $ext := lower (replaceRE "^.*\\.([^.]+)$" "$1" .Name) }}
-    {{ if in (slice "jpg" "jpeg" "png" "webp" "gif") $ext }}
-    {{ $imgs = $imgs | append . }}
-    {{ end }}
-    {{ end }}
 
-    {{ if gt (len $imgs) 0 }}
+    {{ if gt (len $resources) 0 }}
     <section class="album-grid" aria-live="polite">
-        {{ range $i, $img := $imgs }}
-        {{/* Use Resize for all sizes (no Fill) as requested */}}
-        {{ $small := $img.Resize "600x" }}
-        {{ $med := $img.Resize "1200x" }}
-        {{ $hi := $img.Resize "2000x" }}
-        <figure class="album-tile" data-index="{{ $i }}">
+        {{ range $resources }}
+        {{ $ext := lower (replaceRE "^.*\\.([^.]+)$" "$1" .Name) }}
+        {{ if in (slice "jpg" "jpeg" "png" "webp" "gif") $ext }}
+
+        {{ $small := .Resize "600x" }}
+        {{ $med := .Resize "1200x" }}
+
+        <figure class="album-tile">
             <a class="album-link"
-               data-full="{{ $hi.RelPermalink }}"
-               data-med="{{ $med.RelPermalink }}"
-               data-name="{{ $img.Name }}">
+               href="{{ .RelPermalink }}"
+               data-pswp-width="{{ .Width }}"
+               data-pswp-height="{{ .Height }}"
+               data-pswp-caption="{{ .Name }}">
+
                 <img class="grid-img"
                      src="{{ $small.RelPermalink }}"
                      srcset="{{ $small.RelPermalink }} 600w, {{ $med.RelPermalink }} 1200w"
                      sizes="(max-width:640px) 100vw, (max-width:1200px) 50vw, 33vw"
-                     alt="{{ with $img.Params.title }}{{ . }}{{ else }}{{ $img.Name }}{{ end }}"
+                     alt="{{ .Name }}"
                      loading="lazy"
-                     decoding="async"
-                     width="600" height="400">
+                     decoding="async">
             </a>
         </figure>
+
+        {{ end }}
         {{ end }}
     </section>
     {{ else }}
     <div class="av-note">No images found in album.</div>
     {{ end }}
+
+    {{ $downloadIcon := "" }}
+
+
     {{ end }}
-
-    <!-- Lightbox overlay -->
-    <div id="lv" class="lv-overlay" role="dialog" aria-modal="true" aria-hidden="true">
-        <div class="lv-toolbar" role="toolbar" aria-label="Image controls">
-            <button id="lv-prev" class="lv-nav" aria-label="Previous image">←</button>
-            <button id="lv-next" class="lv-nav" aria-label="Next image">→</button>
-            <a id="lv-download" class="lv-action" aria-label="Download image" href="#" download>
-                ⬇
-            </a>
-            <button id="lv-close" class="lv-close" aria-label="Close">✕</button>
-        </div>
-
-        <div class="lv-stage" tabindex="0">
-            <img id="lv-img" class="lv-img" src="" alt="">
-        </div>
-    </div>
 </main>
 
-<script>
-    (function(){
-        'use strict';
+<!-- PhotoSwipe init -->
+<script type="module">
 
-        const overlay = document.getElementById('lv');
-        const lvImg = document.getElementById('lv-img');
-        const closeBtn = document.getElementById('lv-close');
-        const dlBtn = document.getElementById('lv-download');
-        const prevBtn = document.getElementById('lv-prev');
-        const nextBtn = document.getElementById('lv-next');
-        const tiles = Array.from(document.querySelectorAll('.album-tile'));
-        let currentIndex = -1;
+    import PhotoSwipeLightbox from 'https://unpkg.com/photoswipe@5/dist/photoswipe-lightbox.esm.js';
 
-        // State for transform (pan/zoom)
-        let scale = 1;
-        let translateX = 0;
-        let translateY = 0;
-        let lastTouchDistance = null;
-        let isPointerDown = false;
-        let pointerStart = {x:0,y:0};
-        let prevTranslate = {x:0,y:0};
+    const lightbox = new PhotoSwipeLightbox({
+        gallery: '.album-grid',
+        children: '.album-link',
+        pswpModule: () => import('https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js'),
+        appendToEl: document.body
+    });
 
-        // Helpers
-        function resetTransform() {
-            scale = 1;
-            translateX = 0;
-            translateY = 0;
-            lvImg.style.transform = '';
-            lvImg.dataset.x = 0;
-            lvImg.dataset.y = 0;
-        }
+    lightbox.on('uiRegister', () => {
+        lightbox.pswp.ui.registerElement({
+            name: 'download',
+            order: 8,
+            isButton: true,
+            tagName: 'a',
 
-        function applyTransform() {
-            lvImg.style.transform = `scale(${scale}) translate(${translateX}px, ${translateY}px)`;
-        }
+            html: {
+                isCustomSVG: true,
+                inner: `
+        <path d="M20.5 14.3 17.1 18V10h-2.2v7.9l-3.4-3.6L10 16l6 6.1 6-6.1ZM23 23H9v2h14Z"/>
+      `,
+                outlineID: 'pswp__icn-download'
+            },
 
-        function open(index) {
-            const tile = tiles[index];
-            if (!tile) return;
-            currentIndex = index;
-            const link = tile.querySelector('.album-link');
-            const med = link.dataset.med;
-            const hi = link.dataset.full;
-            const name = link.dataset.name || '';
+            onInit: (el, pswp) => {
+                el.setAttribute('download', '');
+                el.setAttribute('target', '_blank');
+                el.setAttribute('rel', 'noopener');
 
-            // show medium first (already available) and clear transforms
-            resetTransform();
-            lvImg.style.opacity = 0;
-            lvImg.src = med;                 // load medium immediately
-            lvImg.alt = name;
-            overlay.classList.add('open');
-            overlay.setAttribute('aria-hidden','false');
-            document.body.style.overflow = 'hidden';
-
-            // set download href to hi (safe; data attribute isn't fetched)
-            dlBtn.href = hi;
-            dlBtn.download = name;
-
-            // when med is visible, start loading hi in background and fade-in when ready
-            lvImg.onload = () => { lvImg.style.transition = 'opacity .24s ease'; lvImg.style.opacity = 1; };
-
-            // lazy fetch hi
-            const hiImg = new Image();
-            hiImg.onload = function() {
-                // smooth fade: fade out current (med), swap src, fade in hi
-                lvImg.style.transition = 'opacity .28s ease';
-                lvImg.style.opacity = 0;
-                setTimeout(()=> {
-                    lvImg.src = hi;
-                    // after swapping, ensure opacity resets to 1 when new src loads
-                    // (lvImg.onload handles that)
-                }, 120);
-            };
-            hiImg.src = hi;
-        }
-
-        function close() {
-            overlay.classList.remove('open');
-            overlay.setAttribute('aria-hidden','true');
-            document.body.style.overflow = '';
-            // reset image and transforms after small delay
-            setTimeout(() => {
-                lvImg.src = '';
-                resetTransform();
-                currentIndex = -1;
-            }, 200);
-        }
-
-        function navigate(dir) {
-            if (currentIndex < 0) return;
-            const nextIndex = (currentIndex + dir + tiles.length) % tiles.length;
-            open(nextIndex);
-        }
-
-        // Open on click
-        document.addEventListener('click', function(e){
-            const link = e.target.closest && e.target.closest('.album-link');
-            if (link) {
-                e.preventDefault();
-                const tile = link.closest('.album-tile');
-                open(tiles.indexOf(tile));
+                pswp.on('change', () => {
+                    el.href = pswp.currSlide.data.src;
+                });
             }
-
-            if (e.target === overlay || e.target === closeBtn) close();
-        }, true);
-
-        // Toolbar actions
-        prevBtn.addEventListener('click', (ev) => { ev.stopPropagation(); navigate(-1); });
-        nextBtn.addEventListener('click', (ev) => { ev.stopPropagation(); navigate(1); });
-        dlBtn.addEventListener('click', ev => ev.stopPropagation()); // allow download click to pass
-
-        // Keyboard nav
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') close();
-            if (e.key === 'ArrowLeft') navigate(-1);
-            if (e.key === 'ArrowRight') navigate(1);
         });
+    });
 
-        // ---- Mouse-based pan (desktop)
-        lvImg.addEventListener('mousedown', function(e){
-            if (scale <= 1) return;
-            isPointerDown = true;
-            pointerStart.x = e.clientX;
-            pointerStart.y = e.clientY;
-            prevTranslate.x = translateX;
-            prevTranslate.y = translateY;
-            lvImg.style.cursor = 'grabbing';
-            e.preventDefault();
-        });
 
-        window.addEventListener('mousemove', function(e){
-            if (!isPointerDown) return;
-            const dx = e.clientX - pointerStart.x;
-            const dy = e.clientY - pointerStart.y;
-            translateX = prevTranslate.x + dx / scale;
-            translateY = prevTranslate.y + dy / scale;
-            applyTransform();
-        });
 
-        window.addEventListener('mouseup', function(){
-            if (!isPointerDown) return;
-            isPointerDown = false;
-            lvImg.style.cursor = 'grab';
-        });
-
-        // Click to toggle zoom (desktop)
-        lvImg.addEventListener('click', function(e){
-            // ignore click if it was a drag (we check movement)
-            if (Math.abs(translateX) > 2 || Math.abs(translateY) > 2) return;
-            if (scale === 1) {
-                scale = 2;
-                lvImg.style.cursor = 'grab';
-            } else {
-                scale = 1;
-                translateX = 0; translateY = 0;
-                lvImg.style.cursor = 'zoom-in';
-            }
-            applyTransform();
-        });
-
-        // ---- Touch: pinch-to-zoom & swipe
-        let ongoingTouches = [];
-
-        function getDistance(t1, t2) {
-            const dx = t2.clientX - t1.clientX;
-            const dy = t2.clientY - t1.clientY;
-            return Math.hypot(dx, dy);
-        }
-
-        overlay.addEventListener('touchstart', function(e){
-            if (!overlay.classList.contains('open')) return;
-            if (e.touches.length === 1) {
-                // start single touch (for possible swipe/pan)
-                pointerStart.x = e.touches[0].clientX;
-                pointerStart.y = e.touches[0].clientY;
-                prevTranslate.x = translateX;
-                prevTranslate.y = translateY;
-            } else if (e.touches.length === 2) {
-                // start pinch
-                lastTouchDistance = getDistance(e.touches[0], e.touches[1]);
-            }
-        }, {passive:true});
-
-        overlay.addEventListener('touchmove', function(e){
-            if (!overlay.classList.contains('open')) return;
-            if (e.touches.length === 1 && scale > 1) {
-                // pan
-                const dx = e.touches[0].clientX - pointerStart.x;
-                const dy = e.touches[0].clientY - pointerStart.y;
-                translateX = prevTranslate.x + dx / scale;
-                translateY = prevTranslate.y + dy / scale;
-                applyTransform();
-                e.preventDefault();
-            } else if (e.touches.length === 2) {
-                // pinch to zoom
-                const dist = getDistance(e.touches[0], e.touches[1]);
-                if (lastTouchDistance) {
-                    const delta = dist - lastTouchDistance;
-                    const scaleChange = 1 + delta / 300; // sensitivity
-                    scale = Math.max(1, Math.min(4, scale * scaleChange));
-                    applyTransform();
-                }
-                lastTouchDistance = dist;
-                e.preventDefault();
-            }
-        }, {passive:false});
-
-        overlay.addEventListener('touchend', function(e){
-            // handle swipe-left / swipe-right when not zoomed
-            if (!overlay.classList.contains('open')) return;
-            if (e.changedTouches.length === 1 && scale === 1) {
-                const dx = e.changedTouches[0].clientX - pointerStart.x;
-                const dy = e.changedTouches[0].clientY - pointerStart.y;
-                if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) {
-                    // swipe
-                    if (dx < 0) navigate(1); else navigate(-1);
-                }
-            }
-            if (e.touches.length < 2) lastTouchDistance = null;
-            // ensure translate bounds (optional: clamp)
-        }, {passive:true});
-
-        // Accessibility: focus overlay stage so keyboard navigation works
-        overlay.querySelector('.lv-stage').addEventListener('keydown', function(e){
-            if (e.key === 'ArrowLeft') navigate(-1);
-            if (e.key === 'ArrowRight') navigate(1);
-            if (e.key === 'Escape') close();
-        });
-
-        // Prevent accidental scrolling when overlay open (capture wheel)
-        overlay.addEventListener('wheel', function(e){
-            if (overlay.classList.contains('open')) e.preventDefault();
-        }, {passive:false});
-
-    })();
+    lightbox.init();
 </script>
+
 {{ end }}

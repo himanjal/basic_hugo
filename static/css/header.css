@@ -16,7 +16,7 @@
     display: flex;
     justify-content: center; /* center the pill */
     pointer-events: none;    /* allow only inner pill to receive clicks */
-    z-index: 99999999;
+    z-index: -1;
 }
 
 /* Make sure the nav CSS can receive pointer events */

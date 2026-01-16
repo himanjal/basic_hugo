@@ -1,15 +1,69 @@
 {{ define "main" }}
+
 {{ $background := .Param "background" }}
-{{ $img := cond (resources.GetMatch $background) (resources.GetMatch $background) nil }}
-{{ $bg := cond $img ($img.Resize "2400x") nil }}
+{{ $bg := $background }}
+{{ with resources.GetMatch $background }}
+{{ $bg = (.Resize "2400x").RelPermalink }}
+{{ end }}
 
-<section class="hero" style="background-image: url('{{ with $bg }}{{ .RelPermalink }}{{ else }}/{{ $background }}{{ end }}');">
+{{/* =========================
+BEHAVIOR CONTROLS
+========================= */}}
 
+{{ $slices := 15 }}
 
-        <!-- 🧱 Modular homepage grid -->
-        <div class="hero-grid-wrap">
-            {{ partial "homepage-grid.html" . }}
+{{ $randomOrder := false }}      {{/* left/right order */}}
+{{ $randomVertical := false }}   {{/* up/down */}}
+{{ $randomSpeed := false }}     {{/* speed variance */}}
+
+{{/* =========================
+DERIVED DATA
+========================= */}}
+
+{{ $order := cond $randomOrder (shuffle (seq 1 $slices)) (seq 1 $slices) }}
+
+<div class="hero-root"
+     style="
+       --slice-count: {{ $slices }};
+       --random-speed: {{ if $randomSpeed }}1{{ else }}0{{ end }};
+     ">
+
+    <!-- BACKGROUND -->
+    <div class="hero-bg" style="background-image: url('{{ $bg }}');"></div>
+
+    <!-- MASK SLICES -->
+    <div class="hero-slices" aria-hidden="true">
+        {{ range $i, $idx := seq 0 (sub $slices 1) }}
+
+        {{/* reveal order */}}
+        {{ $orderIndex := index $order $idx }}
+
+        {{/* easing curve */}}
+        {{ $curve := mod $idx 3 }}
+
+        {{/* vertical direction */}}
+        {{ $vdir := cond $randomVertical (cond (eq (mod $idx 2) 0) 1 -1) 1 }}
+
+        {{/* speed variation */}}
+        {{ $speed := cond $randomSpeed (add 0.8 (mul (mod $idx 3) 0.15)) 1 }}
+
+        <div
+                class="hero-slice"
+                style="
+          --order: {{ $orderIndex }};
+          --curve: {{ $curve }};
+          --vdir: {{ $vdir }};
+          --speed: {{ $speed }};
+        ">
         </div>
-</section>
+
+        {{ end }}
+    </div>
+
+    <section class="hero">
+        {{ partial "header.html" . }}
+    </section>
+
+</div>
 
 {{ end }}

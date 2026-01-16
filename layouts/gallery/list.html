@@ -166,7 +166,7 @@
         <p class="no-thumbs">No gallery folders found in <code>assets/images/gallery</code>.</p>
         {{ end }}
     </section>
-    {{ partial "lightbox.html" . }}
+    {{ partial "lightbox-old.html" . }}
 
 
 </main>
@@ -174,8 +174,8 @@
 {{ block "scripts" . }}
 {{/* Carousel script (external) - placed here so it loads before the inline behaviour below */}}
 <script src='{{ "js/hover-carousal-containers.js" | relURL }}' defer></script>
-<link rel="stylesheet" href='{{ "css/lightbox.css" | relURL }}'>
-<script defer src='{{ "js/lightbox.js" | relURL }}'></script>
+<link rel="stylesheet" href='{{ "css/lightbox-old.css" | relURL }}'>
+<script defer src='{{ "js/lightbox-old.js" | relURL }}'></script>
 
 <script>
     (function () {

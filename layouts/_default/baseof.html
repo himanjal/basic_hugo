@@ -25,7 +25,8 @@
 
     {{/* Page-specific CSS: home overrides (loaded after main so it can override) */}}
     {{ if .IsHome }}
-    <link rel="stylesheet" href='{{ "css/homepage-grid.css" | relURL }}'>
+    <link rel="stylesheet" href='{{ "css/homepage.css" | relURL }}'>
+<!--    <link rel="stylesheet" href='{{ "css/homepage-grid.css" | relURL }}'>-->
     {{ end }}
 
     {{/* Page authors or extra head content can be injected by child templates */}}
@@ -63,12 +64,12 @@
 <!--<script src='{{ "js/theme-toggle.js" | relURL }}' defer></script>-->
 
 {{/* Page-specific scripts: home-only or others can be injected via blocks/conditions */}}
-{{ if .IsHome }}
-<!-- Homepage-only scripts -->
-<script src='{{ "js/scroll.js" | relURL }}' defer></script>
-<script src='{{ "js/hero-typewriter.js" | relURL }}' defer></script>
-<script src='{{ "js/backdrop-detect.js" | relURL }}' defer></script>
-{{ end }}
+<!--{{ if .IsHome }}-->
+<!--&lt;!&ndash; Homepage-only scripts &ndash;&gt;-->
+<!--<script src='{{ "js/scroll.js" | relURL }}' defer></script>-->
+<!--<script src='{{ "js/hero-typewriter.js" | relURL }}' defer></script>-->
+<!--<script src='{{ "js/backdrop-detect.js" | relURL }}' defer></script>-->
+<!--{{ end }}-->
 
 {{/* Allow child templates to inject additional page scripts (gallery, posts, etc.) */}}
 {{ block "scripts" . }}{{ end }}

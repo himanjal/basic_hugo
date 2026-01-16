@@ -276,14 +276,14 @@ html {
 /* large headline */
 .info-card .hero-headline {
     margin: 0;
-    font-family: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    /*font-family: sans-serif;*/
     font-weight: 800;
     color: #ffffff;
     -webkit-font-smoothing: antialiased;
     font-size: clamp(var(--hero-font-min), var(--hero-font-vw), var(--hero-font-max));
     line-height: 0.9;
     letter-spacing: -0.02em;
-    text-transform: uppercase;
+    /*text-transform: uppercase;*/
     pointer-events: none;
 }
 

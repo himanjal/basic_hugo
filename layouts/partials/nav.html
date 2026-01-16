@@ -20,14 +20,14 @@
             {{ $insta := resources.Get "logos/instagram.png" }}
             {{ with $insta }}
             {{ $thumb := .Resize "240x" }}
-            <a href="https://instagram.com/" class="icon-link" target="_blank" rel="noopener" aria-label="Instagram">
+            <a href="https://www.instagram.com/himanjalsharma/" class="icon-link" target="_blank" rel="noopener" aria-label="Instagram">
           <span class="large-insta">
             <img src="{{ $thumb.RelPermalink }}" alt="Instagram" class="logo-small" />
           </span>
             </a>
             {{ else }}
             <!-- fallback: plain anchor if image missing -->
-            <a href="https://instagram.com/" class="icon-link" target="_blank" rel="noopener" aria-label="Instagram">
+            <a href="https://www.instagram.com/himanjalsharma/" class="icon-link" target="_blank" rel="noopener" aria-label="Instagram">
                 <span class="large-insta brand-fallback">IG</span>
             </a>
             {{ end }}
