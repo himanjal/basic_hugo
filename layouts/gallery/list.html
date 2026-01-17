@@ -1,11 +1,7 @@
 {{ define "main" }}
 <main class="gallery-wrap" aria-label="Gallery">
 
-    {{/* ===== Styles =====
-    If you prefer to include this CSS in the <head>, paste the following line
-    into your head partial instead of leaving it here:
-    <link rel="stylesheet" href='{{ "css/hover-carousal.css" | relURL }}'>
-    */}}
+    {{/* ===== Styles ===== */}}
     <link rel="stylesheet" href='{{ "css/hover-carousal.css" | relURL }}'>
 
     {{- $images := resources.Match "images/carousal/*" | sort -}}
@@ -20,22 +16,30 @@
             {{- $one := $res.Resize "600x" -}}
             {{- $two := $res.Resize "1200x" -}}
             {{- $three := $res.Resize "2000x" -}}
-            {{- $firstAttr := "" -}}
-            {{- if eq $i 0 }}{{- $firstAttr = ` fetchpriority="high"` -}}{{- end -}}
+
+            {{/* Optimization: Eager load carousel images.
+            Prioritize the first 3 as they are likely visible. */}}
+            {{- $prio := "auto" -}}
+            {{- if lt $i 3 }}{{- $prio = "high" -}}{{- end -}}
 
             <div class="hc-container"
                  tabindex="0"
                  role="button"
-                 aria-label="Featured {{ add $i 1 }}"
-                 data-hi2x="{{ $res.RelPermalink }}">
+                 aria-label="View {{ $res.Name }}"
+                 data-hi2x="{{ $res.RelPermalink }}"
+                 data-pswp-src="{{ $res.RelPermalink }}"
+                 data-pswp-width="{{ $res.Width }}"
+                 data-pswp-height="{{ $res.Height }}"
+                 data-index="{{ $i }}">
+
+                {{/* Removed loading="lazy" to prevent display deadlock */}}
                 <img
                         class="hc-img"
                         src="{{ $one.RelPermalink }}"
                         srcset="{{ $one.RelPermalink }} 600w, {{ $two.RelPermalink }} 1200w, {{ $three.RelPermalink }} 2000w"
                         sizes="(max-width:640px) 90vw, (max-width:1100px) 45vw, 600px"
-                        loading="lazy"
-                        decoding="async"
-                        alt="{{ $res.Name }}"{{ $firstAttr }} />
+                        fetchpriority="{{ $prio }}"
+                        alt="{{ $res.Name }}" />
             </div>
             {{- end }}
             {{- end }}
@@ -45,10 +49,7 @@
     <p>No images found in <code>assets/images/carousal</code>.</p>
     {{- end }}
 
-    <!-- Gallery intro: insert between carousel and thumbnails -->
     <section class="gallery-intro" aria-hidden="false">
-<!--        <div class="intro-pill">My Portfolios</div>-->
-
         <h2 class="intro-title">
             A glimpse through <span class="intro-em">my perspective</span>
         </h2>
@@ -166,22 +167,16 @@
         <p class="no-thumbs">No gallery folders found in <code>assets/images/gallery</code>.</p>
         {{ end }}
     </section>
-    {{ partial "lightbox-old.html" . }}
-
 
 </main>
 
 {{ block "scripts" . }}
-{{/* Carousel script (external) - placed here so it loads before the inline behaviour below */}}
+{{/* Carousel script (external) */}}
 <script src='{{ "js/hover-carousal-containers.js" | relURL }}' defer></script>
-<link rel="stylesheet" href='{{ "css/lightbox-old.css" | relURL }}'>
-<script defer src='{{ "js/lightbox-old.js" | relURL }}'></script>
 
 <script>
     (function () {
         'use strict';
-
-        // Click delegation: navigate when a .thumb-card or a child is clicked
         document.addEventListener('click', function (e) {
             const card = e.target.closest && e.target.closest('.thumb-card');
             if (!card) return;
@@ -189,7 +184,6 @@
             if (album) window.location.href = `/album-viewer/${album}/`;
         }, true);
 
-        // Keyboard navigation (Enter / Space) for focused .thumb-card elements
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' || e.key === ' ') {
                 const el = document.activeElement;
@@ -203,8 +197,6 @@
             }
         });
 
-        // Use delegated touchstart handling to avoid attaching many listeners.
-        // Toggles a transient 'touch-hover' class on the touched .thumb-card.
         let touchHoverTimer = null;
         document.addEventListener('touchstart', function (e) {
             const card = e.target.closest && e.target.closest('.thumb-card');
@@ -216,7 +208,6 @@
                 touchHoverTimer = null;
             }, 2500);
         }, { passive: true });
-
     })();
 </script>
 {{ end }}

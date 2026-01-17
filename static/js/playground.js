@@ -4,41 +4,64 @@
 // New: last 3 stick around for --hg-last-three-hold ms (default 1000ms), then fade sequentially.
 // Desktop starts the hold countdown when mouse movement *stops* (debounced by --hg-mouse-stop-delay).
 (function () {
+    // if (document.body.dataset.page !== 'playground') return;
+
+    const wrap = document.querySelector('.hg-wrap');
+    if (!wrap) return;
+
+    let images = [];
+
+    try {
+        images = JSON.parse(wrap.dataset.images || '[]');
+    } catch (e) {
+        console.error('[playground] failed to parse data-images', e);
+        images = [];
+    }
+
+    if (!Array.isArray(images) || images.length === 0) {
+        console.warn('[playground] no images available — playground disabled');
+        return;
+    }
+
+    window.HG_IMAGES = images; // optional debug hook
+    console.log('[playground] images loaded:', images.length);
+
+
     const TAG = '[playground]';
     const LOG = (...a) => console.log('%c' + TAG, 'color:#0a7; font-weight:700;', ...a);
     const WARN = (...a) => console.warn('%c' + TAG, 'color:#ea0; font-weight:700;', ...a);
 
-    function normalizeHGImages() {
-        try {
-            let raw = window.HG_IMAGES;
-            if (typeof raw === 'undefined' || raw === null) { window.HG_IMAGES = []; return; }
-            if (typeof raw === 'string') {
-                try { raw = JSON.parse(raw); } catch (e) {
-                    raw = raw.replace(/^\[|\]$/g, '').split(',').map(s => s.trim().replace(/^["']|["']$/g,'')).filter(Boolean);
-                }
-            }
-            if (!Array.isArray(raw)) raw = Array.from(raw || []);
-            const origin = (typeof location !== 'undefined' && location.origin) ? location.origin.replace(/\/$/,'') : '';
-            const out = raw.map(u => {
-                if (!u) return null;
-                if (typeof u === 'object') {
-                    const thumb = String(u.thumb || u.t || u.thumbUrl || u.thumb_url || u[0] || '');
-                    const full  = String(u.full  || u.f || u.fullUrl  || u.full_url  || u[1] || thumb);
-                    return { thumb, full };
-                }
-                const s = String(u).trim().replace(/^"|'|`|`'|`"|'`/g,'').replace(/"|'$/,'');
-                const thumb = s.startsWith('/') ? origin + s : s;
-                return { thumb, full: thumb };
-            }).filter(Boolean);
-            window.HG_IMAGES = out;
-            LOG('normalized HG_IMAGES →', window.HG_IMAGES.length, 'items');
-        } catch (err) {
-            console.error(TAG, 'normalizeHGImages failed', err);
-            window.HG_IMAGES = [];
-        }
-    }
-    normalizeHGImages();
-    const images = Array.isArray(window.HG_IMAGES) ? window.HG_IMAGES : [];
+    // function normalizeHGImages() {
+    //     try {
+    //         let raw = window.HG_IMAGES;
+    //         if (typeof raw === 'undefined' || raw === null) { window.HG_IMAGES = []; return; }
+    //         if (typeof raw === 'string') {
+    //             try { raw = JSON.parse(raw); } catch (e) {
+    //                 raw = raw.replace(/^\[|\]$/g, '').split(',').map(s => s.trim().replace(/^["']|["']$/g,'')).filter(Boolean);
+    //             }
+    //         }
+    //         if (!Array.isArray(raw)) raw = Array.from(raw || []);
+    //         const origin = (typeof location !== 'undefined' && location.origin) ? location.origin.replace(/\/$/,'') : '';
+    //         const out = raw.map(u => {
+    //             if (!u) return null;
+    //             if (typeof u === 'object') {
+    //                 const thumb = String(u.thumb || u.t || u.thumbUrl || u.thumb_url || u[0] || '');
+    //                 const full  = String(u.full  || u.f || u.fullUrl  || u.full_url  || u[1] || thumb);
+    //                 return { thumb, full };
+    //             }
+    //             const s = String(u).trim().replace(/^"|'|`|`'|`"|'`/g,'').replace(/"|'$/,'');
+    //             const thumb = s.startsWith('/') ? origin + s : s;
+    //             return { thumb, full: thumb };
+    //         }).filter(Boolean);
+    //         window.HG_IMAGES = out;
+    //         LOG('normalized HG_IMAGES →', window.HG_IMAGES.length, 'items');
+    //     } catch (err) {
+    //         console.error(TAG, 'normalizeHGImages failed', err);
+    //         window.HG_IMAGES = [];
+    //     }
+    // }
+    // normalizeHGImages();
+    // const images = Array.isArray(window.HG_IMAGES) ? window.HG_IMAGES : [];
 
     // small CSS helpers
     function cssNumber(name, fallback) {

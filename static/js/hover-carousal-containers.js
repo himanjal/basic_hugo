@@ -229,7 +229,10 @@
             }
             imgEl.style.display = 'block';
             imgEl.style.visibility = 'visible';
-            imgEl.style.pointerEvents = 'none';
+            // imgEl.style.pointerEvents = 'none'; // REMOVED to allow clicking
+            imgEl.style.pointerEvents = 'auto'; // ADDED
+            imgEl.draggable = false; // ADDED to prevent native dragging
+            imgEl.style.userSelect = 'none'; // ADDED
             imgEl.style.position = 'absolute';
         } catch (e) {
             console.warn('ensureImageVisibility error', e);
@@ -382,7 +385,10 @@
                 img.style.maxHeight = 'none';
                 img.style.display = 'block';
                 img.style.visibility = 'visible';
-                img.style.pointerEvents = 'none';
+                // img.style.pointerEvents = 'none'; // REMOVED
+                img.style.pointerEvents = 'auto'; // ADDED
+                img.draggable = false; // ADDED
+                img.style.userSelect = 'none'; // ADDED
                 img.style.transform = 'none';
                 img.style.position = 'absolute';
 

@@ -686,9 +686,3 @@ html {
         font-size: calc(var(--section-title-font-size) * 0.7);
     }
 }
-
-/* ==============================
-   SERVICES — base block (info.css provides shared variables)
-   ============================== */
-
-/* You may place additional global styles here that other files will inherit. */

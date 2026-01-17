@@ -2,5 +2,10 @@
 title: "Fujifilm"
 album: "fujifilm"   # <-- folder name under assets/images/gallery/
 description: "Photos taken from Xt50 fuji camera"
-type: "album-viewer"
+css:
+  - photoswipe.css
+  - album-viewer.css
+js:
+  - file: album-viewer.js
+    type: module
 ---
