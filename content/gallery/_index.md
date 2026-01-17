@@ -5,6 +5,8 @@ css:
   - gallery.css
   - gallery-grid.css
   - hover-carousel.css
+  - photoswipe.css
 js:
-  - gallery.js
+  - file: gallery.js
+    type: module
 ---

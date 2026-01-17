@@ -58,6 +58,7 @@ body[data-page="playground"] .hg-wrap {
     pointer-events: auto;
     background: var(--page-bg);      /* white by default from :root */
     background-color: var(--page-bg);
+    z-index: 1;
 }
 
 .hg-hint{
