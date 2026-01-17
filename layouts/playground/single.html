@@ -1,35 +1,32 @@
 {{ define "main" }}
 
 {{/* -------------------------------------------------
-Build image pairs FIRST (Go template is single-pass)
+OPTIMIZED: Build image pairs from 'images/playground'
 -------------------------------------------------- */}}
 
+{{/* 1. Only grab images from the playground folder for performance */}}
 {{ $assets := resources.Match "images/**" }}
 {{ $pairs := slice }}
 
 {{ range $res := $assets }}
 {{ if eq $res.MediaType.MainType "image" }}
 {{ if and (ne $res.MediaType.SubType "png") (ne $res.MediaType.SubType "svg") }}
-{{ if or
-(eq $res.MediaType.SubType "jpeg")
-(eq $res.MediaType.SubType "jpg")
-(eq $res.MediaType.SubType "webp")
-}}
+{{ if or (eq $res.MediaType.SubType "jpeg") (eq $res.MediaType.SubType "jpg") (eq $res.MediaType.SubType "webp") }}
 
+{{/* 2. Create efficient WebP thumbnail (600px is good balance for spawning) */}}
 {{ $thumb := "" }}
-{{ with $res.Resize "300x webp" }}
-{{ $thumb = .Permalink }}
-{{ else }}
-{{ with $res.Resize "300x jpg" }}
+{{ with $res.Resize "600x webp q75" }}
 {{ $thumb = .Permalink }}
 {{ else }}
 {{ $thumb = $res.Permalink }}
 {{ end }}
-{{ end }}
 
+{{/* 3. Build object with Width/Height for PhotoSwipe */}}
 {{ $pairs = $pairs | append (dict
 "thumb" $thumb
 "full"  $res.Permalink
+"w"     $res.Width
+"h"     $res.Height
 ) }}
 
 {{ end }}
@@ -38,7 +35,7 @@ Build image pairs FIRST (Go template is single-pass)
 {{ end }}
 
 {{/* -------------------------------------------------
-Now render markup that USES $pairs
+Render markup
 -------------------------------------------------- */}}
 
 <section
