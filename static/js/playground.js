@@ -278,16 +278,23 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
 
     canvas.addEventListener('keydown',(e)=>{ if(e.key==='Enter'||e.key===' '){ const r=canvas.getBoundingClientRect(); const cx=r.left+r.width/2+(Math.random()-0.5)*80; const cy=r.top+r.height/2+(Math.random()-0.5)*80; spawnAt(cx,cy); } });
 
-    // --- NEW: Open PhotoSwipe Lightbox ---
+    // --- UPDATED: Open PhotoSwipe Lightbox with Lazy Loading ---
     function openPhotoSwipe(imgElement) {
         if (!imgElement) return;
-        const src = imgElement.dataset.pswpSrc || imgElement.src;
+
+        // 1. Get High-Res URL (stored in data attribute from single.html)
+        const highRes = imgElement.dataset.pswpSrc || imgElement.src;
+
+        // 2. Get Low-Res URL (The image currently visible on canvas)
+        // This is crucial: it tells PhotoSwipe to show this immediately while highRes loads
+        const lowRes = imgElement.src;
+
         const w = parseInt(imgElement.dataset.pswpWidth || 0, 10);
         const h = parseInt(imgElement.dataset.pswpHeight || 0, 10);
 
-        // Use src as fallback dimensions if unknown (pswp might warn but will work)
         const dataSource = [{
-            src: src,
+            src: highRes,       // Target: High Resolution
+            msrc: lowRes,       // Placeholder: Low Resolution (Thumb)
             width: w || 1200,
             height: h || 800,
             alt: 'Playground Image'
@@ -298,10 +305,21 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
             index: 0,
             pswpModule: PhotoSwipe,
             closeOnVerticalDrag: true,
-            bgOpacity: 0.9
+            bgOpacity: 0.9,
+
+            // 3. Smooth Zoom Animation Helper
+            // Since your images are absolute positioned/rotated, this tells PhotoSwipe
+            // exactly where to start the zoom animation from.
+            getThumbBoundsFn: (index) => {
+                const pageYScroll = window.pageYOffset || document.documentElement.scrollTop;
+                const rect = imgElement.getBoundingClientRect();
+                return {x: rect.left, y: rect.top + pageYScroll, w: rect.width};
+            }
         };
 
         const lightbox = new PhotoSwipeLightbox(options);
+
+        // (Keep your existing download button logic)
         lightbox.on('uiRegister', () => {
             lightbox.pswp.ui.registerElement({
                 name: 'download',
@@ -323,9 +341,10 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
                 }
             });
         });
+
         lightbox.init();
         lightbox.loadAndOpen(0);
-        LOG('PhotoSwipe opened for', src);
+        LOG('PhotoSwipe opened with lazy loading for', highRes);
     }
 
     // --- Interaction Logic (Clicks & Taps) ---
@@ -431,12 +450,13 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
         canvas.addEventListener('pointercancel', resetTouchState, { passive: true });
     })();
 
-    // Mobile Scroll Prevention & Fallback
+    // Mobile Scroll Prevention & Fallback + Draggable Pointer
     (function mobileScrollHandlerAndFallback(){
         let scrollPreventionActive = false;
         try {
             canvas.style.touchAction = 'none';
             canvas.style.webkitTouchCallout = 'none';
+            // Prevent scrolling on the canvas itself
             canvas.addEventListener('touchstart', (e) => { e.preventDefault && e.preventDefault(); }, { passive: false });
             canvas.addEventListener('pointerdown', (ev) => {
                 if(ev.pointerType === 'touch' || ev.pointerType === 'pen'){
@@ -448,27 +468,95 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
 
         function createDraggablePointer(){
             if(document.getElementById('hg-drag-pointer')) return;
+
+            // 1. Inject CSS for responsiveness and the annotation label
+            const style = document.createElement('style');
+            style.innerHTML = `
+                #hg-drag-pointer {
+                    position: fixed; right: 44px; bottom: 120px;
+                    width: 56px; height: 56px; border-radius: 50%;
+                    background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+                    z-index: 15000; display: flex; align-items: center; justify-content: center;
+                    font-size: 20px; color: #111; cursor: grab; touch-action: none; opacity: 0.98;
+                    transition: transform 0.1s;
+                }
+                /* Small screens: Smaller pointer */
+                @media (max-width: 600px) {
+                    #hg-drag-pointer { width: 14px; height: 14px; font-size: 16px; right: 16px; bottom: 90px; }
+                }
+                /* The Text Annotation */
+                #hg-drag-label {
+                    position: absolute; top: -38px; left: 50%; transform: translateX(-50%);
+                    background: rgba(0,0,0,0.85); color: #fff; padding: 5px 10px; border-radius: 8px;
+                    font-size: 12px; font-weight: 600; pointer-events: none;
+                    opacity: 1; transition: opacity 0.5s ease; white-space: nowrap;
+                }
+                #hg-drag-label::after {
+                    content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%);
+                    border-left: 4px solid transparent; border-right: 4px solid transparent;
+                    border-top: 4px solid rgba(0,0,0,0.85);
+                }
+                #hg-drag-label.vanish { opacity: 0; }
+            `;
+            document.head.appendChild(style);
+
+            // 2. Create the Pointer
             const p = document.createElement('div');
             p.id = 'hg-drag-pointer';
-            // ... (keeping existing style logic abbreviated for brevity, logic remains same)
-            Object.assign(p.style, {
-                position: 'fixed', right: '18px', bottom: '120px', width: '56px', height: '56px',
-                borderRadius: '28px', background: '#fff', boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
-                zIndex: '15000', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '20px', color: '#111', cursor: 'grab', touchAction: 'none', opacity: '0.98'
-            });
-            p.innerHTML = '&#9679;';
+            p.innerHTML = '&#9679;'; // The dot icon
 
+            // 3. Create the Label
+            const label = document.createElement('div');
+            label.id = 'hg-drag-label';
+            label.textContent = "Drag me";
+            p.appendChild(label);
+
+            // 4. Vanish Logic: Remove label on first interaction
+            function vanishLabel() {
+                if(!label) return;
+                label.classList.add('vanish');
+                // Remove from DOM after fade out
+                setTimeout(() => { if(label.parentNode) label.parentNode.removeChild(label); }, 600);
+
+                // Cleanup listeners
+                ['pointerdown', 'touchstart', 'keydown', 'wheel'].forEach(evt =>
+                    window.removeEventListener(evt, vanishLabel, {capture: true})
+                );
+            }
+
+            // Listen for ANY interaction on the window to dismiss the label
+            ['pointerdown', 'touchstart', 'keydown', 'wheel'].forEach(evt =>
+                window.addEventListener(evt, vanishLabel, { once: true, capture: true })
+            );
+
+            // 5. Drag Logic
             let dragging = false;
-            p.addEventListener('pointerdown', (ev)=>{ dragging=true; p.setPointerCapture(ev.pointerId); onInteractionResume(); });
+            p.addEventListener('pointerdown', (ev)=>{
+                dragging=true;
+                p.setPointerCapture(ev.pointerId);
+                onInteractionResume();
+                vanishLabel(); // Ensure it vanishes if they click the button itself
+            });
+
             window.addEventListener('pointermove', (ev)=>{
                 if(!dragging) return;
                 const x = Math.max(8, Math.min(window.innerWidth-64, ev.clientX-28));
                 const y = Math.max(8, Math.min(window.innerHeight-64, ev.clientY-28));
-                p.style.left=x+'px'; p.style.top=y+'px'; p.style.right='auto'; p.style.bottom='auto';
+
+                // Use style directly for performance
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                p.style.right = 'auto';
+                p.style.bottom = 'auto';
+
                 spawnAt(x+28+window.scrollX, y+28+window.scrollY);
             });
-            window.addEventListener('pointerup', (ev)=>{ dragging=false; scheduleLastThreeFade(); });
+
+            window.addEventListener('pointerup', (ev)=>{
+                dragging=false;
+                scheduleLastThreeFade();
+            });
+
             document.body.appendChild(p);
         }
 
