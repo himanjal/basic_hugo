@@ -3,6 +3,8 @@ title: "Playground"
 type: "playground"
 css:
   - playground.css
+  - photoswipe.css
 js:
-  - playground.js
+  - file: playground.js
+    type: module
 ---
