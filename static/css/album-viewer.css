@@ -1,130 +1,79 @@
-/* static/css/album-viewer.css
-   Clean, responsive stylesheet for Album Viewer
-   Matches the site's subtle, elegant aesthetic (faint background, soft shadows)
-*/
+/* album-viewer.css */
 
-:root{
-    --av-max-width: 1200px;
-    --av-gutter: 20px;
-    --av-bg: #fbfcfd; /* very faint gray */
-    --av-muted: #6b7280;
-    --av-card-shadow: rgba(12,18,24,0.06);
-    --av-card-shadow-hover: rgba(12,18,24,0.09);
-    --av-radius: 14px;
+:root {
+    --av-gutter: 4px;
+    --av-bg: #fbfcfd;
 }
 
 body {
     background: var(--av-bg);
-    color: #0b1220;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     margin: 0;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    padding: 0;
+    overflow-x: hidden;
 }
 
-/* wrapper and header */
 .album-wrap {
-    max-width: var(--av-max-width);
-    margin: 48px auto;
-    padding: 0 20px 56px;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
 }
 
 .album-header {
     text-align: center;
-    margin-bottom: 18px;
+    padding: 40px 20px;
 }
 
-.album-header h1 {
-    margin: 0;
-    font-size: clamp(28px, 5vw, 44px);
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    color: #0b1220;
-}
-
-.album-meta {
-    margin-top: 8px;
-    font-size: 0.95rem;
-    color: var(--av-muted);
-}
-
-/* grid */
+/* FLEXBOX LAYOUT (Justified Grid) */
 .album-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    display: flex;
+    flex-wrap: wrap;
     gap: var(--av-gutter);
-    align-items: start;
-    margin-top: 12px;
+    padding: 0 var(--av-gutter);
 }
 
-@media (max-width: 980px) {
-    .album-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 640px) {
-    .album-grid { grid-template-columns: 1fr; }
-}
-
-/* tile */
+/* TILE: The Flex Item */
 .album-tile {
+    /* height: auto allows the container to stretch.
+       The actual 'row height' is controlled by the min-height below.
+       flex-grow is set inline in HTML!
+    */
+    height: auto;
+    margin: 0;
     position: relative;
     overflow: hidden;
-    border-radius: var(--av-radius);
-    background: #fff;
-    box-shadow: 0 8px 22px var(--av-card-shadow);
-    transition: transform .22s ease, box-shadow .22s ease;
+}
+
+/* CONTROLLING DENSITY (Items per row)
+   We manipulate 'height' to force items to wrap.
+   Taller height = Fewer items per row.
+   Shorter height = More items per row.
+*/
+
+/* Mobile: Target ~2 Landscape or 3 Portrait */
+.album-tile img {
+    height: 140px;
+    width: auto;
+    min-width: 100%;
+    object-fit: cover; /* Ensures flush edges without gaps */
     display: block;
 }
 
-.album-tile:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 28px var(--av-card-shadow-hover);
+/* Desktop: Limit to ~4 landscape photos */
+@media (min-width: 900px) {
+    .album-tile img {
+        height: 220px;
+    }
 }
 
-.album-tile img,
-.grid-img {
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: cover;
-    transition: transform .3s cubic-bezier  mn unu(.2,.9,.25,1);
+/* Ultra Wide: Limit to ~5 landscape photos */
+@media (min-width: 1600px) {
+    .album-tile img {
+        height: 300px;
+    }
 }
 
-.album-tile:hover img {
-    transform: scale(1.03);
+/* OPTIONAL: Handle the very last row so it doesn't stretch huge */
+.album-grid::after {
+    content: '';
+    flex-grow: 999999999; /* Consumes remaining space */
 }
-.pswp--open .site-nav,
-.pswp--open .home-header,
-.pswp--open nav {
-    display: none !important;
-}
-
-
-/* small note / error box */
-.av-note {
-    padding: 18px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 8px 20px rgba(12,18,24,0.04);
-    margin: 12px 0;
-    color: #0b1220;
-}
-
-/* Accessibility: focus style for keyboard users on tiles */
-.thumb-card,
-.album-tile {
-    outline: none;
-}
-
-.thumb-card:focus,
-.album-tile:focus {
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
-    transform: translateY(-2px);
-}
-
-/* Reduce motion for users who prefer it */
-@media (prefers-reduced-motion: reduce) {
-    .album-tile, .album-tile img { transition: none !important; animation: none !important; }
-    .lv-overlay { backdrop-filter: none; }
-}
-
-

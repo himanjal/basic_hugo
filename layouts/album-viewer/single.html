@@ -28,24 +28,30 @@
         {{ $ext := lower (replaceRE "^.*\\.([^.]+)$" "$1" .Name) }}
         {{ if in (slice "jpg" "jpeg" "png" "webp" "gif") $ext }}
 
-        {{ $small := .Resize "600x" }}
-        {{ $med := .Resize "1200x" }}
+        {{/* Calculate Aspect Ratio for Flexbox logic */}}
+        {{ $aspectRatio := div (float .Width) (float .Height) }}
 
-        <figure class="album-tile">
+        {{ $small := .Resize "600x webp q50" }}
+        {{ $med := .Resize "1200x webp q60" }}
+
+        <figure class="album-tile" style="flex-grow: {{ $aspectRatio }}; flex-basis: {{ mul $aspectRatio 200 }}px;">
             <a class="album-link"
                href="{{ .RelPermalink }}"
                data-pswp-width="{{ .Width }}"
                data-pswp-height="{{ .Height }}"
-               data-pswp-caption="{{ .Name }}">
+               data-pswp-caption="{{ .Name }}"
+               data-pswp-msrc="{{ $small.RelPermalink }}">
 
-                <img
-                        class="grid-img"
-                        src="{{ $small.RelPermalink }}"
-                        srcset="{{ $small.RelPermalink }} 600w, {{ $med.RelPermalink }} 1200w"
-                        sizes="(max-width:640px) 100vw, (max-width:1200px) 50vw, 33vw"
-                        alt="{{ .Name }}"
-                        loading="lazy"
-                        decoding="async">
+                <img class="grid-img"
+                     src="{{ $small.RelPermalink }}"
+                     srcset="{{ $small.RelPermalink }} 600w, {{ $med.RelPermalink }} 1200w"
+                     sizes="(max-width:640px) 100vw, (max-width:1200px) 50vw, 33vw"
+                     width="{{ $small.Width }}"
+                     height="{{ $small.Height }}"
+                     style="aspect-ratio: {{ $aspectRatio }};"
+                     alt="{{ .Name }}"
+                     loading="lazy"
+                     decoding="async">
             </a>
         </figure>
 
