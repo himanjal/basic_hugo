@@ -7,7 +7,7 @@
 
 :root{
     /* ---------- Layout ---------- */
-    --carousel-vw: 0.8;               /* fraction of viewport width (80%) — applied on all sizes */
+    --carousel-vw: 1;               /* fraction of viewport width (80%) — applied on all sizes */
     --carousel-max-width: 3300px;     /* upper cap for carousel width */
     --carousel-min-width: 320px;
     --carousel-side-padding: 50px;    /* breathing room on sides */

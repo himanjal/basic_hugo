@@ -1,0 +1,52 @@
+{{ define "main" }}
+
+{{/* -------------------------------------------------
+Build image pairs FIRST (Go template is single-pass)
+-------------------------------------------------- */}}
+
+{{ $assets := resources.Match "images/**" }}
+{{ $pairs := slice }}
+
+{{ range $res := $assets }}
+{{ if eq $res.MediaType.MainType "image" }}
+{{ if and (ne $res.MediaType.SubType "png") (ne $res.MediaType.SubType "svg") }}
+{{ if or
+(eq $res.MediaType.SubType "jpeg")
+(eq $res.MediaType.SubType "jpg")
+(eq $res.MediaType.SubType "webp")
+}}
+
+{{ $thumb := "" }}
+{{ with $res.Resize "300x webp" }}
+{{ $thumb = .Permalink }}
+{{ else }}
+{{ with $res.Resize "300x jpg" }}
+{{ $thumb = .Permalink }}
+{{ else }}
+{{ $thumb = $res.Permalink }}
+{{ end }}
+{{ end }}
+
+{{ $pairs = $pairs | append (dict
+"thumb" $thumb
+"full"  $res.Permalink
+) }}
+
+{{ end }}
+{{ end }}
+{{ end }}
+{{ end }}
+
+{{/* -------------------------------------------------
+Now render markup that USES $pairs
+-------------------------------------------------- */}}
+
+<section
+        class="hg-wrap"
+        aria-label="Playground"
+        data-images='{{ $pairs | jsonify }}'
+>
+    <div id="hg-canvas" class="hg-canvas" tabindex="0"></div>
+</section>
+
+{{ end }}

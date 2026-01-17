@@ -14,23 +14,46 @@
 }
 
 
-html,body{
-    background:var(--page-bg);
-    height:100%;
+html,
+body {
+    height: 100%;
 }
 
-body, main.hg-wrap {
+body,
+.hg-wrap {
     background: #ffffff !important;
     color: #000;  /* optional: switch text color */
 }
 
-.hg-wrap{min-height:100vh;}
+body[data-page="playground"] {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body[data-page="playground"] main#content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+body[data-page="playground"] .hg-wrap {
+    flex: 1;
+    min-height: 0;
+}
+
+.hg-wrap {
+    position: relative;
+    flex: 1;
+    width: 100%;
+    height: 100%;
+}
 
 
 .hg-canvas{
     position:relative;
-    width:100vw;
-    height:100vh;
+    width:100%;
+    height:100%;
     overflow:hidden;
     pointer-events: auto;
     background: var(--page-bg);      /* white by default from :root */
@@ -109,7 +132,7 @@ body, main.hg-wrap {
     transform: translate(-50%, -50%) scale(1.04) !important;
     transition: transform 160ms cubic-bezier(.2,.9,.2,1), opacity 160ms ease-out !important;
     /* ensure it sits above other tiles while hovered */
-    z-index: 999999 !important;
+    z-index: 1 !important;
 }
 
 

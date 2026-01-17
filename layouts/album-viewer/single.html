@@ -1,13 +1,7 @@
-{{/* layouts/album-viewer/single.html */}}
-
-{{ define "head" }}
-<link rel="stylesheet" href="{{ "css/album-viewer.css" | relURL }}">
-<link rel="stylesheet" href="https://unpkg.com/photoswipe@5/dist/photoswipe.css">
-{{ end }}
-
-
 {{ define "main" }}
+
 <main class="album-wrap">
+
     <header class="album-header">
         <p class="album-meta">Album</p>
         <h1>{{ .Title }}</h1>
@@ -17,8 +11,11 @@
     </header>
 
     {{ $album := .Params.album }}
+
     {{ if not $album }}
-    <div class="av-note"><strong>Error:</strong> no <code>album</code> param found.</div>
+    <div class="av-note">
+        <strong>Error:</strong> no <code>album</code> param found.
+    </div>
     {{ else }}
 
     {{ $pattern := printf "images/gallery/%s/*" $album }}
@@ -27,6 +24,7 @@
     {{ if gt (len $resources) 0 }}
     <section class="album-grid" aria-live="polite">
         {{ range $resources }}
+
         {{ $ext := lower (replaceRE "^.*\\.([^.]+)$" "$1" .Name) }}
         {{ if in (slice "jpg" "jpeg" "png" "webp" "gif") $ext }}
 
@@ -40,13 +38,14 @@
                data-pswp-height="{{ .Height }}"
                data-pswp-caption="{{ .Name }}">
 
-                <img class="grid-img"
-                     src="{{ $small.RelPermalink }}"
-                     srcset="{{ $small.RelPermalink }} 600w, {{ $med.RelPermalink }} 1200w"
-                     sizes="(max-width:640px) 100vw, (max-width:1200px) 50vw, 33vw"
-                     alt="{{ .Name }}"
-                     loading="lazy"
-                     decoding="async">
+                <img
+                        class="grid-img"
+                        src="{{ $small.RelPermalink }}"
+                        srcset="{{ $small.RelPermalink }} 600w, {{ $med.RelPermalink }} 1200w"
+                        sizes="(max-width:640px) 100vw, (max-width:1200px) 50vw, 33vw"
+                        alt="{{ .Name }}"
+                        loading="lazy"
+                        decoding="async">
             </a>
         </figure>
 
@@ -57,54 +56,8 @@
     <div class="av-note">No images found in album.</div>
     {{ end }}
 
-    {{ $downloadIcon := "" }}
-
-
     {{ end }}
+
 </main>
-
-<!-- PhotoSwipe init -->
-<script type="module">
-
-    import PhotoSwipeLightbox from 'https://unpkg.com/photoswipe@5/dist/photoswipe-lightbox.esm.js';
-
-    const lightbox = new PhotoSwipeLightbox({
-        gallery: '.album-grid',
-        children: '.album-link',
-        pswpModule: () => import('https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js'),
-        appendToEl: document.body
-    });
-
-    lightbox.on('uiRegister', () => {
-        lightbox.pswp.ui.registerElement({
-            name: 'download',
-            order: 8,
-            isButton: true,
-            tagName: 'a',
-
-            html: {
-                isCustomSVG: true,
-                inner: `
-        <path d="M20.5 14.3 17.1 18V10h-2.2v7.9l-3.4-3.6L10 16l6 6.1 6-6.1ZM23 23H9v2h14Z"/>
-      `,
-                outlineID: 'pswp__icn-download'
-            },
-
-            onInit: (el, pswp) => {
-                el.setAttribute('download', '');
-                el.setAttribute('target', '_blank');
-                el.setAttribute('rel', 'noopener');
-
-                pswp.on('change', () => {
-                    el.href = pswp.currSlide.data.src;
-                });
-            }
-        });
-    });
-
-
-
-    lightbox.init();
-</script>
 
 {{ end }}
