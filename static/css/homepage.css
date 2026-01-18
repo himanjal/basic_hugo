@@ -129,3 +129,122 @@
         transform: translateY(-100%);
     }
 }
+
+
+/* ================================
+   GLASS GRID LAYOUT
+   ================================ */
+
+.glass-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 Equal Columns */
+    gap: 1.5rem;
+    max-width: 1200px;
+    margin: 4rem auto 0; /* Spacing from header */
+    padding: 0 2rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Mobile responsive stack */
+@media (max-width: 768px) {
+    .glass-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ================================
+   GLASS BOX STYLING
+   ================================ */
+
+.glass-box {
+    /* Glass Effect */
+    background: rgba(255, 255, 255, 0.05); /* Very subtle fill */
+    backdrop-filter: blur(12px);          /* The blur */
+    -webkit-backdrop-filter: blur(12px);  /* Safari support */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    /* Layout */
+    border-radius: 16px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 180px;
+
+    /* Text Styles */
+    color: #ffffff;
+    text-decoration: none;
+    transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.glass-box h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+/* Interactive Link Boxes */
+.glass-box.box-link {
+    align-items: center; /* Center text for buttons */
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.glass-box.box-link:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-5px);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ================================
+   TYPEWRITER ANIMATION
+   ================================ */
+
+.typewriter-container {
+    display: inline-block;
+}
+
+.typewriter-text {
+    overflow: hidden; /* Ensures content is not revealed until animation */
+    border-right: .15em solid rgba(255,255,255,0.7); /* The cursor */
+    white-space: nowrap; /* Keeps content on a single line */
+    margin: 0;
+    font-size: 1rem;
+    max-width: 0; /* Start hidden */
+    opacity: 0.9;
+
+    /* Animation Logic:
+       typing: 3s to type, holds for 2s (total 5s cycle)
+       blink: cursor blinking
+    */
+    animation:
+            typing 5s steps(30, end) infinite,
+            blink-caret .75s step-end infinite;
+}
+
+/* The typing keyframes */
+@keyframes typing {
+    0% {
+        max-width: 0;
+    }
+    50% {
+        max-width: 100%; /* Finished typing at 2.5s */
+    }
+    90% {
+        max-width: 100%; /* Waits until 4.5s */
+    }
+    100% {
+        max-width: 0;    /* Snaps back to 0 to restart */
+    }
+}
+
+/* The cursor blinking keyframes */
+@keyframes blink-caret {
+    from, to { border-color: transparent }
+    50% { border-color: rgba(255,255,255,0.7); }
+}
