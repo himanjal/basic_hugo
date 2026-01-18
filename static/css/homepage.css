@@ -42,6 +42,10 @@
    SLICE BASE
    ================================ */
 
+/* ================================
+   SLICE BASE
+   ================================ */
+
 .hero-slice {
     height: 100%;
     background: #ffffff;
@@ -49,7 +53,7 @@
     transform: translateY(0);
     opacity: 1;
 
-    animation-name: sliceReveal;
+    /* animation-name: sliceReveal;  <-- Removed to prevent auto-start */
     animation-fill-mode: forwards;
 
     /* speed control */
@@ -61,7 +65,11 @@
     );
 
     animation-timing-function: cubic-bezier(.4,0,.2,1);
-    /*animation-timing-function: linear;*/
+}
+
+/* NEW: Only run animation when parent is loaded */
+.hero-root.is-loaded .hero-slice {
+    animation-name: sliceReveal;
 }
 
 /* ================================
