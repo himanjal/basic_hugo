@@ -1,47 +1,16 @@
 {{ define "main" }}
 
-{{/* -------------------------------------------------
-OPTIMIZED: Build image pairs from 'images/playground'
--------------------------------------------------- */}}
-
-{{/* 1. Only grab images from the playground folder for performance */}}
-{{ $assets := resources.Match "images/**" }}
-{{ $pairs := slice }}
-
-{{ range $res := $assets }}
-{{ if eq $res.MediaType.MainType "image" }}
-{{ if and (ne $res.MediaType.SubType "png") (ne $res.MediaType.SubType "svg") }}
-{{ if or (eq $res.MediaType.SubType "jpeg") (eq $res.MediaType.SubType "jpg") (eq $res.MediaType.SubType "webp") }}
-
-{{/* 2. Create efficient WebP thumbnail (600px is good balance for spawning) */}}
-{{ $thumb := "" }}
-{{ with $res.Resize "600x webp q75" }}
-{{ $thumb = .Permalink }}
-{{ else }}
-{{ $thumb = $res.Permalink }}
-{{ end }}
-
-{{/* 3. Build object with Width/Height for PhotoSwipe */}}
-{{ $pairs = $pairs | append (dict
-"thumb" $thumb
-"full"  $res.Permalink
-"w"     $res.Width
-"h"     $res.Height
-) }}
-
-{{ end }}
-{{ end }}
-{{ end }}
-{{ end }}
-
-{{/* -------------------------------------------------
-Render markup
--------------------------------------------------- */}}
+{{/* DATA SOURCE:
+We now point the JavaScript to the CloudFront Manifest.
+The JS will fetch the manifest, then fetch each album's JSON,
+and build the image pool dynamically.
+*/}}
 
 <section
         class="hg-wrap"
         aria-label="Playground"
-        data-images='{{ $pairs | jsonify }}'
+        data-manifest-url="https://d1f1sorz2edz9k.cloudfront.net/images/configs/manifest.json"
+        data-config-base="https://d1f1sorz2edz9k.cloudfront.net/images/configs/"
 >
     <div id="hg-canvas" class="hg-canvas" tabindex="0"></div>
 </section>

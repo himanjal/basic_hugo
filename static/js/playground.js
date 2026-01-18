@@ -6,23 +6,61 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
     const wrap = document.querySelector('.hg-wrap');
     if (!wrap) return;
 
-    let images = [];
-    try {
-        images = JSON.parse(wrap.dataset.images || '[]');
-    } catch (e) {
-        console.error('[playground] failed to parse data-images', e);
-        images = [];
+    // --- 1. Dynamic Data Loading Strategy ---
+    let images = []; // The pool of available images
+
+    const manifestUrl = wrap.dataset.manifestUrl;
+    const configBase = wrap.dataset.configBase;
+
+    async function startProgressiveLoad() {
+        if (!manifestUrl) return;
+
+        try {
+            // A. Fetch the Master List
+            const resp = await fetch(manifestUrl);
+            if (!resp.ok) return;
+            const albums = await resp.json();
+
+            console.log(`[playground] Found ${albums.length} albums. Loading progressively...`);
+
+            // B. Fetch each album independently
+            // We do NOT await all of them. We fire requests and let them complete whenever.
+            // This allows the user to start playing immediately with whatever arrives first.
+            albums.forEach(albumId => {
+                fetch(`${configBase}${albumId}.json`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.images && Array.isArray(data.images)) {
+                            // Map S3 keys to Playground keys
+                            const newBatch = data.images.map(img => ({
+                                thumb: img.thumb,  // S3 Thumbnail URL
+                                full: img.src,     // S3 Full Res URL
+                                w: img.width,
+                                h: img.height
+                            }));
+
+                            // Add to the live pool
+                            images.push(...newBatch);
+                            // console.debug(`[playground] +${newBatch.length} images from ${albumId}`);
+                        }
+                    })
+                    .catch(err => console.warn(`[playground] Skipped album ${albumId}`, err));
+            });
+
+        } catch (e) {
+            console.error('[playground] Manifest load failed', e);
+        }
     }
 
-    if (!Array.isArray(images) || images.length === 0) {
-        console.warn('[playground] no images available — playground disabled');
-        return;
-    }
+    // Kick off the loading
+    startProgressiveLoad();
+
+    // -----------------------------------------------------------
 
     const TAG = '[playground]';
     const LOG = (...a) => console.log('%c' + TAG, 'color:#0a7; font-weight:700;', ...a);
 
-    // small CSS helpers
+    // CSS helpers (unchanged)
     function cssNumber(name, fallback) {
         try {
             const v = getComputedStyle(document.documentElement).getPropertyValue(name);
@@ -102,21 +140,23 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
     }
 
     function spawnAt(clientX, clientY){
-        if(!images.length) return;
+        // SAFETY: If manifest hasn't loaded any images yet, just wait.
+        if(!images || images.length === 0) return;
+
         clearScheduledLastThreeFade();
 
-        // 1. Pick Image Data
+        // 1. Pick Random Image from currently available pool
         const item = images[Math.floor(Math.random()*images.length)];
-        const thumbUrl = item.thumb || item;
-        const fullUrl = item.full || thumbUrl;
+        const thumbUrl = item.thumb;
+        const fullUrl = item.full;
         const w = item.w || 0;
         const h = item.h || 0;
 
         // 2. Create Image Element
         const img = document.createElement('img');
         img.className = 'hg-img spawn';
-        img.src = thumbUrl; // Load SMALL thumbnail
-        img.loading = 'eager'; // Eager load for spawn animation
+        img.src = thumbUrl;
+        img.loading = 'eager';
         img.alt = '';
         img.draggable = false;
 
@@ -278,23 +318,18 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
 
     canvas.addEventListener('keydown',(e)=>{ if(e.key==='Enter'||e.key===' '){ const r=canvas.getBoundingClientRect(); const cx=r.left+r.width/2+(Math.random()-0.5)*80; const cy=r.top+r.height/2+(Math.random()-0.5)*80; spawnAt(cx,cy); } });
 
-    // --- UPDATED: Open PhotoSwipe Lightbox with Lazy Loading ---
+    // --- PhotoSwipe Logic ---
     function openPhotoSwipe(imgElement) {
         if (!imgElement) return;
 
-        // 1. Get High-Res URL (stored in data attribute from single.html)
         const highRes = imgElement.dataset.pswpSrc || imgElement.src;
-
-        // 2. Get Low-Res URL (The image currently visible on canvas)
-        // This is crucial: it tells PhotoSwipe to show this immediately while highRes loads
         const lowRes = imgElement.src;
-
         const w = parseInt(imgElement.dataset.pswpWidth || 0, 10);
         const h = parseInt(imgElement.dataset.pswpHeight || 0, 10);
 
         const dataSource = [{
-            src: highRes,       // Target: High Resolution
-            msrc: lowRes,       // Placeholder: Low Resolution (Thumb)
+            src: highRes,
+            msrc: lowRes,
             width: w || 1200,
             height: h || 800,
             alt: 'Playground Image'
@@ -306,10 +341,6 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
             pswpModule: PhotoSwipe,
             closeOnVerticalDrag: true,
             bgOpacity: 0.9,
-
-            // 3. Smooth Zoom Animation Helper
-            // Since your images are absolute positioned/rotated, this tells PhotoSwipe
-            // exactly where to start the zoom animation from.
             getThumbBoundsFn: (index) => {
                 const pageYScroll = window.pageYOffset || document.documentElement.scrollTop;
                 const rect = imgElement.getBoundingClientRect();
@@ -319,7 +350,6 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
 
         const lightbox = new PhotoSwipeLightbox(options);
 
-        // (Keep your existing download button logic)
         lightbox.on('uiRegister', () => {
             lightbox.pswp.ui.registerElement({
                 name: 'download',
@@ -344,11 +374,10 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
 
         lightbox.init();
         lightbox.loadAndOpen(0);
-        LOG('PhotoSwipe opened with lazy loading for', highRes);
+        LOG('PhotoSwipe opened for', highRes);
     }
 
     // --- Interaction Logic (Clicks & Taps) ---
-    // Left-click handler (Desktop)
     canvas.addEventListener('pointerdown', (ev) => {
         if(ev.pointerType !== 'mouse') return;
         if(ev.button !== 0) return;
@@ -361,7 +390,7 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
         openPhotoSwipe(hit);
     }, { passive: false });
 
-    // Touch/Pen logic (Double tap or Single tap on last)
+    // Touch/Pen logic
     (function installTouchLogic(){
         let lastTapTime = 0;
         let lastTapPos = { x: 0, y: 0 };
@@ -456,7 +485,6 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
         try {
             canvas.style.touchAction = 'none';
             canvas.style.webkitTouchCallout = 'none';
-            // Prevent scrolling on the canvas itself
             canvas.addEventListener('touchstart', (e) => { e.preventDefault && e.preventDefault(); }, { passive: false });
             canvas.addEventListener('pointerdown', (ev) => {
                 if(ev.pointerType === 'touch' || ev.pointerType === 'pen'){
@@ -469,7 +497,6 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
         function createDraggablePointer(){
             if(document.getElementById('hg-drag-pointer')) return;
 
-            // 1. Inject CSS for responsiveness and the annotation label
             const style = document.createElement('style');
             style.innerHTML = `
                 #hg-drag-pointer {
@@ -480,11 +507,9 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
                     font-size: 20px; color: #111; cursor: grab; touch-action: none; opacity: 0.98;
                     transition: transform 0.1s;
                 }
-                /* Small screens: Smaller pointer */
                 @media (max-width: 600px) {
                     #hg-drag-pointer { width: 14px; height: 14px; font-size: 16px; right: 16px; bottom: 90px; }
                 }
-                /* The Text Annotation */
                 #hg-drag-label {
                     position: absolute; top: -38px; left: 50%; transform: translateX(-50%);
                     background: rgba(0,0,0,0.85); color: #fff; padding: 5px 10px; border-radius: 8px;
@@ -500,55 +525,44 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
             `;
             document.head.appendChild(style);
 
-            // 2. Create the Pointer
             const p = document.createElement('div');
             p.id = 'hg-drag-pointer';
-            p.innerHTML = '&#9679;'; // The dot icon
+            p.innerHTML = '&#9679;';
 
-            // 3. Create the Label
             const label = document.createElement('div');
             label.id = 'hg-drag-label';
             label.textContent = "Drag me";
             p.appendChild(label);
 
-            // 4. Vanish Logic: Remove label on first interaction
             function vanishLabel() {
                 if(!label) return;
                 label.classList.add('vanish');
-                // Remove from DOM after fade out
                 setTimeout(() => { if(label.parentNode) label.parentNode.removeChild(label); }, 600);
-
-                // Cleanup listeners
                 ['pointerdown', 'touchstart', 'keydown', 'wheel'].forEach(evt =>
                     window.removeEventListener(evt, vanishLabel, {capture: true})
                 );
             }
 
-            // Listen for ANY interaction on the window to dismiss the label
             ['pointerdown', 'touchstart', 'keydown', 'wheel'].forEach(evt =>
                 window.addEventListener(evt, vanishLabel, { once: true, capture: true })
             );
 
-            // 5. Drag Logic
             let dragging = false;
             p.addEventListener('pointerdown', (ev)=>{
                 dragging=true;
                 p.setPointerCapture(ev.pointerId);
                 onInteractionResume();
-                vanishLabel(); // Ensure it vanishes if they click the button itself
+                vanishLabel();
             });
 
             window.addEventListener('pointermove', (ev)=>{
                 if(!dragging) return;
                 const x = Math.max(8, Math.min(window.innerWidth-64, ev.clientX-28));
                 const y = Math.max(8, Math.min(window.innerHeight-64, ev.clientY-28));
-
-                // Use style directly for performance
                 p.style.left = x + 'px';
                 p.style.top = y + 'px';
                 p.style.right = 'auto';
                 p.style.bottom = 'auto';
-
                 spawnAt(x+28+window.scrollX, y+28+window.scrollY);
             });
 
@@ -563,5 +577,5 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
         setTimeout(()=>{ if(!scrollPreventionActive) createDraggablePointer(); }, 60);
     })();
 
-    LOG('playground initialized (PhotoSwipe enabled)');
+    LOG('playground initialized (Cloud Data Mode)');
 })();
