@@ -1,214 +1,141 @@
 {{ define "main" }}
 <main class="gallery-wrap" aria-label="Gallery">
 
-    {{/* ===== Styles ===== */}}
-    <link rel="stylesheet" href='{{ "css/hover-carousal.css" | relURL }}'>
+    {{/* ==========================
+    1. CAROUSEL SECTION (Fixed: Filters non-images + RESTORED LIGHTBOX DATA)
+    ========================== */}}
 
-    {{- $images := resources.Match "images/carousal/*" | sort -}}
-    {{- $allowed := slice "jpg" "jpeg" "png" "webp" "avif" -}}
+    {{ $cornerScratch := newScratch }}
+    {{ with resources.Get "logos/image_corner.png" }}
+    {{ with .Resize "48x48" }}{{ $cornerScratch.Set "img" . }}{{ end }}
+    {{ end }}
 
-    {{- if gt (len $images) 0 }}
+    {{/* STRICT IMAGE FILTERING */}}
+    {{- $rawFiles := resources.Match "images/carousal/*" -}}
+    {{- $validImages := slice -}}
+    {{- $allowedExts := slice ".jpg" ".jpeg" ".png" ".webp" ".avif" -}}
+
+    {{- range $rawFiles -}}
+    {{- $ext := path.Ext .Name | lower -}}
+    {{- if in $allowedExts $ext -}}
+    {{- $validImages = $validImages | append . -}}
+    {{- end -}}
+    {{- end -}}
+
+    {{- if gt (len $validImages) 0 }}
     <section class="featured-carousel">
-        <nav class="hover-carousel" role="navigation" aria-label="Featured">
-            {{- range $i, $res := $images }}
-            {{- $ext := lower (replaceRE "^.*\\.([^.]+)$" "$1" $res.Name) }}
-            {{- if in $allowed $ext }}
-            {{- $one := $res.Resize "600x" -}}
-            {{- $two := $res.Resize "1200x" -}}
-            {{- $three := $res.Resize "2000x" -}}
-
-            {{/* Optimization: Eager load carousel images.
-            Prioritize the first 3 as they are likely visible. */}}
-            {{- $prio := "auto" -}}
-            {{- if lt $i 3 }}{{- $prio = "high" -}}{{- end -}}
-
+        <nav class="hover-carousel">
+            {{- range $i, $res := $validImages }}
+            {{/* CRITICAL FIX:
+            We added back 'data-pswp-src', 'width', and 'height'.
+            The lightbox script looks for these to know what to open.
+            */}}
             <div class="hc-container"
                  tabindex="0"
+                 data-index="{{ $i }}"
                  role="button"
-                 aria-label="View {{ $res.Name }}"
                  data-hi2x="{{ $res.RelPermalink }}"
                  data-pswp-src="{{ $res.RelPermalink }}"
                  data-pswp-width="{{ $res.Width }}"
-                 data-pswp-height="{{ $res.Height }}"
-                 data-index="{{ $i }}">
+                 data-pswp-height="{{ $res.Height }}">
 
-                {{/* Removed loading="lazy" to prevent display deadlock */}}
-                <img
-                        class="hc-img"
-                        src="{{ $one.RelPermalink }}"
-                        srcset="{{ $one.RelPermalink }} 600w, {{ $two.RelPermalink }} 1200w, {{ $three.RelPermalink }} 2000w"
-                        sizes="(max-width:640px) 90vw, (max-width:1100px) 45vw, 600px"
-                        fetchpriority="{{ $prio }}"
-                        alt="{{ $res.Name }}" />
+                {{/* Safe to resize now */}}
+                <img class="hc-img"
+                     src="{{ ($res.Resize "600x").RelPermalink }}"
+                alt="{{ $res.Name }}" />
             </div>
-            {{- end }}
             {{- end }}
         </nav>
     </section>
-    {{- else }}
-    <p>No images found in <code>assets/images/carousal</code>.</p>
     {{- end }}
 
-    <section class="gallery-intro" aria-hidden="false">
-        <h2 class="intro-title">
-            A glimpse through <span class="intro-em">my perspective</span>
-        </h2>
-
+    {{/* ==========================
+    2. INTRO
+    ========================== */}}
+    <section class="gallery-intro">
+        <h2 class="intro-title">A glimpse through <span class="intro-em">my perspective</span></h2>
         <p class="intro-sub">
             I take way too many photos. Some of my favorites are here.
         </p>
     </section>
 
-    {{/* Thumbnail grid below the carousel */}}
-    <section class="thumbnail-grid-wrap" aria-label="Gallery thumbnails">
-        {{ $entries := readDir "assets/images/gallery" }}
-        {{ $folders := slice }}
-        {{ range $entries }}
-        {{ if .IsDir }}
-        {{ $folders = $folders | append .Name }}
-        {{ end }}
-        {{ end }}
+    {{/* ==========================
+    ALBUM GRID (Fully Remote)
+    ========================== */}}
+    <section class="thumbnail-grid-wrap">
 
-        {{/* Preload corner image resource once */}}
-        {{ $cornerScratch := newScratch }}
-        {{ with resources.Get "logos/image_corner.png" }}
-        {{ with .Resize "48x48" }}
-        {{ $cornerScratch.Set "img" . }}
-        {{ end }}
-        {{ end }}
+        {{/* 1. Fetch the Master Manifest from S3 */}}
+        {{ $manifestUrl := "https://d1f1sorz2edz9k.cloudfront.net/images/configs/manifest.json" }}
 
-        {{ if gt (len $folders) 0 }}
+        {{/* Use headers to try and bypass cache for the list */}}
+        {{ $manifestRes := resources.GetRemote $manifestUrl }}
+
         <div class="thumbnail-grid">
-            {{ range $idx, $folder := $folders }}
-            {{ $pattern := printf "images/gallery/%s/*" $folder }}
-            {{ $resources := resources.Match $pattern | sort }}
-            {{/* Build $imgs by extension to avoid meta.json and others */}}
-            {{ $imgs := slice }}
-            {{ range $resources }}
-            {{ $ext := lower (replaceRE "^.*\\.([^.]+)$" "$1" .Name) }}
-            {{ if in (slice "jpg" "jpeg" "png" "webp" "gif") $ext }}
-            {{ $imgs = $imgs | append . }}
-            {{ end }}
-            {{ end }}
-            {{ if gt (len $imgs) 0 }}
-            {{ $defaultChosen := index $imgs 0 }}
+            {{ if $manifestRes }}
+            {{/* 2. Loop through the list of albums ["air_camera", "europe", ...] */}}
+            {{ $albums := transform.Unmarshal $manifestRes }}
 
-            {{ $meta := dict "title" (printf "%s" $folder) "badge" "Gallery" "caption" "" "thumbnail" "" }}
-            {{ $metaPath := printf "assets/images/gallery/%s/meta.json" $folder }}
-            {{ if fileExists $metaPath }}
-            {{ $raw := readFile $metaPath }}
-            {{ $parsed := transform.Unmarshal $raw }}
-            {{ if $parsed }}
-            {{ $meta = merge $meta $parsed }}
+            {{ range $albums }}
+            {{ $folder := . }}
+            {{ $configUrl := printf "https://d1f1sorz2edz9k.cloudfront.net/images/configs/%s.json" $folder }}
+
+            {{/* 3. Fetch individual album config */}}
+            {{ $res := resources.GetRemote $configUrl }}
+
+            {{ if $res }}
+            {{ if eq $res.MediaType.SubType "json" }}
+            {{ $meta := transform.Unmarshal $res }}
+            {{ $thumbUrl := "" }}
+
+            {{/* Thumbnail Logic */}}
+            {{ if $meta.thumbnail }}
+            {{ if in $meta.thumbnail "http" }}
+            {{ $thumbUrl = $meta.thumbnail }}
+            {{ else }}
+            {{ $thumbUrl = printf "https://d1f1sorz2edz9k.cloudfront.net/images/thumbs/%s/thumb_%s" $folder $meta.thumbnail }}
             {{ end }}
+            {{ else if gt (len $meta.images) 0 }}
+            {{ $first := index $meta.images 0 }}
+            {{ $thumbUrl = $first.thumb }}
             {{ end }}
 
-            {{ $fs := newScratch }}
-            {{ $thumbFilename := printf "%s" (index $meta "thumbnail") }}
-            {{ if ne $thumbFilename "" }}
-            {{ $maybePath := printf "images/gallery/%s/%s" $folder $thumbFilename }}
-            {{ with resources.Get $maybePath }}
-            {{ $fs.Set "thumb" . }}
-            {{ end }}
-            {{ end }}
-            {{ if not ($fs.Get "thumb") }}
-            {{ $fs.Set "thumb" $defaultChosen }}
-            {{ end }}
-            {{ $thumbRes := $fs.Get "thumb" }}
-
-            {{/* Generate sizes: small for grid, med for larger screens, hi for album viewer/lightbox */}}
-            {{ $small := $thumbRes.Resize "600x" }}
-            {{ $med := $thumbRes.Resize "1200x" }}
-            {{ $hi := $thumbRes.Resize "2000x" }}
-
-            <article class="thumb-card" tabindex="0" role="link" aria-label="Open album {{ $folder }}" data-album="{{ $folder }}">
-                <a class="thumb-link" href="/album-viewer/{{ $folder | urlize }}/" aria-hidden="true">
+            {{ if ne $thumbUrl "" }}
+            <article class="thumb-card" tabindex="0" data-album="{{ $folder }}">
+                {{/* Note: This link assumes you have a markdown file or section for this album */}}
+                <a class="thumb-link" href="/album-viewer/{{ $folder | urlize }}/">
                     <div class="thumb-media">
-                        <img class="thumb-img"
-                             src="{{ $small.RelPermalink }}"
-                             srcset="{{ $small.RelPermalink }} 600w, {{ $med.RelPermalink }} 1200w"
-                             sizes="(max-width:640px) 100vw, (max-width:1200px) 50vw, 33vw"
-                             alt='{{ index $meta "title" }}'
-                             loading="lazy"
-                             width="1200" height="800">
+                        <img class="thumb-img" src="{{ $thumbUrl }}" loading="lazy"
+                             style="object-fit: cover; aspect-ratio: 3/2;">
 
-                        {{/* shutter logo */}}
-                        {{ with resources.Get "logos/shutter_logo.svg" }}
-                        <img class="shutter-logo" src="{{ .RelPermalink }}" alt="shutter logo" aria-hidden="true">
-                        {{ else }}
-                        {{ with resources.Get "logos/shutter_logo.png" }}
-                        {{ $logo := .Resize "48x48" }}
-                        <img class="shutter-logo" src="{{ $logo.RelPermalink }}" alt="shutter logo" aria-hidden="true">
+                        {{/* Decorations */}}
+                        {{ with resources.Get "logos/shutter_logo.svg" }}<img class="shutter-logo" src="{{ .RelPermalink }}">{{ end }}
+                        {{ with resources.Get "logos/image_corner.png" }}
+                        {{ with .Resize "48x48" }}
+                        <img class="corner-img tl" src="{{ .RelPermalink }}" />
+                        <img class="corner-img tr" src="{{ .RelPermalink }}" />
+                        <img class="corner-img br" src="{{ .RelPermalink }}" />
+                        <img class="corner-img bl" src="{{ .RelPermalink }}" />
                         {{ end }}
-                        {{ end }}
-
-                        {{ $cornerImg := $cornerScratch.Get "img" }}
-                        {{ if $cornerImg }}
-                        <img class="corner-img tl" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
-                        <img class="corner-img tr" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
-                        <img class="corner-img br" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
-                        <img class="corner-img bl" src="{{ $cornerImg.RelPermalink }}" alt="" aria-hidden="true" />
                         {{ end }}
                     </div>
                 </a>
-
                 <div class="thumb-body">
                     <div class="thumb-text">
-                        <h4 class="thumb-title">{{ index $meta "title" }}</h4>
-                        <p class="thumb-caption">{{ index $meta "caption" }}</p>
+                        <h4 class="thumb-title">{{ $meta.title }}</h4>
+                        <p class="thumb-caption">{{ default "" $meta.description }}</p>
                     </div>
-                    <span class="thumb-badge">{{ index $meta "badge" }}</span>
+                    <span class="thumb-badge">Gallery</span>
                 </div>
             </article>
             {{ end }}
             {{ end }}
+            {{ end }}
+            {{ end }}
+            {{ else }}
+            <p>Unable to load album list from cloud.</p>
+            {{ end }}
         </div>
-        {{ else }}
-        <p class="no-thumbs">No gallery folders found in <code>assets/images/gallery</code>.</p>
-        {{ end }}
     </section>
 
 </main>
-
-{{ block "scripts" . }}
-{{/* Carousel script (external) */}}
-<script src='{{ "js/hover-carousal-containers.js" | relURL }}' defer></script>
-
-<script>
-    (function () {
-        'use strict';
-        document.addEventListener('click', function (e) {
-            const card = e.target.closest && e.target.closest('.thumb-card');
-            if (!card) return;
-            const album = card.getAttribute('data-album');
-            if (album) window.location.href = `/album-viewer/${album}/`;
-        }, true);
-
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                const el = document.activeElement;
-                if (el && el.classList && el.classList.contains('thumb-card')) {
-                    const album = el.getAttribute('data-album');
-                    if (album) {
-                        e.preventDefault();
-                        window.location.href = `/album-viewer/${album}/`;
-                    }
-                }
-            }
-        });
-
-        let touchHoverTimer = null;
-        document.addEventListener('touchstart', function (e) {
-            const card = e.target.closest && e.target.closest('.thumb-card');
-            if (!card) return;
-            card.classList.add('touch-hover');
-            if (touchHoverTimer) clearTimeout(touchHoverTimer);
-            touchHoverTimer = setTimeout(function () {
-                card.classList.remove('touch-hover');
-                touchHoverTimer = null;
-            }, 2500);
-        }, { passive: true });
-    })();
-</script>
-{{ end }}
 {{ end }}

@@ -1,69 +1,63 @@
 {{ define "main" }}
-
 <main class="album-wrap">
 
-    <header class="album-header">
-<!--        <p class="album-meta">Album</p>-->
-        <h1>{{ .Title }}</h1>
-        {{ with .Params.description }}
-        <p class="album-meta">{{ . }}</p>
-        {{ end }}
-    </header>
+    {{/* 1. Identify Album & Fetch Cloud Data */}}
+    {{ $albumDir := .Params.album | default (path.Base .File.Dir) }}
 
-    {{ $album := .Params.album }}
+    {{/* Construct CloudFront URL */}}
+    {{ $configUrl := printf "https://d1f1sorz2edz9k.cloudfront.net/images/configs/%s.json" ($albumDir | lower) }}
 
-    {{ if not $album }}
+    {{ $meta := dict }}
+    {{ $res := resources.GetRemote $configUrl }}
+
+    {{ if $res }}
+    {{ $meta = transform.Unmarshal $res }}
+    {{ else }}
+    {{/* Fallback error message if JSON is missing in S3 */}}
     <div class="av-note">
-        <strong>Error:</strong> no <code>album</code> param found.
+        Could not fetch config: <code>{{ $configUrl }}</code>
     </div>
-    {{ else }}
-
-    {{ $pattern := printf "images/gallery/%s/*" $album }}
-    {{ $resources := resources.Match $pattern | sort }}
-
-    {{ if gt (len $resources) 0 }}
-    <section class="album-grid" aria-live="polite">
-        {{ range $resources }}
-
-        {{ $ext := lower (replaceRE "^.*\\.([^.]+)$" "$1" .Name) }}
-        {{ if in (slice "jpg" "jpeg" "png" "webp" "gif") $ext }}
-
-        {{/* Calculate Aspect Ratio for Flexbox logic */}}
-        {{ $aspectRatio := div (float .Width) (float .Height) }}
-
-        {{ $small := .Resize "600x webp q50" }}
-        {{ $med := .Resize "1200x webp q60" }}
-
-        <figure class="album-tile" style="flex-grow: {{ $aspectRatio }}; flex-basis: {{ mul $aspectRatio 200 }}px;">
-            <a class="album-link"
-               href="{{ .RelPermalink }}"
-               data-pswp-width="{{ .Width }}"
-               data-pswp-height="{{ .Height }}"
-               data-pswp-caption="{{ .Name }}"
-               data-pswp-msrc="{{ $small.RelPermalink }}">
-
-                <img class="grid-img"
-                     src="{{ $small.RelPermalink }}"
-                     srcset="{{ $small.RelPermalink }} 600w, {{ $med.RelPermalink }} 1200w"
-                     sizes="(max-width:640px) 100vw, (max-width:1200px) 50vw, 33vw"
-                     width="{{ $small.Width }}"
-                     height="{{ $small.Height }}"
-                     style="aspect-ratio: {{ $aspectRatio }};"
-                     alt="{{ .Name }}"
-                     loading="lazy"
-                     decoding="async">
-            </a>
-        </figure>
-
-        {{ end }}
-        {{ end }}
-    </section>
-    {{ else }}
-    <div class="av-note">No images found in album.</div>
     {{ end }}
 
+    <header class="album-header">
+        <h1>{{ or $meta.title .Title }}</h1>
+        {{ with $meta.description }}<p class="album-meta">{{ . }}</p>{{ end }}
+    </header>
+
+    {{ if $meta.images }}
+    <section class="album-grid" aria-live="polite">
+        {{ range $meta.images }}
+
+        {{/* Aspect Ratio Logic */}}
+        {{ $w := float (default 1500 .width) }}
+        {{ $h := float (default 1000 .height) }}
+        {{ $aspect := div $w $h }}
+
+        <figure class="album-tile" style="flex-grow: {{ $aspect }}; flex-basis: {{ mul $aspect 250 }}px;">
+            <a class="album-link"
+               href="{{ .src }}"
+               target="_blank"
+               data-pswp-src="{{ .src }}"
+               data-pswp-width="{{ .width }}"
+               data-pswp-height="{{ .height }}"
+               data-pswp-caption="{{ .name }}">
+
+                {{/* Display the THUMBNAIL from S3 (small size)
+                But link to the SRC (full size)
+                */}}
+                <img class="grid-img"
+                     src="{{ .thumb }}"
+                     alt="{{ .name }}"
+                     loading="lazy"
+                     decoding="async"
+                     style="aspect-ratio: {{ $w }} / {{ $h }};">
+            </a>
+        </figure>
+        {{ end }}
+
+        <div style="flex-grow: 100; content: '';"></div>
+    </section>
     {{ end }}
 
 </main>
-
 {{ end }}
