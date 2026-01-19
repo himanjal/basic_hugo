@@ -474,7 +474,7 @@ html {
 }
 
 /* -------------------------
-   Benefits UI (info page)
+   About me UI (info page)
    ------------------------- */
 .site-width{
     max-width: var(--site-width);
@@ -485,7 +485,7 @@ html {
 
 /* section spacing */
 .benefits-section{
-    padding: 56px 0 84px;
+    padding: 100px 0 84px;
     background: transparent;
     color: var(--text-color, #0b0b0b);
     text-align: center;

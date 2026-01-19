@@ -1,101 +1,98 @@
 {{ define "main" }}
 
+{{/* =========================
+ASSET SETUP
+========================= */}}
+
 {{ $background := .Param "background" }}
-{{ $bg := $background }}
+{{ $bg := "" }}
 {{ with resources.GetMatch $background }}
 {{ $bg = (.Resize "2400x").RelPermalink }}
 {{ end }}
 
 {{/* =========================
-BEHAVIOR CONTROLS
+ANIMATION CONFIGURATION
 ========================= */}}
 
 {{ $slices := 15 }}
 
-{{ $randomOrder := false }}      {{/* left/right order */}}
-{{ $randomVertical := false }}   {{/* up/down */}}
-{{ $randomSpeed := false }}     {{/* speed variance */}}
+{{ $randomOrder := false }}      {{/* true = shuffle slices, false = sequential */}}
+{{ $randomVertical := false }}   {{/* true = alternate up/down, false = all same way */}}
+{{ $randomSpeed := false }}      {{/* true = variable speeds, false = uniform */}}
 
 {{/* =========================
 DERIVED DATA
 ========================= */}}
 
+{{/* Generate the order list based on config */}}
 {{ $order := cond $randomOrder (shuffle (seq 1 $slices)) (seq 1 $slices) }}
 
+{{/* =========================
+HERO CONTAINER
+========================= */}}
+
 <div class="hero-root"
+     data-bg="{{ $bg }}"
      style="
        --slice-count: {{ $slices }};
        --random-speed: {{ if $randomSpeed }}1{{ else }}0{{ end }};
      ">
 
-    <!-- BACKGROUND -->
     <div class="hero-bg" style="background-image: url('{{ $bg }}');"></div>
 
-    <!-- MASK SLICES -->
     <div class="hero-slices" aria-hidden="true">
         {{ range $i, $idx := seq 0 (sub $slices 1) }}
 
-        {{/* reveal order */}}
+        {{/* Logic restored from your original file */}}
+
+        {{/* Reveal Order */}}
         {{ $orderIndex := index $order $idx }}
 
-        {{/* easing curve */}}
+        {{/* Easing Curve Variant (0, 1, or 2) */}}
         {{ $curve := mod $idx 3 }}
 
-        {{/* vertical direction */}}
+        {{/* Vertical Direction (1 or -1) */}}
         {{ $vdir := cond $randomVertical (cond (eq (mod $idx 2) 0) 1 -1) 1 }}
 
-        {{/* speed variation */}}
+        {{/* Speed Multiplier */}}
         {{ $speed := cond $randomSpeed (add 0.8 (mul (mod $idx 3) 0.15)) 1 }}
 
-        <div
-                class="hero-slice"
-                style="
-          --order: {{ $orderIndex }};
-          --curve: {{ $curve }};
-          --vdir: {{ $vdir }};
-          --speed: {{ $speed }};
-        ">
+        <div class="hero-slice"
+             style="
+                   --order: {{ $orderIndex }};
+                   --curve: {{ $curve }};
+                   --vdir: {{ $vdir }};
+                   --speed: {{ $speed }};
+                 ">
         </div>
 
         {{ end }}
     </div>
 
     <section class="hero">
-        {{ partial "header.html" . }}
+        <div class="glass-grid">
+
+            <div class="glass-box box-info">
+                <h3>Who am I?</h3>
+                <div class="typewriter-container">
+                    <span class="pill-btn">
+                        <span class="typewriter-text">Software Engineer by trade. World explorer by nature.
+                            Currently, probably backpacking through some mountains without any connectivity.</span>
+                    </span>
+                </div>
+            </div>
+
+            <a href="/gallery" class="glass-box box-link box-gallery">
+                <span class="pill-btn">View gallery</span>
+            </a>
+
+            <a href="/playground" class="glass-box box-link box-playground">
+                <span class="pill-btn">Explore Playground</span>
+            </a>
+
+        </div>
     </section>
 
 </div>
-
-<script>
-    (function() {
-        var heroRoot = document.querySelector('.hero-root');
-        var bgUrl = '{{ $bg }}';
-
-        // Function to start animation
-        var unlock = function() {
-            heroRoot.classList.add('is-loaded');
-        };
-
-        // If no background, start immediately
-        if (!bgUrl) {
-            unlock();
-            return;
-        }
-
-        // Create a dummy image to track loading state
-        var img = new Image();
-        img.src = bgUrl;
-
-        if (img.complete) {
-            // Image is already cached/loaded
-            unlock();
-        } else {
-            // Wait for load
-            img.onload = unlock;
-            img.onerror = unlock; // Fallback if image fails
-        }
-    })();
-</script>
-
 
 {{ end }}
