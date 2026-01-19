@@ -34,13 +34,13 @@
     grid-template-rows: 1fr;
 
     height: 100vh;
-    z-index: 1;
+    z-index: 5;
     pointer-events: none;
 }
 
 /* ================================
    SLICE BASE
-   ================================ */
+   =============================== */
 
 /* ================================
    SLICE BASE
@@ -52,6 +52,7 @@
 
     transform: translateY(0);
     opacity: 1;
+    z-index: 5;
 
     /* animation-name: sliceReveal;  <-- Removed to prevent auto-start */
     animation-fill-mode: forwards;
@@ -135,23 +136,26 @@
    ================================ */
 
 .glass-grid {
+    /* Define Aspect Ratios here for easy tuning */
+    --tile-aspect-desktop: 16 / 9; /* Wider rectangular look */
+    --tile-aspect-mobile: 3 / 4;   /* Slightly taller for mobile */
+
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 2rem; /* Increased gap for better separation */
-    max-width: 1200px;
-    margin: 16rem auto 0; /* More spacing from header */
+    gap: 1.5rem;
+    max-width: 1400px; /* Increased width to allow rectangular breathing room */
+    margin: 8rem auto 0;
     padding: 0 2rem;
     width: 100%;
     box-sizing: border-box;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 700px) {
     .glass-grid {
         grid-template-columns: 1fr;
-        gap: 1.5rem;
+        gap: 5rem;
     }
 }
-
 /* ================================
    GLASS BOX STYLING (MATCHING IMAGES)
    ================================ */
@@ -161,6 +165,8 @@
     --shadow-deep: 0 40px 120px rgba(0,0,0,0.32);
     --shadow-mid: 0 18px 46px rgba(0,0,0,0.42);
     --shadow-top: 0 6px 18px rgba(0,0,0,0.28);
+    aspect-ratio: var(--tile-aspect-desktop);
+
     /* 1. The Frosted Gradient
        Mimics the slate-blue/white tint seen in the images */
     /*background: linear-gradient(*/
@@ -168,7 +174,7 @@
     /*        rgba(255, 255, 255, 0.15) 0%,*/
     /*        rgba(255, 255, 255, 0.05) 100%*/
     /*);*/
-    /*background: rgba(255,255,255,0.04);*/
+    background: rgba(255,255,255,0.06);
 
     /* 2. Heavy Blur
        The images show a very strong blur that obscures the mountains */
@@ -201,6 +207,65 @@
     overflow: hidden;
 }
 
+/* Mobile Aspect Ratio Override */
+@media (max-width: 700px) {
+    .glass-box {
+        aspect-ratio: var(--tile-aspect-mobile);
+        min-height: 250px; /* Safety height */
+        -webkit-backdrop-filter: blur(2px) saturate(110%);
+        backdrop-filter: blur(2px) saturate(110%);
+    }
+}
+
+@media (min-width: 1100px) {
+    .glass-grid {
+        /* Switch to 2 columns as requested */
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .glass-box {
+        max-height: 100px;}
+}
+
+    /* Target the 3rd box to center it in the 2nd row */
+    /* We span 2 columns but restrict width to match a single column size */
+    .glass-box:nth-child(4) {
+        /*background: transparent;*/
+        /*backdrop-filter: none;*/
+        /*box-shadow: none;*/
+        grid-column: 1 / -1;              /* Span across both columns */
+        justify-self: right;             /* Center horizontally */
+        width: calc((100% - 40rem) / 2); /* Force width to match the top row items exactly */
+    }
+
+    .glass-box:nth-child(1) {
+        background: transparent;
+        backdrop-filter: none;
+        box-shadow: none;
+        /*grid-column: 1 / -1;              !* Span across both columns *!*/
+        /*justify-self: right;             !* Center horizontally *!*/
+        /*width: calc((100% - 40rem) / 2); !* Force width to match the top row items exactly *!*/
+
+}
+
+
+@media (max-width: 1100px) and (min-width: 700px) {
+    .glass-grid {
+        /* Switch to 2 columns as requested */
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Target the 3rd box to center it in the 2nd row */
+    /* We span 2 columns but restrict width to match a single column size */
+    .glass-box:nth-child(1) {
+        background: transparent;
+        backdrop-filter: none;
+        box-shadow: none;
+        grid-column: 1 / -1;              /* Span across both columns */
+        justify-self: left;             /* Center horizontally */
+        width: calc((100% - 4rem) / 2); /* Force width to match the top row items exactly */
+    }
+}
+
 /* Typography adjustments to match image readability */
 .glass-box h3 {
     font-size: 2rem;
@@ -218,6 +283,46 @@
     text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
+.glass-box.box-info {
+    justify-content: flex-start; /* Top alignment */
+    align-items: flex-start;     /* Left alignment */
+    text-align: left;
+}
+
+/* ================================
+   TYPEWRITER ANIMATION (No Cursor)
+   ================================ */
+
+.typewriter-container {
+    display: inline-block;
+    max-width: 100%;
+}
+
+.typewriter-text {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.85);
+
+    /* Animation: Type (3s) + Wait (2s) = 5s Loop */
+    animation: typing-reveal 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+
+    /* Ensure no border/cursor */
+    border-right: none;
+}
+
+@keyframes typing-reveal {
+    0% { width: 0; opacity: 0; }
+    10% { opacity: 1; }
+    60% { width: 100%; }     /* Finished typing */
+    90% { width: 100%; opacity: 1; } /* Hold */
+    100% { width: 0; opacity: 0; }    /* Snap back hidden */
+}
+
+
 /* ================================
    INTERACTIVE BUTTON BOXES (Box 2 & 3)
    ================================ */
@@ -229,27 +334,60 @@
 }
 
 /* The "Lift" Effect on Hover */
-.glass-box.box-link:hover {
+.glass-box:hover {
     /* Move up */
     transform: translateY(-10px);
 
-    /* Increase shadow depth/blur to simulate height */
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.45);
+    /*!* Increase shadow depth/blur to simulate height *!*/
+    /*box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);*/
 
-    /* Slight brightness boost */
-    background: linear-gradient(
-            145deg,
-            rgba(255, 255, 255, 0.2) 0%,
-            rgba(255, 255, 255, 0.1) 100%
-    );
-    border-color: rgba(255, 255, 255, 0.4);
+    /*!* Slight brightness boost *!*/
+    /*background: linear-gradient(*/
+    /*        145deg,*/
+    /*        rgba(255, 255, 255, 0.2) 0%,*/
+    /*        rgba(255, 255, 255, 0.1) 100%*/
+    /*);*/
+    /*!*background: rgba(100, 116, 139, 0.35); !* Slight brighten *!*!*/
+    /*border-color: rgba(255, 255, 255, 0.4);*/
 }
 
-/* Optional: Add a subtle inner glow element for the buttons */
-.glass-box.box-link span {
+/* The Pill Styling */
+.glass-box.box-link .pill-btn {
     position: relative;
     z-index: 2;
+
+    /* Pill Shape */
+    background: rgba(0, 0, 0, 0.1); /* Dark semi-transparent pill */
+    padding: 12px 28px;
+    border-radius: 12px;
+
+    /* Border & Glow */
+    /*border: 1px solid rgba(255, 255, 255, 0.15);*/
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    /*backdrop-filter: blur(4px); !* Extra blur inside the button *!*/
+
+    /* Typography */
     font-weight: 600;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     letter-spacing: 0.02em;
+    color: #fff;
+
+    transition: background 0.3s ease, transform 0.3s ease;
 }
+
+/* Make the pill glow slightly on box hover */
+.glass-box.box-link:hover span {
+    /*background: rgba(0, 0, 0, 0.2); !* Dark semi-transparent pill *!*/
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: scale(1.05);
+}
+
+/*body::after {*/
+/*    content: "";*/
+/*    position: fixed;*/
+/*    inset: 0;            !* Covers the whole screen *!*/
+/*    background: blue;    !* Solid blue *!*/
+/*    z-index: 1;          !* Sits ON TOP of background (0) but BEHIND content (2) *!*/
+/*    opacity: 1;          !* 100% solid to hide the wallpaper completely *!*/
+/*    pointer-events: none;*/
+/*}*/
