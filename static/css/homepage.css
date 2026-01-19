@@ -163,7 +163,7 @@ html, body {
 
     /* Mobile Sizing (< 700px) */
     --mobile-tile-height: 200px;
-    --mobile-gap: 1.5rem;       /* Vertical space between cards on mobile */
+    --mobile-gap: 8rem;       /* Vertical space between cards on mobile */
     --mobile-padding: 2rem;   /* <--- NEW: Controls Left/Right spacing on mobile */
 }
 
