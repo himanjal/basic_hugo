@@ -130,121 +130,126 @@
     }
 }
 
-
 /* ================================
    GLASS GRID LAYOUT
    ================================ */
 
 .glass-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 Equal Columns */
-    gap: 1.5rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem; /* Increased gap for better separation */
     max-width: 1200px;
-    margin: 4rem auto 0; /* Spacing from header */
+    margin: 16rem auto 0; /* More spacing from header */
     padding: 0 2rem;
     width: 100%;
     box-sizing: border-box;
 }
 
-/* Mobile responsive stack */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
     .glass-grid {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
 }
 
 /* ================================
-   GLASS BOX STYLING
+   GLASS BOX STYLING (MATCHING IMAGES)
    ================================ */
 
 .glass-box {
-    /* Glass Effect */
-    background: rgba(255, 255, 255, 0.05); /* Very subtle fill */
-    backdrop-filter: blur(12px);          /* The blur */
-    -webkit-backdrop-filter: blur(12px);  /* Safari support */
-    border: 1px solid rgba(255, 255, 255, 0.1);
 
-    /* Layout */
-    border-radius: 16px;
-    padding: 2rem;
+    --shadow-deep: 0 40px 120px rgba(0,0,0,0.32);
+    --shadow-mid: 0 18px 46px rgba(0,0,0,0.42);
+    --shadow-top: 0 6px 18px rgba(0,0,0,0.28);
+    /* 1. The Frosted Gradient
+       Mimics the slate-blue/white tint seen in the images */
+    /*background: linear-gradient(*/
+    /*        145deg,*/
+    /*        rgba(255, 255, 255, 0.15) 0%,*/
+    /*        rgba(255, 255, 255, 0.05) 100%*/
+    /*);*/
+    /*background: rgba(255,255,255,0.04);*/
+
+    /* 2. Heavy Blur
+       The images show a very strong blur that obscures the mountains */
+    -webkit-backdrop-filter: blur(2px) saturate(110%);
+    backdrop-filter: blur(2px) saturate(110%);
+
+    /* 3. The Border
+       Subtle white border to define edges */
+    /*border: 1px solid rgba(255, 255, 255, 0.2);*/
+    /*border-top: 1px solid rgba(255, 255, 255, 0.3); !* Slightly brighter top *!*/
+
+    /* 4. Deep Shadows */
+    box-shadow: var(--shadow-top), var(--shadow-mid), var(--shadow-deep);
+
+    /* Layout & Shape */
+    border-radius: 12px;
+    padding: 2.5rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: flex-start;
-    min-height: 180px;
+    min-height: 120px;
 
     /* Text Styles */
     color: #ffffff;
     text-decoration: none;
-    transition: transform 0.3s ease, background 0.3s ease;
+
+    /* Smooth Physics for "Lift" */
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
 }
 
+/* Typography adjustments to match image readability */
 .glass-box h3 {
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-    font-size: 1.5rem;
+    font-size: 2rem;
     font-weight: 700;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+    /* Text shadow to pop against variable backgrounds */
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
-/* Interactive Link Boxes */
-.glass-box.box-link {
-    align-items: center; /* Center text for buttons */
-    text-align: center;
-    font-weight: 600;
-    font-size: 1.2rem;
-    cursor: pointer;
-}
-
-.glass-box.box-link:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: translateY(-5px);
-    border-color: rgba(255, 255, 255, 0.3);
+.glass-box p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 /* ================================
-   TYPEWRITER ANIMATION
+   INTERACTIVE BUTTON BOXES (Box 2 & 3)
    ================================ */
 
-.typewriter-container {
-    display: inline-block;
+.glass-box.box-link {
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
 }
 
-.typewriter-text {
-    overflow: hidden; /* Ensures content is not revealed until animation */
-    border-right: .15em solid rgba(255,255,255,0.7); /* The cursor */
-    white-space: nowrap; /* Keeps content on a single line */
-    margin: 0;
-    font-size: 1rem;
-    max-width: 0; /* Start hidden */
-    opacity: 0.9;
+/* The "Lift" Effect on Hover */
+.glass-box.box-link:hover {
+    /* Move up */
+    transform: translateY(-10px);
 
-    /* Animation Logic:
-       typing: 3s to type, holds for 2s (total 5s cycle)
-       blink: cursor blinking
-    */
-    animation:
-            typing 5s steps(30, end) infinite,
-            blink-caret .75s step-end infinite;
+    /* Increase shadow depth/blur to simulate height */
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.45);
+
+    /* Slight brightness boost */
+    background: linear-gradient(
+            145deg,
+            rgba(255, 255, 255, 0.2) 0%,
+            rgba(255, 255, 255, 0.1) 100%
+    );
+    border-color: rgba(255, 255, 255, 0.4);
 }
 
-/* The typing keyframes */
-@keyframes typing {
-    0% {
-        max-width: 0;
-    }
-    50% {
-        max-width: 100%; /* Finished typing at 2.5s */
-    }
-    90% {
-        max-width: 100%; /* Waits until 4.5s */
-    }
-    100% {
-        max-width: 0;    /* Snaps back to 0 to restart */
-    }
-}
-
-/* The cursor blinking keyframes */
-@keyframes blink-caret {
-    from, to { border-color: transparent }
-    50% { border-color: rgba(255,255,255,0.7); }
+/* Optional: Add a subtle inner glow element for the buttons */
+.glass-box.box-link span {
+    position: relative;
+    z-index: 2;
+    font-weight: 600;
+    font-size: 1.25rem;
+    letter-spacing: 0.02em;
 }
