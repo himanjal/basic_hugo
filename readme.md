@@ -1,0 +1,166 @@
+# My Personal Portfolio
+
+A multidisciplinary portfolio website combining high-performance static site generation with a serverless backend. This project showcases professional a custom-built photography engine, and interactive travel visualizations.
+
+**Live Site:** [https://www.himanjal.com](https://www.himanjal.com)  
+
+---
+
+## 🚀 Key Features
+
+### 1. The Playground (Infinite Canvas)
+An immersive, infinite-scroll interface that loads images dynamically.
+* **Tech:** Vanilla JS (`playground.js`) + Custom CSS.
+* **Performance:** Uses a flat-file JSON manifest (`playground_manifest.json`) fetched from CloudFront.
+* **Optimization:** Implements "pre-warming" cache logic and layout thrashing prevention for 60fps performance.
+
+### 2. Dynamic Gallery System
+A decoupled gallery architecture where the frontend is static, but content is dynamic.
+* **Structure:** The `gallery` page lists albums, while the `album-viewer` renders specific photos.
+* **Data Source:** Each album pulls a dedicated JSON configuration from S3/CloudFront, allowing albums to be updated without rebuilding the Hugo site.
+* **Viewer:** Integrated with **PhotoSwipe** for high-performance, touch-friendly image zooming and swiping (`photoswipe.css`, `album-viewer.js`).
+
+### 3. Mountain Range & Travel Heatmap
+An interactive visualization of global travel history and hiking expeditions.
+* **Location:** `/travel-heatmap/`
+* **Data Driven:** * **Points:** Driven by `static/heatmap/heatmap_input_data.csv`.
+    * **Topology:** Mountain ranges rendered via `static/heatmap/ranges_small.geojson`.
+* **Logic:** `heatmap.js` handles the parsing of CSV/GeoJSON data and rendering the map layer.
+
+---
+
+## 🏗 Architecture
+
+The system uses a **Hybrid Architecture**:
+1.  **Frontend:** **Hugo** (Static Site Generator) compiles HTML/CSS/JS. Hosted on **GitHub Pages**.
+2.  **Backend:** **AWS Serverless** (S3 + Lambda + CloudFront) handles image processing and API-like JSON delivery.
+
+
+### The Serverless Workflow
+When an image is uploaded to the S3 Bucket:
+1.  **Trigger:** An S3 Event Notification fires the Lambda function (`update_gallery.py`).
+2.  **Process:** * Generates 800px optimized thumbnails.
+    * Updates `manifest.json` (List of Albums).
+    * Updates `playground_manifest.json` (Flat list of all images).
+    * Updates specific `[ALBUM].json` metadata.
+3.  **Invalidate:** Sets `Cache-Control: max-age=0` on JSON files so the frontend sees updates instantly.
+
+---
+
+## 📂 Repository Structure
+
+Based on the project file tree:
+
+```text
+.
+├── assets/                  # Core assets and backend scripts
+│   ├── images/              # Static site images
+│   ├── logos/               # SVG logos
+│   ├── trigger_lambda.py    # AWS Lambda entry point helper
+│   └── update_gallery.py    # MAIN BACKEND SCRIPT (Image processing & JSON generation)
+├── content/                 # Hugo Content Pages
+│   ├── about/               # About page markdown
+│   ├── album-viewer/        # Logic for rendering a single album
+│   ├── gallery/             # Main gallery grid listing
+│   ├── playground/          # Infinite canvas container
+│   └── travel-heatmap/      # Heatmap container
+├── layouts/                 # HTML Templates
+│   ├── _default/            # Base templates (baseof.html, list.html)
+│   ├── partials/            # Headers, footers, nav
+│   └── [sections]/          # Specific layouts (playground/single.html, etc.)
+├── static/                  # Raw assets served as-is
+│   ├── css/                 # Stylesheets (gallery.css, heatmap.css, playground.css, etc.)
+│   ├── heatmap/             # DATA SOURCES
+│   │   ├── heatmap_input_data.csv
+│   │   └── ranges_small.geojson
+│   └── js/                  # Client-side Logic
+│       ├── gallery.js       # Fetches album lists
+│       ├── heatmap.js       # Renders map data
+│       ├── playground.js    # Spawning logic
+│       └── ...
+└── config.toml              # Hugo Global Configuration
+```
+---
+
+## 🛠 Local Development
+
+### Prerequisites
+
+* [Hugo Extended](https://gohugo.io/installation/) (Latest Version)
+* Git
+
+### Quick Start
+
+1. **Clone the repository:**
+```bash
+git clone [https://github.com/your-username/your-repo.git](https://github.com/your-username/your-repo.git)
+cd your-repo
+
+```
+
+
+2. **Run the local server:**
+```bash
+hugo server -D
+
+```
+
+
+Access the site at `http://localhost:1313`.
+
+---
+
+## ☁️ Backend Configuration (AWS)
+
+To replicate the backend functionality, you need the following AWS setup:
+
+### 1. S3 Bucket Structure
+
+Create a bucket (e.g., `[YOUR_BUCKET_NAME]`) with this folder structure:
+
+* `/images/gallery/{album_name}/` (Source images go here)
+* `/images/thumbs/` (Auto-generated by Lambda)
+* `/images/configs/` (Auto-generated JSONs)
+
+### 2. Lambda Function
+
+* **Code:** Use `assets/update_gallery.py`.
+* **Triggers:** Configure S3 to trigger on **ObjectCreated** and **ObjectRemoved**.
+* **Environment Variables:**
+* `BUCKET_NAME`: `[YOUR_BUCKET_NAME]`
+* `CLOUDFRONT_DOMAIN`: `[YOUR_CLOUDFRONT_ID].cloudfront.net`
+
+
+* **Permissions:** IAM Role needs S3 `Read/Write/List` and CloudWatch Logs access.
+
+### 3. CloudFront CDN
+
+* Point a distribution to your S3 bucket.
+* **Caching Policy:**
+* Images: Default (24h).
+* JSON (`/images/configs/*`): Set via origin headers (The Python script sets `max-age=0` to force revalidation).
+
+
+
+---
+
+## 📸 Content Management
+
+### Adding a New Album
+
+1. Create a folder `images/gallery/my-new-trip/` in S3.
+2. Upload `.jpg` or `.png` files.
+3. **Wait ~15 seconds.** The Lambda function will automatically:
+* Create thumbnails.
+* Create `images/configs/my-new-trip.json`.
+* Add the album to the global `manifest.json`.
+
+
+
+### Updating the Heatmap
+
+1. Edit `static/heatmap/heatmap_input_data.csv`.
+2. Commit and push to GitHub.
+3. The site updates automatically via GitHub Actions.
+
+---

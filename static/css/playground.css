@@ -3,7 +3,7 @@
     --hg-max-stack: 30;
     --hg-drag-threshold: 40; /* pointer minimum drag to show new image */
     --hg-spawn-threshold: 48; /* pixels */
-    --hg-landscape-scale : 1.5; /* scaling factor for landscape images */
+    --hg-landscape-scale : 1.2; /* scaling factor for landscape images */
     --hg-last-three-hold: 1000; /*hold value for last images after movement stops*/
     --hg-mouse-stop-delay: 120ms; /* how long a mouse needs to stop to kickoff last 3 fade */
     --hg-img-size: clamp(120px, 20vmin, 420px);

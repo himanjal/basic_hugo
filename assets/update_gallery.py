@@ -12,6 +12,7 @@ CLOUDFRONT_DOMAIN = 'd1f1sorz2edz9k.cloudfront.net'
 GALLERY_PREFIX = 'images/gallery/'
 THUMB_PREFIX   = 'images/thumbs/'
 CONFIG_PREFIX  = 'images/configs/'
+PLAYGROUND_KEY = 'images/configs/playground_manifest.json'
 # =================================================
 
 s3 = boto3.client('s3')
@@ -41,14 +42,17 @@ def lambda_handler(event, context):
     for album in albums_to_process:
         process_album(album)
 
-    # 3. UPDATE THE MASTER MANIFEST
+    # 3. UPDATE THE ALBUM LIST MANIFEST
     update_manifest()
+
+    # 4. UPDATE THE PLAYGROUND MANIFEST (The flat list)
+    update_playground_manifest()
 
     return {'statusCode': 200, 'body': json.dumps('Sync Complete')}
 
 def update_manifest():
-    """Scans S3 for all available JSON configs and saves a master list."""
-    print("   📝 Updating Global Manifest...")
+    """Scans S3 for all available JSON configs and saves a master list of album IDs."""
+    print("   📝 Updating Global Album Manifest...")
 
     paginator = s3.get_paginator('list_objects_v2')
     pages = paginator.paginate(Bucket=BUCKET_NAME, Prefix=CONFIG_PREFIX)
@@ -60,7 +64,8 @@ def update_manifest():
             key = obj['Key']
             filename = key.split('/')[-1]
 
-            if filename.endswith('.json') and filename != 'manifest.json':
+            # Exclude special manifests, only include album configs
+            if filename.endswith('.json') and filename not in ['manifest.json', 'playground_manifest.json']:
                 album_id = filename.replace('.json', '')
                 albums.append(album_id)
 
@@ -74,7 +79,60 @@ def update_manifest():
         ContentType='application/json',
         CacheControl='max-age=0, must-revalidate'
     )
-    print(f"   ✅ Manifest updated with {len(albums)} albums.")
+    print(f"   ✅ Album Manifest updated with {len(albums)} albums.")
+
+def update_playground_manifest():
+    """
+    Aggregates ALL images from ALL albums into a single flat JSON.
+    Ensures no duplicate filenames exist (first found wins).
+    """
+    print("   🛝 Updating Playground Manifest...")
+
+    paginator = s3.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=BUCKET_NAME, Prefix=CONFIG_PREFIX)
+
+    all_playground_images = []
+    seen_filenames = set()
+
+    for page in pages:
+        if 'Contents' not in page: continue
+        for obj in page['Contents']:
+            key = obj['Key']
+            filename = key.split('/')[-1]
+
+            # Process only album JSONs
+            if filename.endswith('.json') and filename not in ['manifest.json', 'playground_manifest.json']:
+                try:
+                    # Fetch the album JSON
+                    response = s3.get_object(Bucket=BUCKET_NAME, Key=key)
+                    album_data = json.loads(response['Body'].read().decode('utf-8'))
+
+                    if 'images' in album_data and isinstance(album_data['images'], list):
+                        for img in album_data['images']:
+                            # DEDUPLICATION: Check if we've already added an image with this filename
+                            if img['name'] not in seen_filenames:
+                                seen_filenames.add(img['name'])
+
+                                # Add only the fields needed for playground
+                                all_playground_images.append({
+                                    "thumb": img['thumb'],
+                                    "src": img['src'],
+                                    "width": img['width'],
+                                    "height": img['height']
+                                    # We do not include 'name' or other metadata to keep payload light
+                                })
+                except Exception as e:
+                    print(f"   ⚠️ Could not process {filename} for playground: {e}")
+
+    # Save the flat playground manifest
+    s3.put_object(
+        Bucket=BUCKET_NAME,
+        Key=PLAYGROUND_KEY,
+        Body=json.dumps(all_playground_images),
+        ContentType='application/json',
+        CacheControl='max-age=0, must-revalidate'
+    )
+    print(f"   ✅ Playground Manifest updated with {len(all_playground_images)} unique images.")
 
 def process_album(album_name):
     print(f"📂 Syncing Album: {album_name}")
@@ -162,7 +220,8 @@ def process_album(album_name):
         Bucket=BUCKET_NAME,
         Key=config_key,
         Body=json.dumps(final_data, indent=2),
-        ContentType='application/json'
+        ContentType='application/json',
+        CacheControl='max-age=0, must-revalidate'
     )
 
 def generate_thumbnail(source_key, target_key):
