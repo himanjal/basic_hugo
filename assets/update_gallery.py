@@ -1,134 +1,185 @@
 import boto3
 import json
-import os
-from collections import defaultdict
-from PIL import Image
+import urllib.parse
 from io import BytesIO
+from PIL import Image
 
 # ================= CONFIGURATION =================
 BUCKET_NAME = 'himanjal-portfolio-gallery-assets'
-S3_PREFIX = 'images/gallery/'
-LOCAL_ASSETS_ROOT = 'assets/images/gallery'
-JSON_FILENAME = 'images_meta.json'
-AWS_REGION = 'us-east-1'
 CLOUDFRONT_DOMAIN = 'd1f1sorz2edz9k.cloudfront.net'
+
+# PATH DEFINITIONS
+GALLERY_PREFIX = 'images/gallery/'
+THUMB_PREFIX   = 'images/thumbs/'
+CONFIG_PREFIX  = 'images/configs/'
 # =================================================
 
 s3 = boto3.client('s3')
 
-def process_album(album_name, images_in_s3):
-    print(f"\n📂 Processing Album: {album_name}")
+def get_public_url(key):
+    return f"https://{CLOUDFRONT_DOMAIN}/{key}"
 
-    processed_images = []
+def lambda_handler(event, context):
+    print("🚀 Event received!")
 
-    # Check/Create local folder for the JSON file
-    local_album_path = os.path.join(LOCAL_ASSETS_ROOT, album_name)
-    if not os.path.exists(local_album_path):
-        os.makedirs(local_album_path, exist_ok=True)
+    albums_to_process = set()
 
-    for filename in images_in_s3:
-        if "thumb_" in filename: continue
+    # 1. Identify which albums were touched
+    for record in event.get('Records', []):
+        key = urllib.parse.unquote_plus(record['s3']['object']['key'])
 
-        original_key = f"{S3_PREFIX}{album_name}/{filename}"
-        thumb_filename = f"thumb_{filename}"
-        thumb_key = f"{S3_PREFIX}{album_name}/thumbs/{thumb_filename}"
+        if not key.startswith(GALLERY_PREFIX): continue
 
-        # 1. CHECK IF THUMBNAIL EXISTS
-        try:
-            s3.head_object(Bucket=BUCKET_NAME, Key=thumb_key)
-            print(f"   🔹 Checked: {filename}", end='\r')
+        # Extract Album Name (images/gallery/ALBUM/photo.jpg)
+        relative_path = key[len(GALLERY_PREFIX):]
+        parts = relative_path.split('/')
 
-            # Optimization: If thumb exists, we assume we want to keep it.
-            # To get W/H without downloading, we'd need a DB, but for now
-            # we will quickly download the thumb header or original to get size.
-            # For simplicity in this fix, we will just redownload original to be safe.
-        except:
-            print(f"   ⚡ Generating thumb: {filename}")
+        if len(parts) >= 2:
+            albums_to_process.add(parts[0])
 
-        # 2. DOWNLOAD & PROCESS
-        try:
-            # Download Original
-            obj = s3.get_object(Bucket=BUCKET_NAME, Key=original_key)
-            img_data = obj['Body'].read()
-            im = Image.open(BytesIO(img_data))
+    # 2. Process specific albums
+    for album in albums_to_process:
+        process_album(album)
 
-            width, height = im.size
+    # 3. UPDATE THE MASTER MANIFEST
+    update_manifest()
 
-            # Create Thumbnail
-            im.thumbnail((600, 600))
+    return {'statusCode': 200, 'body': json.dumps('Sync Complete')}
 
-            thumb_buffer = BytesIO()
-            if im.mode in ("RGBA", "P"): im = im.convert("RGB")
-            im.save(thumb_buffer, format="JPEG", quality=80)
-            thumb_buffer.seek(0)
-
-            # Upload Thumbnail (FIXED: Removed ACL parameter)
-            s3.put_object(
-                Bucket=BUCKET_NAME,
-                Key=thumb_key,
-                Body=thumb_buffer,
-                ContentType='image/jpeg'
-                # ACL='public-read'  <-- REMOVED THIS LINE
-            )
-
-            processed_images.append({
-                            "name": filename,
-                            "width": width,
-                            "height": height,
-                            # NEW FAST CLOUDFRONT URL
-                            "src": f"https://{CLOUDFRONT_DOMAIN}/{original_key}",
-                            "thumb": f"https://{CLOUDFRONT_DOMAIN}/{thumb_key}"
-                        })
-
-        except Exception as e:
-            print(f"   ❌ Error processing {filename}: {e}")
-
-    # 3. SAVE JSON
-    json_path = os.path.join(local_album_path, JSON_FILENAME)
-    data = {}
-
-    if os.path.exists(json_path):
-        with open(json_path, 'r') as f:
-            try:
-                existing = json.load(f)
-                data['title'] = existing.get('title', album_name.replace('_', ' ').title())
-                data['description'] = existing.get('description', "")
-            except: pass
-
-    if 'title' not in data: data['title'] = album_name.replace('_', ' ').title()
-
-    data['images'] = processed_images
-
-    with open(json_path, 'w') as f:
-        json.dump(data, f, indent=2)
-
-    print(f"   ✅ Saved metadata for {len(processed_images)} images.")
-
-def main():
-    print(f"🚀 Scanning S3 Bucket: '{BUCKET_NAME}'...")
+def update_manifest():
+    """Scans S3 for all available JSON configs and saves a master list."""
+    print("   📝 Updating Global Manifest...")
 
     paginator = s3.get_paginator('list_objects_v2')
-    pages = paginator.paginate(Bucket=BUCKET_NAME, Prefix=S3_PREFIX)
+    pages = paginator.paginate(Bucket=BUCKET_NAME, Prefix=CONFIG_PREFIX)
 
-    album_map = defaultdict(list)
-    valid_extensions = ('.jpg', '.jpeg', '.png', '.webp')
+    albums = []
+    for page in pages:
+        if 'Contents' not in page: continue
+        for obj in page['Contents']:
+            key = obj['Key']
+            filename = key.split('/')[-1]
+
+            if filename.endswith('.json') and filename != 'manifest.json':
+                album_id = filename.replace('.json', '')
+                albums.append(album_id)
+
+    albums.sort()
+
+    manifest_key = f"{CONFIG_PREFIX}manifest.json"
+    s3.put_object(
+        Bucket=BUCKET_NAME,
+        Key=manifest_key,
+        Body=json.dumps(albums),
+        ContentType='application/json',
+        CacheControl='max-age=0, must-revalidate'
+    )
+    print(f"   ✅ Manifest updated with {len(albums)} albums.")
+
+def process_album(album_name):
+    print(f"📂 Syncing Album: {album_name}")
+
+    album_source_path = f"{GALLERY_PREFIX}{album_name}/"
+    config_key        = f"{CONFIG_PREFIX}{album_name}.json"
+    meta_input_key    = f"{GALLERY_PREFIX}{album_name}/meta.json"
+
+    # 1. Load Defaults & Meta
+    existing_images_map = {}
+    try:
+        obj = s3.get_object(Bucket=BUCKET_NAME, Key=config_key)
+        old_data = json.loads(obj['Body'].read().decode('utf-8'))
+        for img in old_data.get('images', []):
+            existing_images_map[img['name']] = img
+    except: pass
+
+    album_meta = {}
+    try:
+        obj = s3.get_object(Bucket=BUCKET_NAME, Key=meta_input_key)
+        album_meta = json.loads(obj['Body'].read().decode('utf-8'))
+    except: pass
+
+    # 2. Process Images
+    processed_images = []
+    paginator = s3.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=BUCKET_NAME, Prefix=album_source_path)
+    valid_exts = ('.jpg', '.jpeg', '.png', '.webp')
 
     for page in pages:
         if 'Contents' not in page: continue
         for obj in page['Contents']:
             key = obj['Key']
-            rel = key[len(S3_PREFIX):]
-            parts = rel.split('/')
+            filename = key.split('/')[-1]
+            if not filename.lower().endswith(valid_exts): continue
 
-            if len(parts) >= 2:
-                album = parts[0]
-                fname = parts[-1]
+            thumb_key = f"{THUMB_PREFIX}{album_name}/thumb_{filename}"
 
-                if "thumbs/" not in key and fname.lower().endswith(valid_extensions):
-                    album_map[album].append(fname)
+            width = 0
+            height = 0
 
-    for album, files in album_map.items():
-        process_album(album, sorted(files))
+            if filename in existing_images_map:
+                width = existing_images_map[filename]['width']
+                height = existing_images_map[filename]['height']
+                try: s3.head_object(Bucket=BUCKET_NAME, Key=thumb_key)
+                except: width, height = generate_thumbnail(key, thumb_key)
+            else:
+                width, height = generate_thumbnail(key, thumb_key)
 
-if __name__ == "__main__":
-    main()
+            if width > 0:
+                processed_images.append({
+                    "name": filename,
+                    "width": width,
+                    "height": height,
+                    "src": get_public_url(key),
+                    "thumb": get_public_url(thumb_key)
+                })
+
+    # ---------------------------------------------------------
+    # NEW LOGIC: Resolve Thumbnail URL
+    # ---------------------------------------------------------
+    raw_thumb_val = album_meta.get('thumbnail', "")
+    final_thumb_url = ""
+
+    if raw_thumb_val:
+        # If it's a full URL (e.g. external link), keep it as is
+        if raw_thumb_val.startswith("http"):
+            final_thumb_url = raw_thumb_val
+        else:
+            # Otherwise, assume it's a filename (e.g. "img1.jpg") and
+            # link to the generated thumbnail version (e.g. ".../thumbs/ALBUM/thumb_img1.jpg")
+            t_key = f"{THUMB_PREFIX}{album_name}/thumb_{raw_thumb_val}"
+            final_thumb_url = get_public_url(t_key)
+
+    # 3. Save Config
+    final_data = {
+        "title": album_meta.get('title', album_name.replace('_', ' ').title()),
+        "description": album_meta.get('caption', ""),
+        "thumbnail": final_thumb_url,  # <--- Uses the resolved URL
+        "s3_base_url": f"https://{CLOUDFRONT_DOMAIN}/{GALLERY_PREFIX}{album_name}/",
+        "images": sorted(processed_images, key=lambda x: x['name'])
+    }
+
+    s3.put_object(
+        Bucket=BUCKET_NAME,
+        Key=config_key,
+        Body=json.dumps(final_data, indent=2),
+        ContentType='application/json'
+    )
+
+def generate_thumbnail(source_key, target_key):
+    try:
+        print(f"   ⚙️ Generating thumb: {source_key.split('/')[-1]}")
+        obj = s3.get_object(Bucket=BUCKET_NAME, Key=source_key)
+        im = Image.open(BytesIO(obj['Body'].read()))
+        width, height = im.size
+
+        im.thumbnail((800, 800))
+        thumb_buffer = BytesIO()
+        if im.mode in ("RGBA", "P"): im = im.convert("RGB")
+        im.save(thumb_buffer, format="JPEG", quality=80)
+        thumb_buffer.seek(0)
+
+        s3.put_object(Bucket=BUCKET_NAME, Key=target_key, Body=thumb_buffer, ContentType='image/jpeg')
+        return width, height
+    except Exception as e:
+        print(f"   ❌ Error: {e}")
+        return 0, 0

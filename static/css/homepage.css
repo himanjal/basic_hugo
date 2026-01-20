@@ -163,7 +163,7 @@ html, body {
 
     /* Mobile Sizing (< 700px) */
     --mobile-tile-height: 200px;
-    --mobile-gap: 10rem;       /* Vertical space between cards on mobile */
+    --mobile-gap: 6rem;       /* Vertical space between cards on mobile */
     --mobile-padding: 2rem;   /* <--- NEW: Controls Left/Right spacing on mobile */
 }
 
@@ -233,7 +233,7 @@ html, body {
         padding: 0 var(--mobile-padding);
 
         /* 3. Top Margin only */
-        margin: 6rem 0 6rem 0;
+        margin: 4rem 0 6rem 0;
 
         gap: var(--mobile-gap);
         box-sizing: border-box; /* Crucial: Ensures padding doesn't add to width */
@@ -250,7 +250,7 @@ html, body {
 
     /* Optional: Make the Info box slightly taller on mobile if needed */
     .box-info {
-        min-height: 550px;
+        min-height: 300px;
     }
 }
 
@@ -288,7 +288,9 @@ html, body {
 .glass-box.box-info {
     justify-content: flex-start;
     text-align: left;
-    /*box-shadow: none;*/
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
 }
 
 .glass-box.box-link {
