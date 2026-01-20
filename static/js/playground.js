@@ -13,50 +13,54 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
     // --- 1. Dynamic Data Loading ---
     let images = [];
     const manifestUrl = wrap.dataset.manifestUrl;
-    const configBase = wrap.dataset.configBase;
 
     async function startProgressiveLoad() {
         if (!manifestUrl) return;
         try {
+            // 1. Fetch the single flat list
             const resp = await fetch(manifestUrl);
             if (!resp.ok) return;
-            const albums = await resp.json();
+            const data = await resp.json();
 
-            const total = albums.length;
-            let loadedCount = 0;
+            // 2. Map data to the internal format
+            // Python output: { thumb, src, width, height }
+            // Playground expects: { thumb, full, w, h }
+            if (Array.isArray(data)) {
+                images = data.map(img => ({
+                    thumb: img.thumb,
+                    full: img.src,   // Map 'src' to 'full'
+                    w: img.width,    // Map 'width' to 'w'
+                    h: img.height    // Map 'height' to 'h'
+                }));
+            }
 
-            const updateProgress = () => {
-                loadedCount++;
-                const pct = Math.min((loadedCount / total) * 100, 100);
-                if (barEl) barEl.style.width = `${pct}%`;
+            // 3. Complete loading
+            if (barEl) barEl.style.width = '100%';
 
-                if (loadedCount >= total) {
-                    setTimeout(onLoadingComplete, 400);
-                }
-            };
+            // Short delay to let the bar animation finish visually
+            setTimeout(onLoadingComplete, 200);
 
-            albums.forEach(albumId => {
-                fetch(`${configBase}${albumId}.json`)
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.images && Array.isArray(data.images)) {
-                            const newBatch = data.images.map(img => ({
-                                thumb: img.thumb, full: img.src, w: img.width, h: img.height
-                            }));
-                            images.push(...newBatch);
-                        }
-                    })
-                    .catch(() => {})
-                    .finally(updateProgress);
-            });
-        } catch (e) { console.error('[playground] Load failed', e); }
+        } catch (e) {
+            console.error('[playground] Load failed', e);
+        }
     }
     startProgressiveLoad();
+
+    function prewarmCache(count = 15) {
+        if (!images.length) return;
+        for (let i = 0; i < count; i++) {
+            const item = images[Math.floor(Math.random() * images.length)];
+            const img = new Image();
+            img.src = item.thumb; // Triggers browser download
+        }
+    }
 
     // --- UI State Transitions ---
     function onLoadingComplete() {
         if (loaderEl) loaderEl.classList.add('is-hidden');
         if (hintEl) hintEl.classList.add('is-visible');
+
+        prewarmCache(20);
 
         setupInteractionListener();
     }
@@ -96,20 +100,27 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
         threshMobile:  cssVar('--hg-threshold-mobile', 35),
         scaleMin:      cssVar('--hg-scale-min', 0.5),
         scaleMax:      cssVar('--hg-scale-max', 1.0),
+        landscapeScale: cssVar('--hg-landscape-scale', 1.5),
         maxVisible:    cssVar('--hg-visible-count', 12),
         fadeDuration:  cssVar('--hg-fade-duration', 1200),
         idleDelay:     cssVar('--hg-mouse-stop-delay', 150),
         fadeAllDelay:  cssVar('--hg-fade-all-delay', 2000),
     };
 
+    const canvas = document.getElementById('hg-canvas');
+    if (!canvas) return;
+    let canvasRect = canvas ? canvas.getBoundingClientRect() : { left: 0, top: 0 };
+
     window.addEventListener('resize', () => {
         CFG.threshDesktop = cssVar('--hg-threshold-desktop', 48);
         CFG.threshMobile  = cssVar('--hg-threshold-mobile', 35);
         CFG.scaleMin      = cssVar('--hg-scale-min', 0.1);
         CFG.scaleMax      = cssVar('--hg-scale-max', 1.0);
+        CFG.landscapeScale = cssVar('--hg-landscape-scale', 1.5);
+
+        if (canvas) canvasRect = canvas.getBoundingClientRect();
     });
 
-    const canvas = document.getElementById('hg-canvas');
     if (!canvas) return;
 
     const activeNodes = [];
@@ -184,7 +195,7 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
         img.dataset.pswpWidth = item.w;
         img.dataset.pswpHeight = item.h;
 
-        const r = canvas.getBoundingClientRect();
+        const r = canvasRect;
         img.style.left = (clientX - r.left) + 'px';
         img.style.top = (clientY - r.top) + 'px';
         img.style.zIndex = ++z;
@@ -202,7 +213,7 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
         img.onload = () => {
             if ((img.naturalWidth || 0) > (img.naturalHeight || 0)) {
                 img.classList.add('hg-landscape');
-                targetScale *= 1.15;
+                targetScale *= CFG.landscapeScale;
             } else {
                 img.classList.add('hg-portrait');
             }
