@@ -5,6 +5,11 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
     const wrap = document.querySelector('.hg-wrap');
     if (!wrap) return;
 
+    // --- UI Elements ---
+    const loaderEl = document.getElementById('hg-loader');
+    const barEl = document.getElementById('hg-loader-bar');
+    const hintEl = document.getElementById('hg-start-hint');
+
     // --- 1. Dynamic Data Loading ---
     let images = [];
     const manifestUrl = wrap.dataset.manifestUrl;
@@ -16,7 +21,19 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
             const resp = await fetch(manifestUrl);
             if (!resp.ok) return;
             const albums = await resp.json();
-            console.log(`[playground] Found ${albums.length} albums.`);
+
+            const total = albums.length;
+            let loadedCount = 0;
+
+            const updateProgress = () => {
+                loadedCount++;
+                const pct = Math.min((loadedCount / total) * 100, 100);
+                if (barEl) barEl.style.width = `${pct}%`;
+
+                if (loadedCount >= total) {
+                    setTimeout(onLoadingComplete, 400);
+                }
+            };
 
             albums.forEach(albumId => {
                 fetch(`${configBase}${albumId}.json`)
@@ -28,17 +45,42 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
                             }));
                             images.push(...newBatch);
                         }
-                    }).catch(() => {});
+                    })
+                    .catch(() => {})
+                    .finally(updateProgress);
             });
         } catch (e) { console.error('[playground] Load failed', e); }
     }
     startProgressiveLoad();
 
+    // --- UI State Transitions ---
+    function onLoadingComplete() {
+        if (loaderEl) loaderEl.classList.add('is-hidden');
+        if (hintEl) hintEl.classList.add('is-visible');
+
+        setupInteractionListener();
+    }
+
+    function setupInteractionListener() {
+        const removeHint = () => {
+            if (hintEl) {
+                hintEl.classList.remove('is-visible');
+                hintEl.classList.add('is-hidden');
+            }
+            window.removeEventListener('mousemove', removeHint);
+            window.removeEventListener('touchstart', removeHint);
+            window.removeEventListener('keydown', removeHint);
+        };
+
+        window.addEventListener('mousemove', removeHint);
+        window.addEventListener('touchstart', removeHint);
+        window.addEventListener('keydown', removeHint);
+    }
+
     // --- 2. Configuration & Helpers ---
     const TAG = '[playground]';
     const LOG = (...a) => console.log('%c' + TAG, 'color:#0a7; font-weight:700;', ...a);
 
-    // Read CSS variable or return fallback
     function cssVar(name, fallback) {
         try {
             const v = getComputedStyle(document.documentElement).getPropertyValue(name);
@@ -87,18 +129,14 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
     }
 
     function applyStackRules(){
-        // 1. Hard Limit
         while(activeNodes.length > CFG.maxVisible){
             const o = activeNodes.shift();
             if(o && o.parentNode) o.parentNode.removeChild(o);
         }
 
-        // 2. Fading Logic
         for(let i=0; i<activeNodes.length; i++){
             const node = activeNodes[i];
             const fromNewest = activeNodes.length - 1 - i;
-
-            // Keep top 3 fresh unless we are fading everything
             const isFresh = (fromNewest < KEEP_LAST_N) && !isFadingAll;
 
             if(isFresh) {
@@ -152,7 +190,6 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
         img.style.zIndex = ++z;
         img.style.position = 'absolute';
         img.style.transformOrigin = 'center center';
-
         img.style.transform = `translate(-50%,-50%) scale(0.5)`;
 
         canvas.appendChild(img);
@@ -206,16 +243,13 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
         }
     }
 
-    // Touch Events
     canvas.addEventListener('touchstart', (e) => {
         if (e.target === canvas || e.target.classList.contains('hg-img')) e.preventDefault();
-
         const t = e.touches[0];
         lastPos = {x: t.clientX, y: t.clientY};
         lastTime = Date.now();
         touchStartTime = Date.now();
         isTouchDragging = true;
-
         if(fadeAllTimer) clearTimeout(fadeAllTimer);
         isFadingAll = false;
     }, {passive: false});
@@ -229,12 +263,10 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
 
     canvas.addEventListener('touchend', (e) => {
         isTouchDragging = false;
-
         const dt = Date.now() - touchStartTime;
         if (dt < 200) {
             const t = e.changedTouches[0];
             const target = document.elementFromPoint(t.clientX, t.clientY);
-            // FIXED: Using correct function name
             if (target && target.classList.contains('hg-img')) {
                 openPhotoSwipe(target);
             } else {
@@ -244,7 +276,6 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
         scheduleIdleCleanup();
     });
 
-    // Mouse Events
     canvas.addEventListener('mousemove', (e) => {
         handleInputMove(e.clientX, e.clientY, false);
     });
@@ -252,7 +283,6 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
     canvas.addEventListener('pointerdown', (ev) => {
         if(ev.pointerType !== 'mouse') return;
         const target = ev.target.closest('.hg-img');
-        // FIXED: Using correct function name
         if(target) {
             ev.stopPropagation();
             openPhotoSwipe(target);
@@ -262,7 +292,7 @@ import PhotoSwipe from 'https://unpkg.com/photoswipe@5/dist/photoswipe.esm.js';
         }
     });
 
-    // --- 6. PhotoSwipe (Renamed back to match callers) ---
+    // --- 6. PhotoSwipe ---
     function openPhotoSwipe(imgElement) {
         if (!imgElement) return;
         const pswp = new PhotoSwipeLightbox({

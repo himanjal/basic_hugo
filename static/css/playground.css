@@ -142,3 +142,72 @@ body[data-page="playground"] .hg-wrap {
 
 /* debug helper (optional): quickly make images more visible during dev */
 /* .hg-img { outline: 1px dashed rgba(255,255,255,0.06); } */
+
+/* ... keep your existing :root, body, hg-wrap, hg-canvas, hg-img styles ... */
+
+/* --- UI Layer (Centered) --- */
+.hg-ui-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    pointer-events: none; /* Allows clicks to pass through to the canvas */
+}
+
+/* Centered Loader */
+.hg-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 160px;
+    height: 4px;
+    background: rgba(0,0,0,0.06);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: opacity 0.5s ease;
+}
+
+.hg-loader-bar {
+    width: 0%;
+    height: 100%;
+    background-color: #111;
+    transition: width 0.1s linear;
+}
+
+/* Centered Hint Text */
+.hg-start-hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Keeps it dead center */
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    color: #111;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+}
+
+/* Visibility States */
+.hg-loader.is-hidden {
+    opacity: 0;
+}
+
+.hg-start-hint.is-visible {
+    opacity: 1;
+    /* Optional: Add a slight float up animation */
+    animation: hg_fade_in_up 0.8s ease forwards;
+}
+
+.hg-start-hint.is-hidden {
+    opacity: 0;
+}
+
+@keyframes hg_fade_in_up {
+    from { opacity: 0; transform: translate(-50%, -40%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
+}
