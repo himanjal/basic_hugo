@@ -4,53 +4,48 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Title -->
     <title>{{ with .Title }}{{ . }} – {{ end }}{{ .Site.Title }}</title>
 
-    <!-- Description -->
     <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}">
 
-    <!-- Canonical -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="{{ .Permalink }}" />
+    <meta property="og:title" content="{{ with .Title }}{{ . }} – {{ end }}{{ .Site.Title }}" />
+    <meta property="og:description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}" />
+    <meta property="og:image" content="{{ "images/social-preview.jpg" | absURL }}" />
+
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="{{ .Permalink }}" />
+    <meta property="twitter:title" content="{{ with .Title }}{{ . }} – {{ end }}{{ .Site.Title }}" />
+    <meta property="twitter:description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}" />
+    <meta property="twitter:image" content="{{ "images/social-preview.jpg" | absURL }}" />
+
     <link rel="canonical" href="{{ .Permalink }}">
 
-    <!-- Favicon -->
     <link rel="icon" href="{{ "favicon.ico" | relURL }}">
 
-    <!-- Preconnect fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- =========================
-         GLOBAL BASE CSS (ALWAYS)
-         ========================= -->
     <link rel="stylesheet" href="{{ "css/main.css" | relURL }}">
 
-    <!-- =========================
-         PAGE-OWNED CSS (DECLARED IN FRONT MATTER)
-         ========================= -->
     {{ with .Params.css }}
     {{ range . }}
     <link rel="stylesheet" href="{{ printf "css/%s" . | relURL }}">
     {{ end }}
     {{ end }}
 
-    <!-- Fonts (kept explicit for now; can be rationalized later) -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 
-<!--<body data-page="{{ .Section | default "home" }}">-->
 <body data-page="{{ .Type }}">
-<!-- Site Header -->
 {{ partial "header.html" . }}
 
 <main id="content" role="main">
     {{ block "main" . }}{{ end }}
 </main>
 
-<!-- =========================
-     PAGE-OWNED JS (DECLARED IN FRONT MATTER)
-     ========================= -->
 {{ with .Params.js }}
 {{ range . }}
 {{ if reflect.IsMap . }}
